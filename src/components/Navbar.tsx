@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ const Navbar = () => {
       <div className={`container mx-auto px-4 py-4 flex items-center justify-between ${isHomePage ? 'text-white' : ''}`}>
         <Link to="/" className="flex items-center space-x-2">
           <Briefcase className={`h-6 w-6 ${isHomePage ? 'text-white' : 'text-primary'}`} />
-          <span className="font-bold text-xl">LegalAI</span>
+          <span className="font-bold text-xl">MazAI</span>
         </Link>
 
         {/* Desktop Navigation */}

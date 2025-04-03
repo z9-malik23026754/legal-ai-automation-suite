@@ -44,7 +44,7 @@ const Dashboard = () => {
 
           {!hasAnySubscription && (
             <div className="bg-muted p-6 rounded-lg mb-8">
-              <h2 className="text-xl font-semibold mb-2">Get Started with Legal AI</h2>
+              <h2 className="text-xl font-semibold mb-2">Get Started with MazAI</h2>
               <p className="mb-4">
                 You don't have any active subscriptions yet. Subscribe to one of our AI agents to get started.
               </p>
