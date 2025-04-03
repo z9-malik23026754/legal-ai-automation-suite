@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, isLoading, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -26,6 +27,7 @@ const SignIn = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     try {
       if (!email || !password) {
@@ -40,6 +42,8 @@ const SignIn = () => {
       await signIn(email, password);
     } catch (error) {
       console.error("Login error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -72,6 +76,7 @@ const SignIn = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
                     required
+                    disabled={isSubmitting || isLoading}
                   />
                   <KeyRound className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                 </div>
@@ -95,6 +100,7 @@ const SignIn = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10"
                     required
+                    disabled={isSubmitting || isLoading}
                   />
                   <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                 </div>
@@ -104,10 +110,10 @@ const SignIn = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading}
+                disabled={isSubmitting || isLoading}
                 size="lg"
               >
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isSubmitting || isLoading ? "Signing in..." : "Sign in"}
               </Button>
               <div className="text-center text-sm">
                 Don't have an account?{" "}

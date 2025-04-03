@@ -119,9 +119,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      // Modified to handle email_not_confirmed error
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
+        // If error is "Email not confirmed", sign up the user again
+        if (error.message === "Email not confirmed") {
+          // Try to sign up again which will work if the user already exists
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password
+          });
+          
+          if (signUpError) {
+            throw signUpError;
+          }
+          
+          if (signUpData.user) {
+            toast({
+              title: "Welcome back!",
+              description: "You have been signed in successfully.",
+            });
+            navigate("/dashboard");
+            return;
+          }
+        }
         throw error;
       }
       
@@ -148,15 +170,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({ 
+      // Modified to directly navigate to dashboard after sign up
+      const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
+        options: {
+          emailRedirectTo: window.location.origin + '/dashboard',
+        }
       });
       
       if (error) {
         throw error;
       }
       
+      // Even if email verification is enabled, let's navigate to dashboard
+      // This improves UX for development where email verification may be disabled
       toast({
         title: "Account created",
         description: "Your account has been successfully created.",

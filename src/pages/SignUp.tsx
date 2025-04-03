@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
-import { Briefcase } from "lucide-react";
+import { Briefcase, KeyRound, Lock } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -16,7 +17,17 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [passwordError, setPasswordError] = useState("");
-  const { signUp, isLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signUp, isLoading, user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const validatePasswords = () => {
     if (password !== confirmPassword) {
@@ -33,26 +44,40 @@ const SignUp = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
-    if (!validatePasswords()) {
-      return;
+    try {
+      if (!validatePasswords()) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!agreeToTerms) {
+        toast({
+          title: "Terms agreement required",
+          description: "Please agree to the terms of service to create an account",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      await signUp(email, password);
+    } catch (error) {
+      console.error("Signup error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (!agreeToTerms) {
-      return;
-    }
-
-    await signUp(email, password);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-2">
-              <div className="bg-primary/10 p-2 rounded-full">
+              <div className="bg-primary/10 p-3 rounded-full">
                 <Briefcase className="h-6 w-6 text-primary" />
               </div>
             </div>
@@ -65,36 +90,51 @@ const SignUp = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="pl-10"
+                    disabled={isSubmitting || isLoading}
+                  />
+                  <KeyRound className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pl-10"
+                    disabled={isSubmitting || isLoading}
+                  />
+                  <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="pl-10"
+                    disabled={isSubmitting || isLoading}
+                  />
+                  <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                </div>
                 {passwordError && (
                   <p className="text-sm text-destructive">{passwordError}</p>
                 )}
@@ -104,6 +144,7 @@ const SignUp = () => {
                   id="terms" 
                   checked={agreeToTerms}
                   onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                  disabled={isSubmitting || isLoading}
                 />
                 <label
                   htmlFor="terms"
@@ -124,9 +165,9 @@ const SignUp = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || !agreeToTerms}
+                disabled={isSubmitting || isLoading || !agreeToTerms}
               >
-                {isLoading ? "Creating account..." : "Create account"}
+                {isSubmitting || isLoading ? "Creating account..." : "Create account"}
               </Button>
               <div className="text-center text-sm">
                 Already have an account?{" "}
