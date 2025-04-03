@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,17 +6,10 @@ import Navbar from "@/components/Navbar";
 import { CheckCircle, MessageSquare, Phone, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-
-// Mock function to simulate Stripe checkout - in a real app, this would call your backend
-const initiateCheckout = async (planId: string, userId?: string) => {
-  console.log(`Initiating checkout for plan: ${planId}, user: ${userId || 'anonymous'}`);
-  
-  // In a real app, this would redirect to Stripe Checkout
-  return { success: true, url: '#' };
-};
+import { supabase } from "@/integrations/supabase/client";
 
 const Pricing = () => {
-  const { user, subscription, checkSubscription } = useAuth();
+  const { user, session, subscription, checkSubscription } = useAuth();
   const { toast } = useToast();
   const [isAnnual, setIsAnnual] = useState(false);
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
@@ -31,32 +23,30 @@ const Pricing = () => {
 
     setProcessingPlan(planId);
     try {
-      // In a real app, this would call your backend to create a Stripe Checkout session
-      const result = await initiateCheckout(planId, user.id);
+      // Call our edge function to create a checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          planId,
+          successUrl: `${window.location.origin}/payment-success?plan=${planId}`,
+          cancelUrl: `${window.location.origin}/pricing?canceled=true`
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
       
-      if (result.success) {
-        // Mock subscription activation
-        // In a real app, this would be done via Stripe webhook
-        const mockSubscriptionData = {
-          markus: planId === 'markus' || planId === 'all-in-one',
-          kara: planId === 'kara' || planId === 'all-in-one',
-          connor: planId === 'connor' || planId === 'all-in-one',
-          allInOne: planId === 'all-in-one'
-        };
-        
-        localStorage.setItem('legalAISubscription', JSON.stringify(mockSubscriptionData));
-        await checkSubscription();
-        
-        toast({
-          title: "Subscription activated",
-          description: "Thank you for subscribing! You now have access to the selected features.",
-        });
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during checkout:", error);
       toast({
         title: "Checkout failed",
-        description: "There was an issue with the checkout process. Please try again.",
+        description: error?.message || "There was an issue with the checkout process. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -108,7 +98,6 @@ const Pricing = () => {
     return false;
   };
 
-  // Pricing data
   const plans = [
     {
       id: "markus",
@@ -175,32 +164,32 @@ const Pricing = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-slate-50 dark:from-background dark:to-background/70">
       <Navbar />
       <div className="flex-1 pt-16">
         <div className="container mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Pricing Plans</h1>
+          <div className="text-center mb-16">
+            <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Pricing Plans</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Choose the right plan for your firm's needs
             </p>
             
-            <div className="mt-8 inline-flex items-center p-1 bg-muted rounded-full">
+            <div className="mt-8 inline-flex items-center p-1 bg-muted rounded-full shadow-inner">
               <button
-                className={`px-4 py-2 rounded-full text-sm ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   !isAnnual
                     ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => setIsAnnual(false)}
               >
                 Monthly
               </button>
               <button
-                className={`px-4 py-2 rounded-full text-sm ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   isAnnual
                     ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => setIsAnnual(true)}
               >
@@ -209,12 +198,12 @@ const Pricing = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {plans.map((plan) => (
               <Card 
                 key={plan.id}
-                className={`relative ${
-                  plan.popular ? `border-${plan.color} agent-glow-${plan.color}` : ""
+                className={`relative transition-all duration-300 hover:translate-y-[-5px] ${
+                  plan.popular ? `border-${plan.color} agent-glow-${plan.color}` : "border-border hover:border-primary/30"
                 }`}
               >
                 {plan.popular && (
@@ -231,14 +220,16 @@ const Pricing = () => {
                     </div>
                     <CardTitle>{plan.name}</CardTitle>
                   </div>
-                  <CardDescription>{plan.description}</CardDescription>
+                  <CardDescription className="text-sm">{plan.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold">
-                      ${isAnnual ? Math.floor(plan.annualPrice / 12) : plan.monthlyPrice}
-                    </span>
-                    <span className="text-muted-foreground">/month</span>
+                  <div className="mb-6">
+                    <div className="flex items-baseline">
+                      <span className="text-3xl font-bold">
+                        ${isAnnual ? Math.floor(plan.annualPrice / 12) : plan.monthlyPrice}
+                      </span>
+                      <span className="text-muted-foreground ml-1">/month</span>
+                    </div>
                     
                     {isAnnual && (
                       <div className="text-sm text-muted-foreground mt-1">
@@ -247,10 +238,10 @@ const Pricing = () => {
                     )}
                   </div>
                   
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-center">
-                        <CheckCircle className={`h-4 w-4 text-${plan.color} mr-2`} />
+                        <CheckCircle className={`h-4 w-4 text-${plan.color} mr-2 flex-shrink-0`} />
                         <span className="text-sm">{feature}</span>
                       </li>
                     ))}
@@ -271,35 +262,35 @@ const Pricing = () => {
             ))}
           </div>
           
-          <div className="mt-16 text-center">
-            <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
-            <div className="max-w-3xl mx-auto grid gap-6 md:grid-cols-2">
-              <div className="text-left">
-                <h3 className="font-semibold mb-2">Can I switch plans later?</h3>
+          <div className="mt-24 text-center">
+            <h2 className="text-3xl font-bold mb-8">Frequently Asked Questions</h2>
+            <div className="max-w-4xl mx-auto grid gap-8 md:grid-cols-2">
+              <div className="bg-card shadow-sm rounded-lg p-6 text-left border">
+                <h3 className="text-lg font-semibold mb-3">Can I switch plans later?</h3>
                 <p className="text-muted-foreground">Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.</p>
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold mb-2">Is there a free trial?</h3>
+              <div className="bg-card shadow-sm rounded-lg p-6 text-left border">
+                <h3 className="text-lg font-semibold mb-3">Is there a free trial?</h3>
                 <p className="text-muted-foreground">We offer a 14-day free trial for all plans. No credit card required to start your trial.</p>
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold mb-2">How does billing work?</h3>
+              <div className="bg-card shadow-sm rounded-lg p-6 text-left border">
+                <h3 className="text-lg font-semibold mb-3">How does billing work?</h3>
                 <p className="text-muted-foreground">We use Stripe for secure payments. You'll be billed either monthly or annually, depending on your chosen plan.</p>
               </div>
-              <div className="text-left">
-                <h3 className="font-semibold mb-2">What kind of support is included?</h3>
+              <div className="bg-card shadow-sm rounded-lg p-6 text-left border">
+                <h3 className="text-lg font-semibold mb-3">What kind of support is included?</h3>
                 <p className="text-muted-foreground">All plans include standard email support. The All-in-One Suite includes priority support with faster response times.</p>
               </div>
             </div>
           </div>
           
-          <div className="mt-16 bg-muted rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold mb-2">Need a custom solution?</h2>
-            <p className="text-muted-foreground mb-6">
+          <div className="mt-16 bg-card bg-gradient-to-r from-primary/5 to-blue-500/5 rounded-lg py-12 px-6 text-center shadow-sm border">
+            <h2 className="text-3xl font-bold mb-3">Need a custom solution?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
               Contact our team for a tailored package that meets your specific requirements.
             </p>
             <Link to="/contact">
-              <Button variant="outline">Contact Sales</Button>
+              <Button variant="outline" size="lg" className="font-medium">Contact Sales</Button>
             </Link>
           </div>
         </div>
