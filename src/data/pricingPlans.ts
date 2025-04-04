@@ -82,4 +82,3 @@ export const getPricingPlans = (): PricingPlan[] => [
     popular: true
   }
 ];
-
