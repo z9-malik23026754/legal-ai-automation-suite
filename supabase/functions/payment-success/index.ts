@@ -126,8 +126,11 @@ serve(async (req) => {
       case 'connor':
         updateData = { connor: true };
         break;
+      case 'chloe':
+        updateData = { chloe: true };
+        break;
       case 'all-in-one':
-        updateData = { markus: true, kara: true, connor: true, all_in_one: true };
+        updateData = { markus: true, kara: true, connor: true, chloe: true, all_in_one: true };
         break;
       default:
         console.error("Invalid plan ID:", planId);

@@ -21,6 +21,7 @@ const productNames = {
   'markus': 'Markus AI Assistant',
   'kara': 'Kara AI Assistant',
   'connor': 'Connor AI Assistant',
+  'chloe': 'Chloe AI Assistant',
   'all-in-one': 'All-in-One AI Suite'
 };
 

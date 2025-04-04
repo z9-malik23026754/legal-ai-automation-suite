@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
-import { CheckCircle, MessageSquare, Phone, Mail } from "lucide-react";
+import { CheckCircle, MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +80,9 @@ const Pricing = () => {
       if (planId === 'connor' && subscription.connor) {
         return "Subscribed";
       }
+      if (planId === 'chloe' && subscription.chloe) {
+        return "Subscribed";
+      }
       if (planId === 'all-in-one' && subscription.allInOne) {
         return "Subscribed";
       }
@@ -99,6 +102,9 @@ const Pricing = () => {
         return true;
       }
       if (planId === 'connor' && subscription.connor) {
+        return true;
+      }
+      if (planId === 'chloe' && subscription.chloe) {
         return true;
       }
       if (planId === 'all-in-one' && subscription.allInOne) {
@@ -129,14 +135,14 @@ const Pricing = () => {
       id: "kara",
       name: "Kara",
       icon: <Phone className="h-6 w-6 text-kara" />,
-      description: "Voice & SMS automation for scheduling and customer communication",
+      description: "Customer support agent for scheduling and client communication",
       monthlyPrice: 99,
       annualPrice: 990,
       features: [
         "Appointment scheduling",
         "SMS appointment reminders",
         "Call answering & routing",
-        "Voicemail transcription",
+        "Customer inquiry handling",
       ],
       color: "kara"
     },
@@ -154,6 +160,21 @@ const Pricing = () => {
         "Customer nurturing sequences",
       ],
       color: "connor"
+    },
+    {
+      id: "chloe",
+      name: "Chloe",
+      icon: <ClipboardList className="h-6 w-6 text-chloe" />,
+      description: "Administrative assistant for business management tasks",
+      monthlyPrice: 89,
+      annualPrice: 890,
+      features: [
+        "Task management",
+        "Document organization",
+        "Business analytics",
+        "Workflow automation",
+      ],
+      color: "chloe"
     },
     {
       id: "all-in-one",
