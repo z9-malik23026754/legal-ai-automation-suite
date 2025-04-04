@@ -12,18 +12,28 @@ const AgentPage = () => {
   const { user, subscription } = useAuth();
   const [webhookUrl, setWebhookUrl] = useState("");
   
-  // Load webhook URL from localStorage if available
+  // Load the first webhook URL from localStorage if available
   useEffect(() => {
-    const savedWebhook = localStorage.getItem(`webhook_${agentId}`);
-    if (savedWebhook) {
-      setWebhookUrl(savedWebhook);
-    }
+    if (!agentId) return;
+    
+    const loadFirstWebhook = () => {
+      const countStr = localStorage.getItem(`webhook_${agentId}_count`);
+      const count = countStr ? parseInt(countStr) : 0;
+      
+      if (count > 0) {
+        const firstUrl = localStorage.getItem(`webhook_${agentId}_0_url`);
+        if (firstUrl) {
+          setWebhookUrl(firstUrl);
+        }
+      }
+    };
+    
+    loadFirstWebhook();
   }, [agentId]);
   
-  // Save webhook URL to localStorage when it changes
+  // Save webhook URL to state
   const handleWebhookChange = (url: string) => {
     setWebhookUrl(url);
-    localStorage.setItem(`webhook_${agentId}`, url);
   };
 
   // If no user, redirect to sign in
@@ -85,7 +95,7 @@ const AgentPage = () => {
           </div>
           
           <div className="mt-4 text-center text-xs text-muted-foreground">
-            Powered by BusinessAI · Webhook requests will be processed by n8n
+            Powered by BusinessAI · Webhook requests will be processed by automation tools
           </div>
         </div>
       </div>

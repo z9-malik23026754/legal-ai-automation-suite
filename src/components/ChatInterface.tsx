@@ -40,20 +40,35 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const { isDeveloper } = useDeveloper();
+  const [webhookUrls, setWebhookUrls] = useState<string[]>([]);
 
-  // Check for saved webhook in localStorage (for developers)
+  // Load all configured webhooks for this agent
   useEffect(() => {
-    // Only load from localStorage if the user is a developer and no webhook is currently set
-    if (isDeveloper && !webhookUrl) {
-      const savedWebhookKey = `webhook_${agentName.toLowerCase()}`;
-      const savedWebhook = localStorage.getItem(savedWebhookKey);
+    const agentId = agentName.toLowerCase();
+    const loadWebhooks = () => {
+      const urls: string[] = [];
+      const countStr = localStorage.getItem(`webhook_${agentId}_count`);
+      const count = countStr ? parseInt(countStr) : 0;
       
-      if (savedWebhook) {
-        onWebhookChange(savedWebhook);
-        console.log(`Loaded saved webhook for ${agentName} from developer config`);
+      if (count > 0) {
+        for (let i = 0; i < count; i++) {
+          const url = localStorage.getItem(`webhook_${agentId}_${i}_url`);
+          if (url) {
+            urls.push(url);
+          }
+        }
       }
-    }
-  }, [agentName, isDeveloper, webhookUrl, onWebhookChange]);
+      
+      // If we have webhook URLs and none was already set, use the first one
+      if (urls.length > 0 && !webhookUrl) {
+        onWebhookChange(urls[0]);
+      }
+      
+      setWebhookUrls(urls);
+    };
+    
+    loadWebhooks();
+  }, [agentName, webhookUrl, onWebhookChange]);
 
   useEffect(() => {
     scrollToBottom();
@@ -68,11 +83,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     
     if (!input.trim()) return;
     
-    if (!webhookUrl) {
+    if (webhookUrls.length === 0) {
       toast({
-        title: "Webhook URL Required",
+        title: "Webhook Configuration Required",
         description: isDeveloper 
-          ? "Please enter your webhook URL to process this request." 
+          ? "Please configure at least one webhook URL to process this request." 
           : "This agent is not fully configured yet. Please contact the administrator.",
         variant: "destructive",
       });
@@ -92,20 +107,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setIsLoading(true);
 
     try {
-      // Try to call the webhook
-      console.log(`Sending request to webhook: ${webhookUrl}`);
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors", // Using no-cors mode for cross-origin requests
-        body: JSON.stringify({
-          message: input,
-          agent: agentName,
-          timestamp: new Date().toISOString(),
-        }),
+      // Send request to all configured webhooks for this agent
+      const sendPromises = webhookUrls.map(async (url) => {
+        console.log(`Sending request to webhook: ${url}`);
+        return fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          mode: "no-cors", // Using no-cors mode for cross-origin requests
+          body: JSON.stringify({
+            message: input,
+            agent: agentName,
+            timestamp: new Date().toISOString(),
+          }),
+        });
       });
+
+      // Execute all requests in parallel
+      await Promise.all(sendPromises);
 
       // Since we're using no-cors, we can't actually read the response
       // So we'll simulate a response from the agent
@@ -122,11 +142,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       }, 1500);
       
     } catch (error) {
-      console.error("Error calling webhook:", error);
+      console.error("Error calling webhooks:", error);
       
       toast({
         title: "Error",
-        description: "Failed to process your request. Please check your webhook URL and try again.",
+        description: "Failed to process your request. Please check your webhook URLs and try again.",
         variant: "destructive",
       });
       
@@ -181,15 +201,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <div>
               <h2 className="font-semibold">{agentName}</h2>
               <p className="text-xs text-muted-foreground">
-                {webhookUrl ? "Connected to webhook" : "Not configured"}
+                {webhookUrls.length > 0 
+                  ? `${webhookUrls.length} webhook${webhookUrls.length > 1 ? 's' : ''} configured` 
+                  : "Not configured"}
               </p>
             </div>
           </div>
           {isDeveloper && (
-            <div className="w-1/2">
+            <div className="w-1/2 text-xs">
+              <p className="mb-1">Webhooks: {webhookUrls.length}</p>
               <Input
                 type="text"
-                placeholder="Enter webhook URL"
+                placeholder="Enter webhook URL (for testing only)"
                 value={webhookUrl}
                 onChange={(e) => onWebhookChange(e.target.value)}
                 className="text-xs"
