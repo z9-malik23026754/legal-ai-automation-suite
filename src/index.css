@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -106,40 +105,67 @@
 
 /* Updated agent card styles with more modern design */
 .agent-card-markus {
-  background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+  background: linear-gradient(to bottom right, #3B82F6, #2563EB);
   color: white;
   @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
 }
 
 .agent-card-kara {
-  background: linear-gradient(135deg, #8B5CF6 0%, #5B21B6 100%);
+  background: linear-gradient(to bottom right, #8B5CF6, #7C3AED);
   color: white;
   @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
 }
 
 .agent-card-connor {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: linear-gradient(to bottom right, #10B981, #059669);
+  color: white;
+  @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
+}
+
+.agent-card-chloe {
+  background: linear-gradient(to bottom right, #EC4899, #DB2777);
   color: white;
   @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
 }
 
 /* Updated glow styles */
 .agent-glow-markus {
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
   @apply transition-shadow duration-300;
 }
 
 .agent-glow-kara {
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
   @apply transition-shadow duration-300;
 }
 
 .agent-glow-connor {
-  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+  @apply transition-shadow duration-300;
+}
+
+.agent-glow-chloe {
+  box-shadow: 0 0 30px rgba(236, 72, 153, 0.1);
   @apply transition-shadow duration-300;
 }
 
 /* Updated label styles */
+.text-markus {
+  color: #3B82F6;
+}
+
+.text-kara {
+  color: #8B5CF6;
+}
+
+.text-connor {
+  color: #10B981;
+}
+
+.text-chloe {
+  color: #EC4899;
+}
+
 .agent-label-markus {
   background-color: rgba(59, 130, 246, 0.1);
   color: #3B82F6;
@@ -156,6 +182,12 @@
   background-color: rgba(16, 185, 129, 0.1);
   color: #10B981;
   @apply rounded-lg border-[1.5px] border-[#10B981]/20;
+}
+
+.agent-label-chloe {
+  background-color: rgba(236, 72, 153, 0.1);
+  color: #EC4899;
+  @apply rounded-lg border-[1.5px] border-[#EC4899]/20;
 }
 
 .chat-container {

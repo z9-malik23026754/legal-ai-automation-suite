@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
-import { PieChart, Calendar, Bell, Settings, FileText, MessageSquare, Phone, Mail } from "lucide-react";
+import { PieChart, Calendar, Bell, Settings, FileText, MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -14,12 +13,14 @@ interface SidebarLinksProps {
   hasMarkusAccess: boolean;
   hasKaraAccess: boolean;
   hasConnorAccess: boolean;
+  hasChloeAccess?: boolean;
 }
 
 const SidebarLinks: React.FC<SidebarLinksProps> = ({
   hasMarkusAccess,
   hasKaraAccess,
-  hasConnorAccess
+  hasConnorAccess,
+  hasChloeAccess = false
 }) => {
   return (
     <>
@@ -89,6 +90,16 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
                   <Mail className="h-3 w-3 text-connor" />
                 </div>
                 <span>{!hasConnorAccess && "🔒 "}Connor</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Chloe" disabled={!hasChloeAccess}>
+              <Link to="/agents/chloe">
+                <div className="agent-label-chloe inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
+                  <ClipboardList className="h-3 w-3 text-chloe" />
+                </div>
+                <span>{!hasChloeAccess && "🔒 "}Chloe</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

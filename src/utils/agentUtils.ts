@@ -29,6 +29,11 @@ export const getAgentInfo = (
       agentName = "Connor";
       agentColor = "connor";
       break;
+    case "chloe":
+      hasAccess = subscription?.chloe || subscription?.allInOne || false;
+      agentName = "Chloe";
+      agentColor = "chloe";
+      break;
     default:
       hasAccess = false;
       agentName = "";

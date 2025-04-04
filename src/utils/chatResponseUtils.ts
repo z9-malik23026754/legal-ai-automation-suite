@@ -1,34 +1,55 @@
 
-// Function to simulate responses based on agent and input
-export const getSimulatedResponse = (agent: string, userInput: string): string => {
-  const input = userInput.toLowerCase();
+import { formatDistanceToNow } from 'date-fns';
+
+export const getSimulatedResponse = (agentName: string, message: string): string => {
+  const lowercaseMessage = message.toLowerCase();
   
-  switch(agent) {
-    case 'Markus':
-      if (input.includes('intake') || input.includes('new client')) {
-        return "I can help you set up an automated client intake process. Would you like to create a new intake form or modify an existing one?";
-      } else if (input.includes('faq') || input.includes('question')) {
-        return "I can help you build a knowledge base for frequently asked questions. What topics would you like to cover?";
+  switch(agentName) {
+    case "Markus":
+      if (lowercaseMessage.includes("hello") || lowercaseMessage.includes("hi")) {
+        return "Hello! How can I help you with your business today?";
+      } else if (lowercaseMessage.includes("help")) {
+        return "I'd be happy to help! I can answer questions about our products, services, or help connect you with the right department.";
+      } else if (lowercaseMessage.includes("pricing") || lowercaseMessage.includes("cost")) {
+        return "Our pricing plans start at $29/month for the basic package. Would you like me to send you our detailed pricing structure?";
+      } else {
+        return "Thanks for reaching out! Let me look into that for you. Is there anything specific you'd like to know about this topic?";
       }
-      return "I can help you create chatbots for your website, client portals, or internal tools. What specific use case are you interested in?";
       
-    case 'Kara':
-      if (input.includes('call') || input.includes('phone')) {
-        return "I can set up automated phone calls for appointment reminders. Would you like me to show you how to configure this?";
-      } else if (input.includes('sms') || input.includes('text')) {
-        return "SMS messaging is perfect for brief updates and reminders. Would you like to create a new SMS template?";
+    case "Kara":
+      if (lowercaseMessage.includes("issue") || lowercaseMessage.includes("problem")) {
+        return "I'm sorry to hear you're experiencing an issue. Let me help troubleshoot that for you. Could you provide more details about what's happening?";
+      } else if (lowercaseMessage.includes("ticket") || lowercaseMessage.includes("request")) {
+        return `I've created a support ticket for you. Your ticket ID is #${Math.floor(1000 + Math.random() * 9000)}. A support specialist will follow up within 24 hours.`;
+      } else if (lowercaseMessage.includes("status") || lowercaseMessage.includes("update")) {
+        return "Let me check the status of your request. Our team is currently working on it and you should receive an update by email shortly.";
+      } else {
+        return "Thank you for contacting customer support. How can I assist you with your support needs today?";
       }
-      return "I can help you set up voice agents for client calls or SMS messaging for appointment reminders. What would you like to configure?";
       
-    case 'Connor':
-      if (input.includes('email') || input.includes('newsletter')) {
-        return "I can help you design and schedule email campaigns. Would you like to create a new campaign or work from a template?";
-      } else if (input.includes('content') || input.includes('blog')) {
-        return "I can generate content for your blog or website. What topics would you like to cover?";
+    case "Connor":
+      if (lowercaseMessage.includes("campaign") || lowercaseMessage.includes("email")) {
+        return "I can help you set up an email campaign. What's your target audience and main campaign goal?";
+      } else if (lowercaseMessage.includes("content") || lowercaseMessage.includes("write")) {
+        return "I'd be happy to help generate content for your marketing needs. What type of content are you looking for?";
+      } else if (lowercaseMessage.includes("analytics") || lowercaseMessage.includes("report")) {
+        return "Your last campaign had an open rate of 32% and a click-through rate of 8.5%, which is above industry average. Would you like a detailed report?";
+      } else {
+        return "I'm your marketing automation assistant. I can help with email campaigns, content generation, and marketing analytics. What would you like to focus on today?";
       }
-      return "I specialize in marketing automation for law firms. Would you like help with email campaigns, content generation, or social media posts?";
+      
+    case "Chloe":
+      if (lowercaseMessage.includes("report") || lowercaseMessage.includes("analytics")) {
+        return "I've prepared your monthly business report. Your sales are up 15% compared to last month, and customer retention has increased by an impressive 8%.";
+      } else if (lowercaseMessage.includes("schedule") || lowercaseMessage.includes("meeting")) {
+        return `I've scheduled your meeting for ${formatDistanceToNow(new Date(Date.now() + 86400000))} from now. All participants have been notified and the agenda has been distributed.`;
+      } else if (lowercaseMessage.includes("task") || lowercaseMessage.includes("todo")) {
+        return "I've updated your task list. You have 3 high-priority items due this week. Would you like me to summarize them for you?";
+      } else {
+        return "I'm your administrative assistant. I can help with reporting, scheduling, task management, and business analytics. How can I help you stay organized today?";
+      }
       
     default:
-      return "I'm here to help automate your legal practice. What specific task can I assist you with today?";
+      return "I'm not sure how to respond to that. Can you please rephrase your question?";
   }
 };

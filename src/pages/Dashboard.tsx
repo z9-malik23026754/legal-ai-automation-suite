@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { PieChart, MessageSquare, Phone, Mail } from "lucide-react";
+import { PieChart, MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
 import {
   SidebarProvider,
   Sidebar,
@@ -40,21 +40,23 @@ const Dashboard = () => {
   const hasMarkusAccess = subscription?.markus || subscription?.allInOne;
   const hasKaraAccess = subscription?.kara || subscription?.allInOne;
   const hasConnorAccess = subscription?.connor || subscription?.allInOne;
+  const hasChloeAccess = subscription?.chloe || subscription?.allInOne;
   
   // Check if user has any subscriptions at all
-  const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess;
+  const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess;
 
   // Recent notifications - for demo purposes
   const recentNotifications = [
     { title: "New client inquiry", time: "2 hours ago", agent: "Markus" },
-    { title: "Call scheduled", time: "Yesterday", agent: "Kara" },
-    { title: "Email campaign completed", time: "2 days ago", agent: "Connor" }
+    { title: "Support ticket opened", time: "Yesterday", agent: "Kara" },
+    { title: "Email campaign completed", time: "2 days ago", agent: "Connor" },
+    { title: "Admin report ready", time: "3 days ago", agent: "Chloe" }
   ];
 
   // Quick stats - for demo purposes
   const quickStats = [
     { title: "Client Inquiries", value: 24, change: "+12%" },
-    { title: "Scheduled Calls", value: 8, change: "-3%" },
+    { title: "Support Tickets", value: 8, change: "-3%" },
     { title: "Email Opens", value: "68%", change: "+5%" },
     { title: "Active Cases", value: 16, change: "0%" }
   ];
@@ -76,6 +78,7 @@ const Dashboard = () => {
               hasMarkusAccess={hasMarkusAccess}
               hasKaraAccess={hasKaraAccess}
               hasConnorAccess={hasConnorAccess}
+              hasChloeAccess={hasChloeAccess}
             />
           </SidebarContent>
           <SidebarFooter className="p-4 border-t border-sidebar-border">
@@ -117,7 +120,7 @@ const Dashboard = () => {
             <div className="grid md:grid-cols-3 gap-8">
               <div className="md:col-span-2">
                 <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Your AI Agents</h2>
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <AgentCard 
                     agentId="markus"
                     title="Markus"
@@ -129,7 +132,7 @@ const Dashboard = () => {
                   <AgentCard 
                     agentId="kara"
                     title="Kara"
-                    description="Voice & SMS automation for client communications"
+                    description="Customer support agent for tickets and inquiries"
                     icon="Phone"
                     hasAccess={hasKaraAccess}
                   />
@@ -140,6 +143,14 @@ const Dashboard = () => {
                     description="Email marketing and content automation"
                     icon="Mail"
                     hasAccess={hasConnorAccess}
+                  />
+                  
+                  <AgentCard 
+                    agentId="chloe"
+                    title="Chloe"
+                    description="Administrative tasks and reporting dashboard"
+                    icon="ClipboardList"
+                    hasAccess={hasChloeAccess}
                   />
                 </div>
               </div>
@@ -157,6 +168,7 @@ const Dashboard = () => {
                   hasMarkusAccess={hasMarkusAccess}
                   hasKaraAccess={hasKaraAccess}
                   hasConnorAccess={hasConnorAccess}
+                  hasChloeAccess={hasChloeAccess}
                 />
               </div>
             )}

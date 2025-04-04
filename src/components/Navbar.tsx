@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDeveloper } from "@/contexts/DeveloperContext";
-import { Briefcase, Menu, X, Terminal } from "lucide-react";
+import { Briefcase, Menu, X, Terminal, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,9 +66,15 @@ const Navbar = () => {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant={isHomePage ? "outline" : "default"}>Account</Button>
+                <Button 
+                  variant={isHomePage ? "outline" : "default"} 
+                  className={`font-semibold ${isHomePage ? 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30' : 'bg-primary/90 text-white hover:bg-primary'} flex items-center gap-2`}
+                >
+                  <User className="h-4 w-4" />
+                  <span>Account</span>
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

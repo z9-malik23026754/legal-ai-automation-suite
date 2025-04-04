@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="mb-6 md:mb-0">
             <div className="flex items-center space-x-2">
               <Briefcase className="h-5 w-5 text-primary" />
-              <span className="font-bold text-lg">BusinessAI</span>
+              <span className="font-bold text-lg">MazAI</span>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
               Intelligent automation for modern businesses
@@ -47,7 +47,7 @@ const Footer = () => {
         
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} BusinessAI. All rights reserved.
+            © {new Date().getFullYear()} MazAI. All rights reserved.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link to="#" className="text-muted-foreground hover:text-foreground">

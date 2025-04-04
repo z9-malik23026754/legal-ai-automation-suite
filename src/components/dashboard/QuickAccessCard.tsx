@@ -1,18 +1,21 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
 
-interface QuickAccessProps {
+interface QuickAccessCardProps {
   hasMarkusAccess: boolean;
   hasKaraAccess: boolean;
   hasConnorAccess: boolean;
+  hasChloeAccess?: boolean;
 }
 
-const QuickAccessCard: React.FC<QuickAccessProps> = ({
+const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ 
   hasMarkusAccess,
   hasKaraAccess,
   hasConnorAccess,
+  hasChloeAccess = false
 }) => {
   return (
     <div className="glass-card border-white/10 rounded-lg shadow-glass overflow-hidden">

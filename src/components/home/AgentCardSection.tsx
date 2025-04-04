@@ -2,7 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Phone, Mail, CheckCircle, Sparkles } from "lucide-react";
+import { MessageSquare, Phone, Mail, CheckCircle, Sparkles, ClipboardList } from "lucide-react";
 
 const AgentCardSection = () => {
   return (
@@ -27,7 +27,7 @@ const AgentCardSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-4 gap-8">
           {/* Markus Card */}
           <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-blue-200 hover:-translate-y-2">
             <div className="agent-card-markus p-6 relative">
@@ -75,25 +75,25 @@ const AgentCardSection = () => {
                   <Phone className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">Kara</h3>
-                <p className="opacity-90">Voice & SMS Agent</p>
+                <p className="opacity-90">Customer Support Agent</p>
               </div>
             </div>
             <div className="p-6 bg-white dark:bg-gray-900">
               <p className="mb-6 text-muted-foreground">
-                Handle customer calls, send appointment reminders, and collect information through natural voice interactions.
+                Comprehensive customer support agent that manages support tickets, resolves inquiries, and ensures client satisfaction.
               </p>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-center">
                   <CheckCircle className="h-5 w-5 text-kara mr-2" />
-                  <span>Appointment scheduling</span>
+                  <span>Support ticket management</span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-5 w-5 text-kara mr-2" />
-                  <span>Automated reminders</span>
+                  <span>Issue resolution tracking</span>
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-5 w-5 text-kara mr-2" />
-                  <span>Customer updates via SMS</span>
+                  <span>Customer satisfaction analysis</span>
                 </li>
               </ul>
               <Link to="/pricing">
@@ -136,6 +136,44 @@ const AgentCardSection = () => {
               </ul>
               <Link to="/pricing">
                 <Button variant="outline" className="w-full border-connor/50 text-connor hover:bg-connor/10">
+                  Learn More
+                </Button>
+              </Link>
+            </div>
+          </div>
+          
+          {/* Chloe Card */}
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-pink-200 hover:-translate-y-2">
+            <div className="agent-card-chloe p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                  <ClipboardList className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Chloe</h3>
+                <p className="opacity-90">Administrative Assistant</p>
+              </div>
+            </div>
+            <div className="p-6 bg-white dark:bg-gray-900">
+              <p className="mb-6 text-muted-foreground">
+                Streamline administrative tasks, generate reports, and maintain organized business operations.
+              </p>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-chloe mr-2" />
+                  <span>Automated reporting</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-chloe mr-2" />
+                  <span>Task management</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-chloe mr-2" />
+                  <span>Business analytics</span>
+                </li>
+              </ul>
+              <Link to="/pricing">
+                <Button variant="outline" className="w-full border-chloe/50 text-chloe hover:bg-chloe/10">
                   Learn More
                 </Button>
               </Link>

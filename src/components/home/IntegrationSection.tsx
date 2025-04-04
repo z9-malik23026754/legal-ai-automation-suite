@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Sparkles } from "lucide-react";
 
@@ -16,7 +15,7 @@ const IntegrationSection = () => {
                   <Sparkles className="w-8 h-8" />
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-center">BusinessAI</h3>
+              <h3 className="text-xl font-bold text-center">MazAI</h3>
             </div>
 
             {/* Stripe Card */}
