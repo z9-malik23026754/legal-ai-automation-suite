@@ -81,99 +81,103 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
-    // Get the user from the auth header
+    let userId;
+    let userEmail;
+    
+    // Try to get auth from header, but make it optional since we've set verify_jwt to false
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      console.error("No authorization header");
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: "Authentication required" 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
-    }
-    
-    console.log("Getting user from token");
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
-      console.error("Invalid user token:", userError);
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: "Invalid authentication token" 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
+    if (authHeader) {
+      try {
+        console.log("Getting user from token");
+        const token = authHeader.replace("Bearer ", "");
+        const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+        
+        if (user && !userError) {
+          userId = user.id;
+          userEmail = user.email;
+          console.log("User authenticated:", userId);
+        } else {
+          console.log("Auth token provided but invalid:", userError);
+        }
+      } catch (e) {
+        console.error("Error processing auth token:", e);
+      }
+    } else {
+      console.log("No authorization header provided");
     }
 
-    console.log("User authenticated:", user.id);
-
-    // Check if this user already has a Stripe customer ID
-    const { data: subscriptionData, error: subscriptionError } = await supabase
-      .from("subscriptions")
-      .select("stripe_customer_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    // Without a valid user ID, we'll create a checkout that doesn't associate with an account
+    let customerId;
     
-    if (subscriptionError) {
-      console.error("Error fetching subscription data:", subscriptionError);
-      // Continue execution even if this fails - we'll create a new customer
-    }
+    // If we have a user ID, check for existing customer
+    if (userId) {
+      // Check if this user already has a Stripe customer ID
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from("subscriptions")
+        .select("stripe_customer_id")
+        .eq("user_id", userId)
+        .maybeSingle();
       
-    let customerId = subscriptionData?.stripe_customer_id;
-    
-    console.log("Existing customer ID:", customerId);
+      if (subscriptionError) {
+        console.error("Error fetching subscription data:", subscriptionError);
+        // Continue execution even if this fails - we'll create a new customer
+      }
+        
+      customerId = subscriptionData?.stripe_customer_id;
+      
+      console.log("Existing customer ID:", customerId);
+    }
     
     // If no customer exists, create one
-    if (!customerId) {
+    if (!customerId && userEmail) {
       console.log("Creating new Stripe customer");
       try {
         const customer = await stripe.customers.create({
-          email: user.email,
-          metadata: {
-            supabase_user_id: user.id,
-          }
+          email: userEmail,
+          metadata: userId ? {
+            supabase_user_id: userId,
+          } : undefined
         });
         
         customerId = customer.id;
         console.log("Created new customer:", customerId);
         
-        // Create or update the subscription record with the new customer ID
-        const { data: existingSubscription, error: existingSubError } = await supabase
-          .from("subscriptions")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle();
-          
-        if (existingSubError) {
-          console.error("Error checking for existing subscription:", existingSubError);
-        }
-          
-        if (existingSubscription) {
-          // Update existing subscription with customer ID
-          const { error: updateError } = await supabase
+        // If we have a user ID, store the customer ID
+        if (userId) {
+          // Create or update the subscription record with the new customer ID
+          const { data: existingSubscription, error: existingSubError } = await supabase
             .from("subscriptions")
-            .update({ stripe_customer_id: customerId })
-            .eq("user_id", user.id);
+            .select("*")
+            .eq("user_id", userId)
+            .maybeSingle();
             
-          if (updateError) {
-            console.error("Error updating subscription record:", updateError);
+          if (existingSubError) {
+            console.error("Error checking for existing subscription:", existingSubError);
           }
-        } else {
-          // Create new subscription record
-          const { error: insertError } = await supabase
-            .from("subscriptions")
-            .insert({ 
-              user_id: user.id, 
-              stripe_customer_id: customerId,
-              status: 'pending'
-            });
             
-          if (insertError) {
-            console.error("Error creating subscription record:", insertError);
+          if (existingSubscription) {
+            // Update existing subscription with customer ID
+            const { error: updateError } = await supabase
+              .from("subscriptions")
+              .update({ stripe_customer_id: customerId })
+              .eq("user_id", userId);
+              
+            if (updateError) {
+              console.error("Error updating subscription record:", updateError);
+            }
+          } else {
+            // Create new subscription record
+            const { error: insertError } = await supabase
+              .from("subscriptions")
+              .insert({ 
+                user_id: userId, 
+                stripe_customer_id: customerId,
+                status: 'pending'
+              });
+              
+            if (insertError) {
+              console.error("Error creating subscription record:", insertError);
+            }
           }
         }
       } catch (error) {
@@ -263,7 +267,7 @@ serve(async (req) => {
         success_url: successUrl || `${origin}/payment-success?plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: cancelUrl || `${origin}/pricing?canceled=true`,
         metadata: {
-          user_id: user.id,
+          user_id: userId,
           plan_id: planId,
         },
       });

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,9 @@ const Pricing = () => {
 
     setProcessingPlan(planId);
     try {
+      console.log("Starting checkout process for plan:", planId);
+      console.log("Session token available:", !!session?.access_token);
+      
       // Call our edge function to create a checkout session
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -30,16 +34,19 @@ const Pricing = () => {
           successUrl: `${window.location.origin}/payment-success?plan=${planId}`,
           cancelUrl: `${window.location.origin}/pricing?canceled=true`
         },
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw error;
+      }
       
-      if (data.url) {
+      console.log("Checkout response:", data);
+      
+      if (data?.url) {
         window.location.href = data.url;
       } else {
+        console.error("No checkout URL returned:", data);
         throw new Error("No checkout URL returned");
       }
     } catch (error: any) {
