@@ -9,6 +9,7 @@ export type Subscription = {
   kara: boolean;
   connor: boolean;
   chloe: boolean;
+  luther: boolean;
   allInOne: boolean;
 };
 
@@ -79,6 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           kara: !!data.subscription.kara,
           connor: !!data.subscription.connor,
           chloe: !!data.subscription.chloe,
+          luther: !!data.subscription.luther,
           allInOne: !!data.subscription.all_in_one,
         });
       }

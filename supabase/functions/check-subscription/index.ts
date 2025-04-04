@@ -70,6 +70,7 @@ serve(async (req) => {
               markus: false,
               kara: false,
               connor: false,
+              luther: false, 
               all_in_one: false
             })
             .eq("user_id", user.id);
@@ -79,6 +80,7 @@ serve(async (req) => {
               markus: false,
               kara: false,
               connor: false,
+              luther: false,
               all_in_one: false
             }
           }), {
