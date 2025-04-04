@@ -9,6 +9,8 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("Payment success function called");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -18,29 +20,79 @@ serve(async (req) => {
     const url = new URL(req.url);
     const sessionId = url.searchParams.get("session_id");
     
+    console.log("Processing session:", sessionId);
+    
     if (!sessionId) {
-      throw new Error("No session ID provided");
+      console.error("No session ID provided");
+      return new Response(JSON.stringify({
+        success: false,
+        error: "No session ID provided"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
     
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      console.error("STRIPE_SECRET_KEY is not set");
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Stripe configuration error"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
+    }
+    
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2023-10-16",
     });
     
     // Retrieve the session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    console.log("Retrieving Stripe session");
+    let session;
+    try {
+      session = await stripe.checkout.sessions.retrieve(sessionId);
+    } catch (error) {
+      console.error("Error retrieving session:", error);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Invalid session ID"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
     
     // Check if the payment was successful
     if (session.payment_status !== "paid") {
-      throw new Error(`Payment not completed. Status: ${session.payment_status}`);
+      console.error(`Payment not completed. Status: ${session.payment_status}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Payment not completed. Status: ${session.payment_status}`
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
     
     // Get plan and user info from metadata
     const planId = session.metadata?.plan_id;
     const userId = session.metadata?.user_id;
     
+    console.log("Session metadata:", { planId, userId });
+    
     if (!planId || !userId) {
-      throw new Error("Missing plan or user information");
+      console.error("Missing plan or user information");
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Missing plan or user information in session"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     // Initialize Supabase client
@@ -48,9 +100,17 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Missing Supabase environment variables");
+      console.error("Missing Supabase environment variables");
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Database configuration error"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
     
+    console.log("Initializing Supabase client");
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
     // Update subscription status in database
@@ -70,20 +130,36 @@ serve(async (req) => {
         updateData = { markus: true, kara: true, connor: true, all_in_one: true };
         break;
       default:
-        throw new Error("Invalid plan ID");
+        console.error("Invalid plan ID:", planId);
+        return new Response(JSON.stringify({
+          success: false,
+          error: "Invalid plan ID"
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
     }
     
+    console.log("Updating subscription with data:", updateData);
+    
     // Retrieve existing subscription record or create a new one
-    const { data: existingSubscription } = await supabase
+    const { data: existingSubscription, error: fetchError } = await supabase
       .from("subscriptions")
       .select("*")
       .eq("user_id", userId)
       .maybeSingle();
+      
+    if (fetchError) {
+      console.error("Error fetching subscription:", fetchError);
+    }
 
+    console.log("Existing subscription:", existingSubscription);
+    
     let dbOperation;
     
     if (existingSubscription) {
       // Update existing subscription
+      console.log("Updating existing subscription");
       dbOperation = supabase
         .from("subscriptions")
         .update({
@@ -94,6 +170,7 @@ serve(async (req) => {
         .eq("user_id", userId);
     } else {
       // Create new subscription
+      console.log("Creating new subscription");
       dbOperation = supabase
         .from("subscriptions")
         .insert({
@@ -106,8 +183,17 @@ serve(async (req) => {
     const { error } = await dbOperation;
       
     if (error) {
-      throw new Error(`Error updating subscription: ${error.message}`);
+      console.error("Error updating subscription:", error);
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Database error: ${error.message}`
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
+    
+    console.log("Successfully processed payment for plan:", planId);
     
     return new Response(JSON.stringify({ 
       success: true,
@@ -123,10 +209,10 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message
+      error: error.message || "Unknown error"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
+      status: 500,
     });
   }
 });

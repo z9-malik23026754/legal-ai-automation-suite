@@ -9,26 +9,73 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("Create checkout function called");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log("Parsing request body");
+    // Get the request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: "Invalid request body" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+    
+    const { planId, successUrl, cancelUrl } = body;
+    
+    if (!planId) {
+      console.error("Missing planId in request");
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: "Missing planId in request" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+    
     // Initialize the Stripe client
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      console.error("STRIPE_SECRET_KEY is not set");
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "Stripe configuration error" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
+    }
+    
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2023-10-16",
     });
 
-    // Get the request body
-    const { planId, successUrl, cancelUrl } = await req.json();
-    
     // Create Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
     
     if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Missing Supabase environment variables");
+      console.error("Missing Supabase environment variables");
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: "Supabase configuration error" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
     
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -36,46 +83,102 @@ serve(async (req) => {
     // Get the user from the auth header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("No authorization header");
+      console.error("No authorization header");
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "Authentication required" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
     
+    console.log("Getting user from token");
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
-      throw new Error("Invalid user token");
+      console.error("Invalid user token:", userError);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: "Invalid authentication token" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
+    console.log("User authenticated:", user.id);
+
     // Check if this user already has a Stripe customer ID
-    const { data: subscriptionData } = await supabase
+    const { data: subscriptionData, error: subscriptionError } = await supabase
       .from("subscriptions")
       .select("stripe_customer_id")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+    
+    if (subscriptionError) {
+      console.error("Error fetching subscription data:", subscriptionError);
+    }
       
     let customerId = subscriptionData?.stripe_customer_id;
     
+    console.log("Existing customer ID:", customerId);
+    
     // If no customer exists, create one
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          supabase_user_id: user.id,
+      console.log("Creating new Stripe customer");
+      try {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: {
+            supabase_user_id: user.id,
+          }
+        });
+        
+        customerId = customer.id;
+        console.log("Created new customer:", customerId);
+        
+        // Create or update the subscription record with the new customer ID
+        const { data: existingSubscription } = await supabase
+          .from("subscriptions")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+          
+        if (existingSubscription) {
+          // Update existing subscription with customer ID
+          await supabase
+            .from("subscriptions")
+            .update({ stripe_customer_id: customerId })
+            .eq("user_id", user.id);
+        } else {
+          // Create new subscription record
+          await supabase
+            .from("subscriptions")
+            .insert({ 
+              user_id: user.id, 
+              stripe_customer_id: customerId,
+              status: 'pending'
+            });
         }
-      });
-      
-      customerId = customer.id;
-      
-      // Update the subscription record with the new customer ID
-      await supabase
-        .from("subscriptions")
-        .update({ stripe_customer_id: customerId })
-        .eq("user_id", user.id);
+      } catch (error) {
+        console.error("Error creating Stripe customer:", error);
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: "Failed to create customer account" 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
     }
     
     // Define the products and pricing for each plan
     let priceId;
-    let mode = "payment"; // Changed to "payment" for one-time payments instead of subscription
+    let mode = "payment"; // One-time payments
+    
+    console.log("Setting up price for plan:", planId);
     
     // Create price objects for each plan (£0.01 each)
     try {
@@ -87,7 +190,9 @@ serve(async (req) => {
       
       if (existingPrices.data.length > 0) {
         priceId = existingPrices.data[0].id;
+        console.log("Using existing price:", priceId);
       } else {
+        console.log("Creating new product and price");
         // Create product if it doesn't exist
         const productName = {
           'markus': 'Markus AI Assistant',
@@ -103,6 +208,8 @@ serve(async (req) => {
           }
         });
         
+        console.log("Created product:", product.id);
+        
         // Create a £0.01 price for the product
         const price = await stripe.prices.create({
           product: product.id,
@@ -112,40 +219,70 @@ serve(async (req) => {
         });
         
         priceId = price.id;
+        console.log("Created price:", priceId);
       }
     } catch (error) {
       console.error("Error creating/retrieving price:", error);
-      throw new Error(`Failed to set up test pricing: ${error.message}`);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: "Failed to set up pricing" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
 
-    // Create Checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode,
-      success_url: successUrl || `${req.headers.get("origin")}/payment-success?plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${req.headers.get("origin")}/pricing?canceled=true`,
-      metadata: {
-        user_id: user.id,
-        plan_id: planId,
-      },
-    });
-
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Error creating checkout session:", error);
+    console.log("Creating checkout session");
     
-    return new Response(JSON.stringify({ error: error.message }), {
+    // Create Checkout session
+    try {
+      const origin = req.headers.get("origin") || "http://localhost:3000";
+      
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode,
+        success_url: successUrl || `${origin}/payment-success?plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: cancelUrl || `${origin}/pricing?canceled=true`,
+        metadata: {
+          user_id: user.id,
+          plan_id: planId,
+        },
+      });
+      
+      console.log("Checkout session created:", session.id);
+      
+      return new Response(JSON.stringify({ 
+        success: true,
+        url: session.url 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: error.message 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
+    }
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: "An unexpected error occurred" 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
+      status: 500,
     });
   }
 });
