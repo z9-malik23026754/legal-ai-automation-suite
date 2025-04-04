@@ -192,78 +192,82 @@ serve(async (req) => {
       }
     }
     
-    // Define the products and pricing for each plan
-    let priceId;
-    let mode = "payment"; // One-time payments
-    
+    // Define the pricing for each plan
     console.log("Setting up price for plan:", planId);
     
+    // Price mapping for plans (in pence/cents)
+    const planPrices = {
+      'markus': 7900,
+      'kara': 9900,
+      'connor': 8900,
+      'all-in-one': 19900
+    };
+    
+    // Get the price for this plan
+    const unitAmount = planPrices[planId] || 1000; // Default to £10.00 if plan not found
+    
+    if (unitAmount < 50) {
+      console.error("Invalid plan price - must be at least 50 cents/pence");
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Invalid plan price configuration" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+    
     try {
-      // First check if our prices already exist to avoid creating duplicates
-      const existingPrices = await stripe.prices.list({
-        lookup_keys: [`test_${planId}`],
+      // Create or get product for this plan
+      const productName = {
+        'markus': 'Markus AI Assistant',
+        'kara': 'Kara AI Assistant',
+        'connor': 'Connor AI Assistant',
+        'all-in-one': 'All-in-One AI Suite'
+      }[planId] || 'AI Assistant';
+      
+      // Check if product already exists
+      const products = await stripe.products.list({
         limit: 1,
+        active: true
       });
       
-      if (existingPrices.data.length > 0) {
-        priceId = existingPrices.data[0].id;
-        console.log("Using existing price:", priceId);
+      let productId;
+      
+      if (products.data.length > 0) {
+        productId = products.data[0].id;
+        console.log("Using existing product:", productId);
       } else {
-        console.log("Creating new product and price");
-        // Create product if it doesn't exist
-        const productName = {
-          'markus': 'Markus AI Assistant',
-          'kara': 'Kara AI Assistant',
-          'connor': 'Connor AI Assistant',
-          'all-in-one': 'All-in-One AI Suite'
-        }[planId] || 'AI Assistant';
-        
         const product = await stripe.products.create({
           name: productName,
           metadata: {
             plan_id: planId,
           }
         });
-        
-        console.log("Created product:", product.id);
-        
-        // Create a £0.01 price for the product
-        const price = await stripe.prices.create({
-          product: product.id,
-          unit_amount: 1, // £0.01 in pence
-          currency: 'gbp',
-          lookup_key: `test_${planId}`,
-        });
-        
-        priceId = price.id;
-        console.log("Created price:", priceId);
+        productId = product.id;
+        console.log("Created product:", productId);
       }
-    } catch (error) {
-      console.error("Error creating/retrieving price:", error.message);
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: `Failed to set up pricing: ${error.message}` 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      });
-    }
 
-    console.log("Creating checkout session");
+      console.log("Creating checkout session");
     
-    // Create Checkout session
-    try {
+      // Create Checkout session
       const origin = req.headers.get("origin") || "http://localhost:3000";
       
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
         line_items: [
           {
-            price: priceId,
+            price_data: {
+              currency: 'gbp',
+              product_data: {
+                name: productName,
+              },
+              unit_amount: unitAmount,
+            },
             quantity: 1,
           },
         ],
-        mode,
+        mode: "payment",
         success_url: successUrl || `${origin}/payment-success?plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: cancelUrl || `${origin}/pricing?canceled=true`,
         metadata: {
