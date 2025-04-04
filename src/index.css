@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -128,6 +129,12 @@
   @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
 }
 
+.agent-card-luther {
+  background: linear-gradient(to bottom right, #6366F1, #4F46E5);
+  color: white;
+  @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
+}
+
 /* Updated glow styles */
 .agent-glow-markus {
   box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
@@ -149,6 +156,11 @@
   @apply transition-shadow duration-300;
 }
 
+.agent-glow-luther {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+  @apply transition-shadow duration-300;
+}
+
 /* Updated label styles */
 .text-markus {
   color: #3B82F6;
@@ -164,6 +176,10 @@
 
 .text-chloe {
   color: #EC4899;
+}
+
+.text-luther {
+  color: #6366F1;
 }
 
 .agent-label-markus {
@@ -188,6 +204,12 @@
   background-color: rgba(236, 72, 153, 0.1);
   color: #EC4899;
   @apply rounded-lg border-[1.5px] border-[#EC4899]/20;
+}
+
+.agent-label-luther {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #6366F1;
+  @apply rounded-lg border-[1.5px] border-[#6366F1]/20;
 }
 
 .chat-container {

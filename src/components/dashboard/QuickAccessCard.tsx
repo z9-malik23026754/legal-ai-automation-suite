@@ -3,20 +3,22 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
+import { MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
 
 interface QuickAccessCardProps {
   hasMarkusAccess: boolean;
   hasKaraAccess: boolean;
   hasConnorAccess: boolean;
   hasChloeAccess?: boolean;
+  hasLutherAccess?: boolean;
 }
 
 const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ 
   hasMarkusAccess,
   hasKaraAccess,
   hasConnorAccess,
-  hasChloeAccess = false
+  hasChloeAccess = false,
+  hasLutherAccess = false
 }) => {
   return (
     <div className="glass-card border-white/10 rounded-lg shadow-glass overflow-hidden">
@@ -66,6 +68,18 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
             </div>
             <Link to="/settings/chloe">
               <Button variant="ghost" className="hover:bg-amber-500/10 hover:text-amber-600">Configure</Button>
+            </Link>
+          </div>
+        )}
+        
+        {hasLutherAccess && (
+          <div className="p-4 flex justify-between items-center hover:bg-white/5 transition-colors">
+            <div>
+              <h3 className="font-medium bg-gradient-to-r from-indigo-500 to-indigo-700 bg-clip-text text-transparent">Sales & CRM</h3>
+              <p className="text-sm text-muted-foreground">Manage leads, deals and customer relationships</p>
+            </div>
+            <Link to="/settings/luther">
+              <Button variant="ghost" className="hover:bg-indigo-500/10 hover:text-indigo-600">Configure</Button>
             </Link>
           </div>
         )}

@@ -1,6 +1,7 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
-import { PieChart, Calendar, Bell, Settings, FileText, MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
+import { PieChart, Calendar, Bell, Settings, FileText, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -14,13 +15,15 @@ interface SidebarLinksProps {
   hasKaraAccess: boolean;
   hasConnorAccess: boolean;
   hasChloeAccess?: boolean;
+  hasLutherAccess?: boolean;
 }
 
 const SidebarLinks: React.FC<SidebarLinksProps> = ({
   hasMarkusAccess,
   hasKaraAccess,
   hasConnorAccess,
-  hasChloeAccess = false
+  hasChloeAccess = false,
+  hasLutherAccess = false
 }) => {
   return (
     <>
@@ -100,6 +103,16 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
                   <ClipboardList className="h-3 w-3 text-chloe" />
                 </div>
                 <span>{!hasChloeAccess && "🔒 "}Chloe</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Luther" disabled={!hasLutherAccess}>
+              <Link to="/agents/luther">
+                <div className="agent-label-luther inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
+                  <BarChart3 className="h-3 w-3 text-luther" />
+                </div>
+                <span>{!hasLutherAccess && "🔒 "}Luther</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

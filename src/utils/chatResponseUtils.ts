@@ -49,6 +49,19 @@ export const getSimulatedResponse = (agentName: string, message: string): string
         return "I'm your administrative assistant. I can help with reporting, scheduling, task management, and business analytics. How can I help you stay organized today?";
       }
       
+    case "Luther":
+      if (lowercaseMessage.includes("lead") || lowercaseMessage.includes("prospect")) {
+        return "I've updated your lead management dashboard. You have 12 new leads this week, with 5 marked as high-priority. Would you like me to schedule follow-up calls?";
+      } else if (lowercaseMessage.includes("deal") || lowercaseMessage.includes("sale")) {
+        return "Your active deals pipeline shows 8 opportunities worth $53,500 in potential revenue. The largest deal is with Acme Corp valued at $15,000 with 75% probability to close.";
+      } else if (lowercaseMessage.includes("customer") || lowercaseMessage.includes("client")) {
+        return "I've analyzed your customer relationships and identified 3 accounts that need attention. Would you like to see which ones might benefit from additional engagement?";
+      } else if (lowercaseMessage.includes("forecast") || lowercaseMessage.includes("report")) {
+        return "Based on current pipeline and historical performance, I'm forecasting $127,000 in sales this quarter, which is 18% above target. Would you like to see the detailed breakdown?";
+      } else {
+        return "I'm your sales and CRM assistant. I can help with lead management, pipeline tracking, customer relationships, and sales forecasting. How can I help grow your business today?";
+      }
+      
     default:
       return "I'm not sure how to respond to that. Can you please rephrase your question?";
   }

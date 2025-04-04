@@ -74,6 +74,9 @@ export const useSubscription = () => {
     if (planId === 'chloe' && subscription.chloe) {
       return true;
     }
+    if (planId === 'luther' && subscription.luther) {
+      return true;
+    }
     if (planId === 'all-in-one' && subscription.allInOne) {
       return true;
     }

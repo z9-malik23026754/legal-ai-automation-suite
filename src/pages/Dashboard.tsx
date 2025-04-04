@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { PieChart, MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
+import { PieChart, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
 import {
   SidebarProvider,
   Sidebar,
@@ -41,16 +41,18 @@ const Dashboard = () => {
   const hasKaraAccess = subscription?.kara || subscription?.allInOne;
   const hasConnorAccess = subscription?.connor || subscription?.allInOne;
   const hasChloeAccess = subscription?.chloe || subscription?.allInOne;
+  const hasLutherAccess = subscription?.luther || subscription?.allInOne;
   
   // Check if user has any subscriptions at all
-  const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess;
+  const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess || hasLutherAccess;
 
   // Recent notifications - for demo purposes
   const recentNotifications = [
     { title: "New client inquiry", time: "2 hours ago", agent: "Markus" },
     { title: "Support ticket opened", time: "Yesterday", agent: "Kara" },
     { title: "Email campaign completed", time: "2 days ago", agent: "Connor" },
-    { title: "Admin report ready", time: "3 days ago", agent: "Chloe" }
+    { title: "Admin report ready", time: "3 days ago", agent: "Chloe" },
+    { title: "New lead qualified", time: "1 hour ago", agent: "Luther" }
   ];
 
   // Quick stats - for demo purposes
@@ -79,6 +81,7 @@ const Dashboard = () => {
               hasKaraAccess={hasKaraAccess}
               hasConnorAccess={hasConnorAccess}
               hasChloeAccess={hasChloeAccess}
+              hasLutherAccess={hasLutherAccess}
             />
           </SidebarContent>
           <SidebarFooter className="p-4 border-t border-sidebar-border">
@@ -152,6 +155,14 @@ const Dashboard = () => {
                     icon="ClipboardList"
                     hasAccess={hasChloeAccess}
                   />
+                  
+                  <AgentCard 
+                    agentId="luther"
+                    title="Luther"
+                    description="Sales automation and CRM tools for your business"
+                    icon="BarChart3"
+                    hasAccess={hasLutherAccess}
+                  />
                 </div>
               </div>
 
@@ -169,6 +180,7 @@ const Dashboard = () => {
                   hasKaraAccess={hasKaraAccess}
                   hasConnorAccess={hasConnorAccess}
                   hasChloeAccess={hasChloeAccess}
+                  hasLutherAccess={hasLutherAccess}
                 />
               </div>
             )}

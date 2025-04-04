@@ -1,5 +1,5 @@
 
-import { CheckCircle, MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
+import { CheckCircle, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
 import React from "react";
 import { PricingPlan } from "@/components/pricing/PricingCard";
 
@@ -63,6 +63,21 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Workflow automation",
     ],
     color: "chloe"
+  },
+  {
+    id: "luther",
+    name: "Luther",
+    icon: React.createElement(BarChart3, { className: "h-6 w-6 text-luther" }),
+    description: "Sales automation and CRM tools for growing your business",
+    monthlyPrice: 99,
+    annualPrice: 990,
+    features: [
+      "Lead management",
+      "Sales pipeline tracking",
+      "Deal forecasting",
+      "Customer relationship tools",
+    ],
+    color: "luther"
   },
   {
     id: "all-in-one",
