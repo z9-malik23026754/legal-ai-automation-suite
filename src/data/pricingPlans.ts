@@ -7,7 +7,7 @@ export const getPricingPlans = (): PricingPlan[] => [
   {
     id: "markus",
     name: "Markus",
-    icon: <MessageSquare className="h-6 w-6 text-markus" />,
+    icon: React.createElement(MessageSquare, { className: "h-6 w-6 text-markus" }),
     description: "Personalized chatbot for customer service and lead generation",
     monthlyPrice: 79,
     annualPrice: 790,
@@ -22,7 +22,7 @@ export const getPricingPlans = (): PricingPlan[] => [
   {
     id: "kara",
     name: "Kara",
-    icon: <Phone className="h-6 w-6 text-kara" />,
+    icon: React.createElement(Phone, { className: "h-6 w-6 text-kara" }),
     description: "Customer support agent for scheduling and client communication",
     monthlyPrice: 99,
     annualPrice: 990,
@@ -37,7 +37,7 @@ export const getPricingPlans = (): PricingPlan[] => [
   {
     id: "connor",
     name: "Connor",
-    icon: <Mail className="h-6 w-6 text-connor" />,
+    icon: React.createElement(Mail, { className: "h-6 w-6 text-connor" }),
     description: "Email marketing and content automation for your business",
     monthlyPrice: 89,
     annualPrice: 890,
@@ -52,7 +52,7 @@ export const getPricingPlans = (): PricingPlan[] => [
   {
     id: "chloe",
     name: "Chloe",
-    icon: <ClipboardList className="h-6 w-6 text-chloe" />,
+    icon: React.createElement(ClipboardList, { className: "h-6 w-6 text-chloe" }),
     description: "Administrative assistant for business management tasks",
     monthlyPrice: 89,
     annualPrice: 890,
@@ -67,7 +67,7 @@ export const getPricingPlans = (): PricingPlan[] => [
   {
     id: "all-in-one",
     name: "All-in-One Suite",
-    icon: <CheckCircle className="h-6 w-6 text-primary" />,
+    icon: React.createElement(CheckCircle, { className: "h-6 w-6 text-primary" }),
     description: "Complete access to all AI agents with premium features",
     monthlyPrice: 199,
     annualPrice: 1990,
@@ -82,3 +82,4 @@ export const getPricingPlans = (): PricingPlan[] => [
     popular: true
   }
 ];
+
