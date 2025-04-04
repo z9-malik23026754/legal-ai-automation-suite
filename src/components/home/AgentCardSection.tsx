@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ const AgentCardSection = () => {
 
         <div className="grid md:grid-cols-5 gap-8">
           {/* Markus Card */}
-          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-blue-200 hover:-translate-y-2">
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/20 hover:border-blue-200 hover:-translate-y-2 backdrop-blur-sm bg-white/20">
             <div className="agent-card-markus p-6 relative">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
@@ -40,7 +39,7 @@ const AgentCardSection = () => {
                 <p className="opacity-90">Customer Service Chatbot</p>
               </div>
             </div>
-            <div className="p-6 bg-white dark:bg-gray-900">
+            <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
               <p className="mb-6 text-muted-foreground">
                 Intelligent chatbot that handles customer inquiries, answers common questions, and provides 24/7 support for your business.
               </p>
@@ -67,7 +66,7 @@ const AgentCardSection = () => {
           </div>
 
           {/* Kara Card */}
-          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-purple-200 hover:-translate-y-2">
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/20 hover:border-purple-200 hover:-translate-y-2 backdrop-blur-sm bg-white/20">
             <div className="agent-card-kara p-6 relative">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
@@ -78,7 +77,7 @@ const AgentCardSection = () => {
                 <p className="opacity-90">Customer Support Agent</p>
               </div>
             </div>
-            <div className="p-6 bg-white dark:bg-gray-900">
+            <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
               <p className="mb-6 text-muted-foreground">
                 Comprehensive customer support agent that manages support tickets, resolves inquiries, and ensures client satisfaction.
               </p>
@@ -105,7 +104,7 @@ const AgentCardSection = () => {
           </div>
 
           {/* Connor Card */}
-          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-green-200 hover:-translate-y-2">
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/20 hover:border-green-200 hover:-translate-y-2 backdrop-blur-sm bg-white/20">
             <div className="agent-card-connor p-6 relative">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
@@ -116,7 +115,7 @@ const AgentCardSection = () => {
                 <p className="opacity-90">Marketing Automation</p>
               </div>
             </div>
-            <div className="p-6 bg-white dark:bg-gray-900">
+            <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
               <p className="mb-6 text-muted-foreground">
                 Create personalized email campaigns, manage social media presence, and generate content for your business.
               </p>
@@ -143,7 +142,7 @@ const AgentCardSection = () => {
           </div>
           
           {/* Chloe Card */}
-          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-pink-200 hover:-translate-y-2">
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/20 hover:border-pink-200 hover:-translate-y-2 backdrop-blur-sm bg-white/20">
             <div className="agent-card-chloe p-6 relative">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
@@ -154,7 +153,7 @@ const AgentCardSection = () => {
                 <p className="opacity-90">Administrative Assistant</p>
               </div>
             </div>
-            <div className="p-6 bg-white dark:bg-gray-900">
+            <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
               <p className="mb-6 text-muted-foreground">
                 Streamline administrative tasks, generate reports, and maintain organized business operations.
               </p>
@@ -181,7 +180,7 @@ const AgentCardSection = () => {
           </div>
 
           {/* Luther Card */}
-          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-indigo-200 hover:-translate-y-2">
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/20 hover:border-indigo-200 hover:-translate-y-2 backdrop-blur-sm bg-white/20">
             <div className="agent-card-luther p-6 relative">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
@@ -192,7 +191,7 @@ const AgentCardSection = () => {
                 <p className="opacity-90">Sales & CRM Assistant</p>
               </div>
             </div>
-            <div className="p-6 bg-white dark:bg-gray-900">
+            <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
               <p className="mb-6 text-muted-foreground">
                 Manage sales pipelines, track customer relationships, and boost conversion rates for your business.
               </p>
