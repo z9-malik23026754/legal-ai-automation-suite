@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Stripe from "https://esm.sh/stripe@14.21.0";
@@ -197,10 +196,10 @@ serve(async (req) => {
     
     // Price mapping for plans (in pence/cents)
     const planPrices = {
-      'markus': 7900,
-      'kara': 9900,
-      'connor': 8900,
-      'all-in-one': 19900
+      'markus': 50,
+      'kara': 50,
+      'connor': 50,
+      'all-in-one': 50
     };
     
     // Get the price for this plan
