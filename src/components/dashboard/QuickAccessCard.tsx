@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
 
 interface QuickAccessCardProps {
@@ -36,7 +37,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
         {hasKaraAccess && (
           <div className="p-4 flex justify-between items-center hover:bg-white/5 transition-colors">
             <div>
-              <h3 className="font-medium bg-gradient-to-r from-purple-500 to-purple-700 bg-clip-text text-transparent">Voice Agent Settings</h3>
+              <h3 className="font-medium bg-gradient-to-r from-purple-500 to-purple-700 bg-clip-text text-transparent">Customer Support Settings</h3>
               <p className="text-sm text-muted-foreground">Manage phone numbers and SMS templates</p>
             </div>
             <Link to="/settings/kara">
@@ -53,6 +54,18 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
             </div>
             <Link to="/settings/connor">
               <Button variant="ghost" className="hover:bg-green-500/10 hover:text-green-600">Configure</Button>
+            </Link>
+          </div>
+        )}
+        
+        {hasChloeAccess && (
+          <div className="p-4 flex justify-between items-center hover:bg-white/5 transition-colors">
+            <div>
+              <h3 className="font-medium bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">Admin Tools</h3>
+              <p className="text-sm text-muted-foreground">Manage administrative tasks and reporting</p>
+            </div>
+            <Link to="/settings/chloe">
+              <Button variant="ghost" className="hover:bg-amber-500/10 hover:text-amber-600">Configure</Button>
             </Link>
           </div>
         )}

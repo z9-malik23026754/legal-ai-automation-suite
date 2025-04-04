@@ -3,13 +3,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Lock, MessageSquare, Phone, Mail } from "lucide-react";
+import { ArrowRight, Lock, MessageSquare, Phone, Mail, ClipboardList } from "lucide-react";
 
 interface AgentCardProps {
   agentId: string;
   title: string;
   description: string;
-  icon: "MessageSquare" | "Phone" | "Mail";
+  icon: "MessageSquare" | "Phone" | "Mail" | "ClipboardList";
   hasAccess: boolean;
 }
 
@@ -28,6 +28,8 @@ const AgentCard: React.FC<AgentCardProps> = ({
         return <Phone className={`h-5 w-5 text-${agentId}`} />;
       case "Mail":
         return <Mail className={`h-5 w-5 text-${agentId}`} />;
+      case "ClipboardList":
+        return <ClipboardList className={`h-5 w-5 text-${agentId}`} />;
       default:
         return null;
     }
