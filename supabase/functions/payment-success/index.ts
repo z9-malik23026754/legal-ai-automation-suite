@@ -32,7 +32,7 @@ serve(async (req) => {
     
     // Check if the payment was successful
     if (session.payment_status !== "paid") {
-      throw new Error("Payment not completed");
+      throw new Error(`Payment not completed. Status: ${session.payment_status}`);
     }
     
     // Get plan and user info from metadata
@@ -73,19 +73,37 @@ serve(async (req) => {
         throw new Error("Invalid plan ID");
     }
     
-    // If this is a subscription (not one-time payment)
-    if (session.mode === 'subscription' && session.subscription) {
-      updateData = {
-        ...updateData,
-        stripe_subscription_id: session.subscription
-      };
+    // Retrieve existing subscription record or create a new one
+    const { data: existingSubscription } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    let dbOperation;
+    
+    if (existingSubscription) {
+      // Update existing subscription
+      dbOperation = supabase
+        .from("subscriptions")
+        .update({
+          ...updateData,
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq("user_id", userId);
+    } else {
+      // Create new subscription
+      dbOperation = supabase
+        .from("subscriptions")
+        .insert({
+          user_id: userId,
+          ...updateData,
+          status: 'active'
+        });
     }
     
-    // Update the subscription
-    const { error } = await supabase
-      .from("subscriptions")
-      .update(updateData)
-      .eq("user_id", userId);
+    const { error } = await dbOperation;
       
     if (error) {
       throw new Error(`Error updating subscription: ${error.message}`);

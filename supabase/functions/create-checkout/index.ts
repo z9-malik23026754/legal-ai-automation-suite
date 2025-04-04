@@ -75,36 +75,55 @@ serve(async (req) => {
     
     // Define the products and pricing for each plan
     let priceId;
-    let mode = "subscription";
+    let mode = "payment"; // Changed to "payment" for one-time payments instead of subscription
     
-    // Get price IDs based on plan selection
-    switch (planId) {
-      case "markus":
-        priceId = "price_markus"; // Replace with your actual Stripe price ID
-        break;
-      case "kara":
-        priceId = "price_kara"; // Replace with your actual Stripe price ID
-        break;
-      case "connor":
-        priceId = "price_connor"; // Replace with your actual Stripe price ID
-        break;
-      case "all-in-one":
-        priceId = "price_all_in_one"; // Replace with your actual Stripe price ID
-        break;
-      default:
-        throw new Error("Invalid plan ID");
+    // Create price objects for each plan (£0.01 each)
+    try {
+      // First check if our prices already exist to avoid creating duplicates
+      const existingPrices = await stripe.prices.list({
+        lookup_keys: [`test_${planId}`],
+        limit: 1,
+      });
+      
+      if (existingPrices.data.length > 0) {
+        priceId = existingPrices.data[0].id;
+      } else {
+        // Create product if it doesn't exist
+        const productName = {
+          'markus': 'Markus AI Assistant',
+          'kara': 'Kara AI Assistant',
+          'connor': 'Connor AI Assistant',
+          'all-in-one': 'All-in-One AI Suite'
+        }[planId] || 'AI Assistant';
+        
+        const product = await stripe.products.create({
+          name: productName,
+          metadata: {
+            plan_id: planId,
+          }
+        });
+        
+        // Create a £0.01 price for the product
+        const price = await stripe.prices.create({
+          product: product.id,
+          unit_amount: 1, // £0.01 in pence
+          currency: 'gbp',
+          lookup_key: `test_${planId}`,
+        });
+        
+        priceId = price.id;
+      }
+    } catch (error) {
+      console.error("Error creating/retrieving price:", error);
+      throw new Error(`Failed to set up test pricing: ${error.message}`);
     }
 
-    // Mock price for development (you should replace with real price IDs in production)
-    // Using Stripe's test price ID format
-    const mockPriceId = "price_1NxxxxxxxxxxxxxxxXXXXX";
-    
     // Create Checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
-          price: mockPriceId, // Using mock ID since real IDs aren't available yet
+          price: priceId,
           quantity: 1,
         },
       ],

@@ -31,7 +31,6 @@ serve(async (req) => {
     const body = await req.text();
     
     // Verify webhook signature using your Stripe webhook secret
-    // In production, you'd set this in your Supabase secrets
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
     
     let event;
@@ -69,51 +68,42 @@ serve(async (req) => {
               break;
           }
           
-          // If this is a subscription (not a one-time payment)
-          if (session.mode === 'subscription' && session.subscription) {
-            updateData = {
-              ...updateData,
-              stripe_subscription_id: session.subscription
-            };
+          // Retrieve existing subscription record or create a new one
+          const { data: existingSubscription } = await supabase
+            .from("subscriptions")
+            .select("*")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          let dbOperation;
+          
+          if (existingSubscription) {
+            // Update existing subscription
+            dbOperation = supabase
+              .from("subscriptions")
+              .update({
+                ...updateData,
+                status: 'active',
+                updated_at: new Date().toISOString()
+              })
+              .eq("user_id", userId);
+          } else {
+            // Create new subscription
+            dbOperation = supabase
+              .from("subscriptions")
+              .insert({
+                user_id: userId,
+                ...updateData,
+                status: 'active'
+              });
           }
           
-          // Update the subscription
-          const { error } = await supabase
-            .from("subscriptions")
-            .update(updateData)
-            .eq("user_id", userId);
+          const { error } = await dbOperation;
             
           if (error) {
             console.error("Error updating subscription:", error);
             return new Response(`Error updating subscription: ${error.message}`, { status: 500 });
           }
-        }
-        break;
-      }
-      case 'customer.subscription.deleted': {
-        // Handle subscription cancellation
-        const subscription = event.data.object;
-        
-        // Find the user with this subscription ID
-        const { data, error } = await supabase
-          .from("subscriptions")
-          .select("user_id")
-          .eq("stripe_subscription_id", subscription.id)
-          .single();
-          
-        if (error) {
-          console.error("Error finding subscription:", error);
-        } else if (data) {
-          // Deactivate the subscription in our database
-          await supabase
-            .from("subscriptions")
-            .update({
-              markus: false,
-              kara: false,
-              connor: false,
-              all_in_one: false
-            })
-            .eq("user_id", data.user_id);
         }
         break;
       }
