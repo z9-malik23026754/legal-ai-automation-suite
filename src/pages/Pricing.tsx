@@ -114,11 +114,11 @@ const Pricing = () => {
       id: "markus",
       name: "Markus",
       icon: <MessageSquare className="h-6 w-6 text-markus" />,
-      description: "Personalized chatbot for client intake and routine questions",
+      description: "Personalized chatbot for customer service and lead generation",
       monthlyPrice: 79,
       annualPrice: 790,
       features: [
-        "24/7 client intake",
+        "24/7 customer support",
         "Custom knowledge base",
         "Website integration",
         "Unlimited conversations",
@@ -129,7 +129,7 @@ const Pricing = () => {
       id: "kara",
       name: "Kara",
       icon: <Phone className="h-6 w-6 text-kara" />,
-      description: "Voice & SMS automation for scheduling and client communication",
+      description: "Voice & SMS automation for scheduling and customer communication",
       monthlyPrice: 99,
       annualPrice: 990,
       features: [
@@ -144,14 +144,14 @@ const Pricing = () => {
       id: "connor",
       name: "Connor",
       icon: <Mail className="h-6 w-6 text-connor" />,
-      description: "Email marketing and content automation for your practice",
+      description: "Email marketing and content automation for your business",
       monthlyPrice: 89,
       annualPrice: 890,
       features: [
         "Email campaign automation",
         "Newsletter creation",
         "Content generation",
-        "Client nurturing sequences",
+        "Customer nurturing sequences",
       ],
       color: "connor"
     },
@@ -182,7 +182,7 @@ const Pricing = () => {
           <div className="text-center mb-16">
             <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Pricing Plans</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Choose the right plan for your firm's needs
+              Choose the right plan for your business needs
             </p>
             
             <div className="mt-8 inline-flex items-center p-1 bg-muted rounded-full shadow-inner">

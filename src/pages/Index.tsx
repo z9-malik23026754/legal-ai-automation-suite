@@ -19,10 +19,10 @@ const Index = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-              Legal Automation Powered by AI
+              Business Automation Powered by AI
             </h1>
             <p className="text-xl mb-8 text-white/90">
-              Transform your law practice with intelligent AI agents designed specifically for legal professionals. Streamline routine tasks and focus on what matters most.
+              Transform your business with intelligent AI agents designed to streamline operations, boost productivity, and enhance customer experiences.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               {user ? (
@@ -54,9 +54,9 @@ const Index = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Meet Your AI Legal Assistants</h2>
+            <h2 className="text-3xl font-bold mb-4">Meet Your AI Business Assistants</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our suite of specialized AI agents designed to handle different aspects of your legal practice automation needs.
+              Our suite of specialized AI agents designed to handle different aspects of your business operations and customer engagement.
             </p>
           </div>
 
@@ -66,24 +66,24 @@ const Index = () => {
               <div className="agent-card-markus p-6">
                 <MessageSquare className="h-8 w-8 mb-4" />
                 <h3 className="text-xl font-bold mb-2">Markus</h3>
-                <p className="opacity-90">Personalized Chatbot</p>
+                <p className="opacity-90">Customer Service Chatbot</p>
               </div>
               <div className="p-6">
                 <p className="mb-6 text-muted-foreground">
-                  Intelligent chatbot that handles client intake, answers routine questions, and provides document guidance.
+                  Intelligent chatbot that handles customer inquiries, answers common questions, and provides 24/7 support for your business.
                 </p>
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-markus mr-2" />
-                    <span>24/7 client assistance</span>
+                    <span>24/7 customer assistance</span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-markus mr-2" />
-                    <span>Custom legal knowledge base</span>
+                    <span>Custom knowledge base</span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-markus mr-2" />
-                    <span>Case qualification</span>
+                    <span>Lead qualification</span>
                   </li>
                 </ul>
                 <Link to="/pricing">
@@ -101,7 +101,7 @@ const Index = () => {
               </div>
               <div className="p-6">
                 <p className="mb-6 text-muted-foreground">
-                  Handle client calls, send appointment reminders, and collect information through natural voice interactions.
+                  Handle customer calls, send appointment reminders, and collect information through natural voice interactions.
                 </p>
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center">
@@ -114,7 +114,7 @@ const Index = () => {
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-kara mr-2" />
-                    <span>Client updates via SMS</span>
+                    <span>Customer updates via SMS</span>
                   </li>
                 </ul>
                 <Link to="/pricing">
@@ -132,7 +132,7 @@ const Index = () => {
               </div>
               <div className="p-6">
                 <p className="mb-6 text-muted-foreground">
-                  Create personalized email campaigns, manage social media presence, and generate content for your firm.
+                  Create personalized email campaigns, manage social media presence, and generate content for your business.
                 </p>
                 <ul className="space-y-2 mb-6">
                   <li className="flex items-center">
@@ -145,7 +145,7 @@ const Index = () => {
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-connor mr-2" />
-                    <span>Client nurturing sequences</span>
+                    <span>Customer nurturing sequences</span>
                   </li>
                 </ul>
                 <Link to="/pricing">
@@ -161,9 +161,9 @@ const Index = () => {
       <section className="py-20 bg-secondary/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Why Choose LegalAI</h2>
+            <h2 className="text-3xl font-bold mb-4">Why Choose BusinessAI</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              We understand the unique challenges legal professionals face in today's fast-paced digital environment.
+              We understand the unique challenges businesses face in today's fast-paced digital environment.
             </p>
           </div>
 
@@ -172,9 +172,9 @@ const Index = () => {
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Briefcase className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Industry Specific</h3>
+              <h3 className="text-xl font-semibold mb-2">Industry Adaptable</h3>
               <p className="text-muted-foreground">
-                Our AI is trained specifically on legal processes and terminology for accurate, relevant assistance.
+                Our AI is trained to understand various industries and can be customized to your specific business needs.
               </p>
             </div>
             
@@ -194,7 +194,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Seamless Integration</h3>
               <p className="text-muted-foreground">
-                Easily connects with popular legal practice management software and workflows.
+                Easily connects with popular business management software and workflows you already use.
               </p>
             </div>
           </div>
@@ -204,9 +204,9 @@ const Index = () => {
       {/* CTA Section */}
       <section className="py-16 bg-primary text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Practice?</h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Business?</h2>
           <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-            Join the growing number of law firms using LegalAI to streamline operations and enhance client experiences.
+            Join the growing number of companies using BusinessAI to streamline operations and enhance customer experiences.
           </p>
           <Link to="/signup">
             <Button size="lg" className="bg-white text-primary hover:bg-white/90">
@@ -223,10 +223,10 @@ const Index = () => {
             <div className="mb-6 md:mb-0">
               <div className="flex items-center space-x-2">
                 <Briefcase className="h-5 w-5 text-primary" />
-                <span className="font-bold text-lg">LegalAI</span>
+                <span className="font-bold text-lg">BusinessAI</span>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                Intelligent automation for legal professionals
+                Intelligent automation for modern businesses
               </p>
             </div>
             
@@ -259,7 +259,7 @@ const Index = () => {
           
           <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} LegalAI. All rights reserved.
+              © {new Date().getFullYear()} BusinessAI. All rights reserved.
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link to="#" className="text-muted-foreground hover:text-foreground">

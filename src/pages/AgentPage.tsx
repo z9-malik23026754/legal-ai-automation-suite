@@ -85,7 +85,7 @@ const AgentPage = () => {
           </div>
           
           <div className="mt-4 text-center text-xs text-muted-foreground">
-            Powered by LegalAI · Webhook requests will be processed by n8n
+            Powered by BusinessAI · Webhook requests will be processed by n8n
           </div>
         </div>
       </div>
