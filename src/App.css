@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -39,4 +40,43 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Chatfuel-inspired styles */
+.chatfuel-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.chatfuel-heading {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.chatfuel-subheading {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
+.chatfuel-gradient-bg {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.chatfuel-shadow {
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+}
+
+.chatfuel-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }

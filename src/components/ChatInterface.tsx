@@ -3,8 +3,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Send } from "lucide-react";
+import { Send, Info, Code, Settings } from "lucide-react";
 import { useDeveloper } from "@/contexts/DeveloperContext";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Message {
   id: string;
@@ -41,6 +42,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const { isDeveloper } = useDeveloper();
   const [webhookUrls, setWebhookUrls] = useState<string[]>([]);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   // Load all configured webhooks for this agent
   useEffect(() => {
@@ -190,55 +192,73 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-card border-b p-4">
+      <div className="bg-white border-b p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`agent-label-${agentColor} p-2 rounded-md`}>
-              {agentName === 'Markus' && <span className="text-markus">M</span>}
-              {agentName === 'Kara' && <span className="text-kara">K</span>}
-              {agentName === 'Connor' && <span className="text-connor">C</span>}
+            <div className={`agent-label-${agentColor} p-2 rounded-lg flex items-center justify-center w-10 h-10`}>
+              {agentName === 'Markus' && <span className={`text-${agentColor} text-xl font-bold`}>M</span>}
+              {agentName === 'Kara' && <span className={`text-${agentColor} text-xl font-bold`}>K</span>}
+              {agentName === 'Connor' && <span className={`text-${agentColor} text-xl font-bold`}>C</span>}
             </div>
             <div>
-              <h2 className="font-semibold">{agentName}</h2>
-              <p className="text-xs text-muted-foreground">
+              <h2 className="font-semibold text-lg">{agentName}</h2>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full bg-${agentColor} inline-block`}></span>
                 {webhookUrls.length > 0 
-                  ? `${webhookUrls.length} webhook${webhookUrls.length > 1 ? 's' : ''} configured` 
+                  ? `${webhookUrls.length} webhook${webhookUrls.length > 1 ? 's' : ''} active` 
                   : "Not configured"}
               </p>
             </div>
           </div>
+          
           {isDeveloper && (
-            <div className="w-1/2 text-xs">
-              <p className="mb-1">Webhooks: {webhookUrls.length}</p>
-              <Input
-                type="text"
-                placeholder="Enter webhook URL (for testing only)"
-                value={webhookUrl}
-                onChange={(e) => onWebhookChange(e.target.value)}
-                className="text-xs"
-              />
-            </div>
+            <Collapsible 
+              open={isConfigOpen} 
+              onOpenChange={setIsConfigOpen}
+              className="max-w-[400px]"
+            >
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="px-2">
+                  <Settings className="h-4 w-4" />
+                  <span className="ml-2 text-xs">Developer Config</span>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 p-2 border rounded-lg bg-secondary/30">
+                <p className="mb-1 text-xs font-medium">Webhooks: {webhookUrls.length}</p>
+                <Input
+                  type="text"
+                  placeholder="Enter webhook URL (for testing only)"
+                  value={webhookUrl}
+                  onChange={(e) => onWebhookChange(e.target.value)}
+                  className="text-xs chatfuel-input"
+                />
+                <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                  <Info className="h-3 w-3 mr-1" />
+                  <span>Configure multiple webhooks in Developer Tools</span>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </div>
       </div>
       
       <div 
         ref={messageContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F9FAFC]"
       >
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex animate-slide-in ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
+              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                 message.sender === 'user'
-                  ? 'bg-primary text-primary-foreground'
-                  : `agent-label-${agentColor} bg-${agentColor}/10`
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : `bg-white border border-[#E5E7EB] shadow-sm`
               }`}
             >
-              <p>{message.content}</p>
+              <p className={message.sender === 'agent' ? `text-${agentColor}` : ''}>{message.content}</p>
               <p className="text-xs opacity-70 mt-1">
                 {message.timestamp.toLocaleTimeString([], {
                   hour: '2-digit',
@@ -249,8 +269,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         ))}
         {isLoading && (
-          <div className="flex justify-start">
-            <div className={`max-w-[80%] rounded-lg px-4 py-2 agent-label-${agentColor} bg-${agentColor}/10`}>
+          <div className="flex justify-start animate-fade-in">
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 bg-white border border-[#E5E7EB] shadow-sm`}>
               <div className="flex space-x-2">
                 <div className={`h-2 w-2 rounded-full bg-${agentColor} animate-pulse`}></div>
                 <div className={`h-2 w-2 rounded-full bg-${agentColor} animate-pulse delay-150`}></div>
@@ -262,7 +282,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="p-4 border-t">
+      <div className="p-4 border-t bg-white">
         <form onSubmit={handleSendMessage} className="flex space-x-2">
           <Input
             type="text"
@@ -270,8 +290,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
+            className="chatfuel-input focus:border-[#E5E7EB]"
           />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+          <Button 
+            type="submit" 
+            size="icon" 
+            disabled={isLoading || !input.trim()}
+            className={`bg-${agentColor} hover:bg-${agentColor}/90`}
+          >
             <Send className="h-4 w-4" />
           </Button>
         </form>

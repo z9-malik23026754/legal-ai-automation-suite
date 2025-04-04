@@ -63,10 +63,10 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom agent colors
-				markus: '#4361EE', // Blue for chatbot
-				kara: '#9D4EDD', // Purple for voice agent
-				connor: '#2EC4B6', // Turquoise for marketing
+				// Updated agent colors to be more vibrant
+				markus: '#536DFE', // Brighter blue for chatbot
+				kara: '#8C44FF', // Brighter purple for voice agent
+				connor: '#00C2A3', // Brighter turquoise for marketing
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -97,13 +97,22 @@ export default {
 				'fade-in': {
 					'0%': { opacity: '0' },
 					'100%': { opacity: '1' },
+				},
+				'slide-in': {
+					'0%': { transform: 'translateY(10px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-				'fade-in': 'fade-in 0.5s ease-out'
+				'fade-in': 'fade-in 0.5s ease-out',
+				'slide-in': 'slide-in 0.3s ease-out'
+			},
+			boxShadow: {
+				'chatfuel': '0 2px 20px rgba(0, 0, 0, 0.08)',
+				'card-hover': '0 8px 30px rgba(0, 0, 0, 0.12)',
 			}
 		}
 	},

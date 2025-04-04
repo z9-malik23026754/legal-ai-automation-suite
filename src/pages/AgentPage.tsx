@@ -72,20 +72,23 @@ const AgentPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <div className="flex-1 pt-16">
-        <div className="container mx-auto px-4 h-full pb-4">
-          <div className="mb-4">
+        <div className="container mx-auto px-4 h-full pb-4 max-w-5xl">
+          <div className="mb-6 flex items-center justify-between">
             <Link to="/dashboard">
-              <Button variant="ghost" size="sm" className="pl-0">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+              <Button variant="ghost" size="sm" className="pl-0 flex items-center gap-2 hover:bg-transparent hover:text-primary">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
               </Button>
             </Link>
+            <h1 className="text-2xl font-bold hidden md:block">
+              <span className={`text-${agentColor}`}>{agentName}</span> Agent
+            </h1>
           </div>
           
-          <div className={`border rounded-lg overflow-hidden shadow-sm chat-container agent-glow-${agentColor}`}>
+          <div className={`border rounded-xl overflow-hidden shadow-chatfuel transition-all duration-300 chat-container agent-glow-${agentColor} bg-white`}>
             <ChatInterface 
               agentName={agentName}
               agentColor={agentColor}

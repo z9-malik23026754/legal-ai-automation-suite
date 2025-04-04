@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 220 33% 98%;
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 215 60% 25%;
+    --primary: 224 64% 33%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96%;
@@ -23,7 +23,7 @@
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 215 60% 90%;
+    --accent: 224 64% 90%;
     --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
@@ -33,7 +33,7 @@
     --input: 215 32% 92%;
     --ring: 222 47% 11%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5% 26%;
@@ -91,54 +91,82 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
 }
 
+/* Updated agent card styles with more modern design */
 .agent-card-markus {
-  background: linear-gradient(135deg, #4361EE 0%, #3A56D4 100%);
+  background: linear-gradient(135deg, #536DFE 0%, #3A4BD4 100%);
   color: white;
+  @apply shadow-chatfuel transition-all duration-300 hover:shadow-card-hover;
 }
 
 .agent-card-kara {
-  background: linear-gradient(135deg, #9D4EDD 0%, #7B2CBF 100%);
+  background: linear-gradient(135deg, #8C44FF 0%, #6C2CC0 100%);
   color: white;
+  @apply shadow-chatfuel transition-all duration-300 hover:shadow-card-hover;
 }
 
 .agent-card-connor {
-  background: linear-gradient(135deg, #2EC4B6 0%, #21A99D 100%);
+  background: linear-gradient(135deg, #00C2A3 0%, #00A389 100%);
   color: white;
+  @apply shadow-chatfuel transition-all duration-300 hover:shadow-card-hover;
 }
 
+/* Updated glow styles */
 .agent-glow-markus {
-  box-shadow: 0 0 15px rgba(67, 97, 238, 0.3);
+  box-shadow: 0 2px 20px rgba(83, 109, 254, 0.2);
+  @apply transition-shadow duration-300;
 }
 
 .agent-glow-kara {
-  box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+  box-shadow: 0 2px 20px rgba(140, 68, 255, 0.2);
+  @apply transition-shadow duration-300;
 }
 
 .agent-glow-connor {
-  box-shadow: 0 0 15px rgba(46, 196, 182, 0.3);
+  box-shadow: 0 2px 20px rgba(0, 194, 163, 0.2);
+  @apply transition-shadow duration-300;
 }
 
+/* Updated label styles */
 .agent-label-markus {
-  background-color: rgba(67, 97, 238, 0.1);
-  color: #4361EE;
-  border: 1px solid rgba(67, 97, 238, 0.2);
+  background-color: rgba(83, 109, 254, 0.1);
+  color: #536DFE;
+  @apply rounded-lg border-[1.5px] border-[#536DFE]/20;
 }
 
 .agent-label-kara {
-  background-color: rgba(157, 78, 221, 0.1);
-  color: #9D4EDD;
-  border: 1px solid rgba(157, 78, 221, 0.2);
+  background-color: rgba(140, 68, 255, 0.1);
+  color: #8C44FF;
+  @apply rounded-lg border-[1.5px] border-[#8C44FF]/20;
 }
 
 .agent-label-connor {
-  background-color: rgba(46, 196, 182, 0.1);
-  color: #2EC4B6;
-  border: 1px solid rgba(46, 196, 182, 0.2);
+  background-color: rgba(0, 194, 163, 0.1);
+  color: #00C2A3;
+  @apply rounded-lg border-[1.5px] border-[#00C2A3]/20;
 }
 
 .chat-container {
   height: calc(100vh - 200px);
+  @apply rounded-xl overflow-hidden border border-border shadow-chatfuel;
+}
+
+/* New component styles */
+.chatfuel-card {
+  @apply rounded-xl bg-white border border-border shadow-chatfuel hover:shadow-card-hover transition-all duration-300;
+}
+
+.chatfuel-button {
+  @apply rounded-lg px-4 py-2 font-medium transition-all duration-200;
+}
+
+.chatfuel-gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r;
+}
+
+.chatfuel-input {
+  @apply border rounded-lg p-2 w-full focus:ring-2 focus:ring-primary/20 focus:outline-none;
 }
