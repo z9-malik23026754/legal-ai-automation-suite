@@ -1,8 +1,10 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Briefcase, Menu, X } from "lucide-react";
+import { useDeveloper } from "@/contexts/DeveloperContext";
+import { Briefcase, Menu, X, Terminal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +16,7 @@ import {
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
+  const { isDeveloper } = useDeveloper();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
@@ -47,6 +50,15 @@ const Navbar = () => {
           >
             Contact
           </Link>
+          {isDeveloper && (
+            <Link
+              to="/developer"
+              className={`${isHomePage ? 'text-white hover:text-white/80' : 'text-foreground hover:text-foreground/80'} transition-colors flex items-center`}
+            >
+              <Terminal className="mr-1 h-4 w-4" />
+              Developer
+            </Link>
+          )}
         </nav>
 
         {/* Auth Buttons - Desktop */}
@@ -65,6 +77,11 @@ const Navbar = () => {
                 <DropdownMenuItem asChild>
                   <Link to="/settings">Settings</Link>
                 </DropdownMenuItem>
+                {isDeveloper && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/developer">Developer Tools</Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()}>
                   Sign out
@@ -125,6 +142,17 @@ const Navbar = () => {
             >
               Contact
             </Link>
+            
+            {isDeveloper && (
+              <Link
+                to="/developer"
+                className="text-lg font-medium flex items-center"
+                onClick={() => setMenuOpen(false)}
+              >
+                <Terminal className="mr-2 h-5 w-5" />
+                Developer Tools
+              </Link>
+            )}
             
             <div className="h-px bg-border my-4" />
             

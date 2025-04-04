@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DeveloperProvider } from "@/contexts/DeveloperContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/SignIn";
@@ -13,6 +14,7 @@ import Pricing from "./pages/Pricing";
 import AgentPage from "./pages/AgentPage";
 import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import DeveloperTools from "./pages/DeveloperTools";
 
 const queryClient = new QueryClient();
 
@@ -23,17 +25,20 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/agents/:agentId" element={<AgentPage />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <DeveloperProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/agents/:agentId" element={<AgentPage />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/developer" element={<DeveloperTools />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </DeveloperProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

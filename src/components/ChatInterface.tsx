@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Send } from "lucide-react";
+import { useDeveloper } from "@/contexts/DeveloperContext";
 
 interface Message {
   id: string;
@@ -38,6 +39,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
+  const { isDeveloper } = useDeveloper();
+
+  // Check for saved webhook in localStorage (for developers)
+  useEffect(() => {
+    // Only load from localStorage if the user is a developer and no webhook is currently set
+    if (isDeveloper && !webhookUrl) {
+      const savedWebhookKey = `webhook_${agentName.toLowerCase()}`;
+      const savedWebhook = localStorage.getItem(savedWebhookKey);
+      
+      if (savedWebhook) {
+        onWebhookChange(savedWebhook);
+        console.log(`Loaded saved webhook for ${agentName} from developer config`);
+      }
+    }
+  }, [agentName, isDeveloper, webhookUrl, onWebhookChange]);
 
   useEffect(() => {
     scrollToBottom();
@@ -55,7 +71,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (!webhookUrl) {
       toast({
         title: "Webhook URL Required",
-        description: "Please enter your n8n webhook URL to process this request.",
+        description: isDeveloper 
+          ? "Please enter your webhook URL to process this request." 
+          : "This agent is not fully configured yet. Please contact the administrator.",
         variant: "destructive",
       });
       return;
@@ -162,18 +180,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
             <div>
               <h2 className="font-semibold">{agentName}</h2>
-              <p className="text-xs text-muted-foreground">Connected to n8n webhook</p>
+              <p className="text-xs text-muted-foreground">
+                {webhookUrl ? "Connected to webhook" : "Not configured"}
+              </p>
             </div>
           </div>
-          <div className="w-1/2">
-            <Input
-              type="text"
-              placeholder="Enter n8n webhook URL"
-              value={webhookUrl}
-              onChange={(e) => onWebhookChange(e.target.value)}
-              className="text-xs"
-            />
-          </div>
+          {isDeveloper && (
+            <div className="w-1/2">
+              <Input
+                type="text"
+                placeholder="Enter webhook URL"
+                value={webhookUrl}
+                onChange={(e) => onWebhookChange(e.target.value)}
+                className="text-xs"
+              />
+            </div>
+          )}
         </div>
       </div>
       
