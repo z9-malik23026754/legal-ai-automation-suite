@@ -27,21 +27,22 @@ const SignIn = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast({
+        title: "Missing information",
+        description: "Please enter both email and password",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      if (!email || !password) {
-        toast({
-          title: "Missing information",
-          description: "Please enter both email and password",
-          variant: "destructive",
-        });
-        return;
-      }
-
       await signIn(email, password);
     } catch (error) {
       console.error("Login error:", error);
+      // Error is already handled in the signIn function
     } finally {
       setIsSubmitting(false);
     }

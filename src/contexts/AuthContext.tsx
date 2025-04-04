@@ -119,40 +119,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Modified to handle email_not_confirmed error
+      console.log("Signing in with:", email);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
-        // If error is "Email not confirmed", sign up the user again
-        if (error.message === "Email not confirmed") {
-          // Try to sign up again which will work if the user already exists
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password
-          });
-          
-          if (signUpError) {
-            throw signUpError;
-          }
-          
-          if (signUpData.user) {
-            toast({
-              title: "Welcome back!",
-              description: "You have been signed in successfully.",
-            });
-            navigate("/dashboard");
-            return;
-          }
-        }
+        console.error("Sign in error:", error.message);
         throw error;
       }
       
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
-      
-      navigate("/dashboard");
+      if (data?.user) {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error("Error signing in:", error);
       
@@ -170,7 +151,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Modified to directly navigate to dashboard after sign up
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -183,8 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
       
-      // Even if email verification is enabled, let's navigate to dashboard
-      // This improves UX for development where email verification may be disabled
+      // Navigate to dashboard even if email verification is needed
       toast({
         title: "Account created",
         description: "Your account has been successfully created.",
