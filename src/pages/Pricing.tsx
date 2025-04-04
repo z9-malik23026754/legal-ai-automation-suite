@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,6 @@ const Pricing = () => {
       console.log("Starting checkout process for plan:", planId);
       
       // Call our edge function to create a checkout session
-      // Make sure to include the authorization header with the session token
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           planId,
@@ -47,7 +47,8 @@ const Pricing = () => {
       console.log("Checkout response:", data);
       
       if (data?.url) {
-        window.location.href = data.url;
+        // Open Stripe checkout in a new tab instead of redirecting the current window
+        window.open(data.url, "_blank");
       } else {
         console.error("No checkout URL returned:", data);
         throw new Error("No checkout URL returned");
