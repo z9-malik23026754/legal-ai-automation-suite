@@ -25,15 +25,19 @@ const Pricing = () => {
     setProcessingPlan(planId);
     try {
       console.log("Starting checkout process for plan:", planId);
-      console.log("Session token available:", !!session?.access_token);
       
       // Call our edge function to create a checkout session
+      // Make sure to include the authorization header with the session token
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           planId,
           successUrl: `${window.location.origin}/payment-success?plan=${planId}`,
           cancelUrl: `${window.location.origin}/pricing?canceled=true`
         },
+        // Include the API key as a header to make sure it's authenticated
+        headers: session?.access_token 
+          ? { Authorization: `Bearer ${session.access_token}` } 
+          : undefined
       });
 
       if (error) {
