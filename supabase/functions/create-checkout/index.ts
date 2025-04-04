@@ -9,14 +9,14 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("Create checkout function called");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("Create checkout function called");
-    
     // Get the request body
     let body;
     try {
@@ -32,6 +32,7 @@ serve(async (req) => {
       });
     }
     
+    console.log("Request body:", JSON.stringify(body));
     const { planId, successUrl, cancelUrl } = body;
     
     if (!planId) {
@@ -119,6 +120,7 @@ serve(async (req) => {
     
     if (subscriptionError) {
       console.error("Error fetching subscription data:", subscriptionError);
+      // Continue execution even if this fails - we'll create a new customer
     }
       
     let customerId = subscriptionData?.stripe_customer_id;
@@ -140,27 +142,39 @@ serve(async (req) => {
         console.log("Created new customer:", customerId);
         
         // Create or update the subscription record with the new customer ID
-        const { data: existingSubscription } = await supabase
+        const { data: existingSubscription, error: existingSubError } = await supabase
           .from("subscriptions")
           .select("*")
           .eq("user_id", user.id)
           .maybeSingle();
           
+        if (existingSubError) {
+          console.error("Error checking for existing subscription:", existingSubError);
+        }
+          
         if (existingSubscription) {
           // Update existing subscription with customer ID
-          await supabase
+          const { error: updateError } = await supabase
             .from("subscriptions")
             .update({ stripe_customer_id: customerId })
             .eq("user_id", user.id);
+            
+          if (updateError) {
+            console.error("Error updating subscription record:", updateError);
+          }
         } else {
           // Create new subscription record
-          await supabase
+          const { error: insertError } = await supabase
             .from("subscriptions")
             .insert({ 
               user_id: user.id, 
               stripe_customer_id: customerId,
               status: 'pending'
             });
+            
+          if (insertError) {
+            console.error("Error creating subscription record:", insertError);
+          }
         }
       } catch (error) {
         console.error("Error creating Stripe customer:", error);
@@ -180,7 +194,6 @@ serve(async (req) => {
     
     console.log("Setting up price for plan:", planId);
     
-    // Create price objects for each plan (£0.01 each)
     try {
       // First check if our prices already exist to avoid creating duplicates
       const existingPrices = await stripe.prices.list({
@@ -222,7 +235,7 @@ serve(async (req) => {
         console.log("Created price:", priceId);
       }
     } catch (error) {
-      console.error("Error creating/retrieving price:", error);
+      console.error("Error creating/retrieving price:", error.message);
       return new Response(JSON.stringify({ 
         success: false,
         error: `Failed to set up pricing: ${error.message}` 
@@ -265,7 +278,7 @@ serve(async (req) => {
         status: 200,
       });
     } catch (error) {
-      console.error("Error creating checkout session:", error);
+      console.error("Error creating checkout session:", error.message);
       return new Response(JSON.stringify({ 
         success: false,
         error: `Checkout session creation failed: ${error.message}` 
