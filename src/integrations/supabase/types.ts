@@ -9,72 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          company: string | null
-          created_at: string | null
-          first_name: string | null
-          id: string
-          last_name: string | null
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          company?: string | null
-          created_at?: string | null
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          company?: string | null
-          created_at?: string | null
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       subscriptions: {
         Row: {
-          all_in_one: boolean | null
-          connor: boolean | null
           created_at: string | null
           id: string
-          kara: boolean | null
-          markus: boolean | null
+          plan_type: string
+          status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          all_in_one?: boolean | null
-          connor?: boolean | null
           created_at?: string | null
           id?: string
-          kara?: boolean | null
-          markus?: boolean | null
+          plan_type: string
+          status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
-          all_in_one?: boolean | null
-          connor?: boolean | null
           created_at?: string | null
           id?: string
-          kara?: boolean | null
-          markus?: boolean | null
+          plan_type?: string
+          status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_agents: {
+        Row: {
+          active: boolean | null
+          agent_id: string
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          agent_id: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          agent_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
