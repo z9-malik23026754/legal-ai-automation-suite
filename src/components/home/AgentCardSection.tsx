@@ -2,14 +2,26 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Phone, Mail, CheckCircle } from "lucide-react";
+import { MessageSquare, Phone, Mail, CheckCircle, Sparkles } from "lucide-react";
 
 const AgentCardSection = () => {
   return (
-    <section className="py-20 bg-background">
+    <section className="py-20 bg-background relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/10 dark:to-purple-950/10 -z-10"></div>
+      <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/20 dark:bg-blue-500/10 rounded-full blur-3xl -z-10"></div>
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200/20 dark:bg-purple-500/10 rounded-full blur-3xl -z-10"></div>
+
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Meet Your AI Business Assistants</h2>
+          <div className="inline-block mb-2">
+            <span className="text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full">
+              AI Assistants
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Meet Your AI Business Assistants
+          </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Our suite of specialized AI agents designed to handle different aspects of your business operations and customer engagement.
           </p>
@@ -17,13 +29,18 @@ const AgentCardSection = () => {
 
         <div className="grid md:grid-cols-3 gap-8">
           {/* Markus Card */}
-          <div className="rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border">
-            <div className="agent-card-markus p-6">
-              <MessageSquare className="h-8 w-8 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Markus</h3>
-              <p className="opacity-90">Customer Service Chatbot</p>
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-blue-200 hover:-translate-y-2">
+            <div className="agent-card-markus p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                  <MessageSquare className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Markus</h3>
+                <p className="opacity-90">Customer Service Chatbot</p>
+              </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 bg-white dark:bg-gray-900">
               <p className="mb-6 text-muted-foreground">
                 Intelligent chatbot that handles customer inquiries, answers common questions, and provides 24/7 support for your business.
               </p>
@@ -42,19 +59,26 @@ const AgentCardSection = () => {
                 </li>
               </ul>
               <Link to="/pricing">
-                <Button variant="outline" className="w-full">Learn More</Button>
+                <Button variant="outline" className="w-full border-markus/50 text-markus hover:bg-markus/10">
+                  Learn More
+                </Button>
               </Link>
             </div>
           </div>
 
           {/* Kara Card */}
-          <div className="rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border">
-            <div className="agent-card-kara p-6">
-              <Phone className="h-8 w-8 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Kara</h3>
-              <p className="opacity-90">Voice & SMS Agent</p>
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-purple-200 hover:-translate-y-2">
+            <div className="agent-card-kara p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                  <Phone className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Kara</h3>
+                <p className="opacity-90">Voice & SMS Agent</p>
+              </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 bg-white dark:bg-gray-900">
               <p className="mb-6 text-muted-foreground">
                 Handle customer calls, send appointment reminders, and collect information through natural voice interactions.
               </p>
@@ -73,19 +97,26 @@ const AgentCardSection = () => {
                 </li>
               </ul>
               <Link to="/pricing">
-                <Button variant="outline" className="w-full">Learn More</Button>
+                <Button variant="outline" className="w-full border-kara/50 text-kara hover:bg-kara/10">
+                  Learn More
+                </Button>
               </Link>
             </div>
           </div>
 
           {/* Connor Card */}
-          <div className="rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border">
-            <div className="agent-card-connor p-6">
-              <Mail className="h-8 w-8 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Connor</h3>
-              <p className="opacity-90">Marketing Automation</p>
+          <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border hover:border-green-200 hover:-translate-y-2">
+            <div className="agent-card-connor p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+                  <Mail className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Connor</h3>
+                <p className="opacity-90">Marketing Automation</p>
+              </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 bg-white dark:bg-gray-900">
               <p className="mb-6 text-muted-foreground">
                 Create personalized email campaigns, manage social media presence, and generate content for your business.
               </p>
@@ -104,7 +135,9 @@ const AgentCardSection = () => {
                 </li>
               </ul>
               <Link to="/pricing">
-                <Button variant="outline" className="w-full">Learn More</Button>
+                <Button variant="outline" className="w-full border-connor/50 text-connor hover:bg-connor/10">
+                  Learn More
+                </Button>
               </Link>
             </div>
           </div>

@@ -64,9 +64,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				// Updated agent colors to be more vibrant
-				markus: '#536DFE', // Brighter blue for chatbot
-				kara: '#8C44FF', // Brighter purple for voice agent
-				connor: '#00C2A3', // Brighter turquoise for marketing
+				markus: '#3B82F6', // Brighter blue
+				kara: '#8B5CF6',   // Brighter purple
+				connor: '#10B981', // Brighter green
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -101,6 +101,14 @@ export default {
 				'slide-in': {
 					'0%': { transform: 'translateY(10px)', opacity: '0' },
 					'100%': { transform: 'translateY(0)', opacity: '1' },
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
+				},
+				'glow': {
+					'0%, 100%': { boxShadow: '0 0 10px rgba(79, 209, 197, 0.5)' },
+					'50%': { boxShadow: '0 0 20px rgba(79, 209, 197, 0.8)' },
 				}
 			},
 			animation: {
@@ -108,12 +116,20 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'fade-in': 'fade-in 0.5s ease-out',
-				'slide-in': 'slide-in 0.3s ease-out'
+				'slide-in': 'slide-in 0.3s ease-out',
+				'float': 'float 3s ease-in-out infinite',
+				'glow': 'glow 2s ease-in-out infinite'
 			},
 			boxShadow: {
-				'chatfuel': '0 2px 20px rgba(0, 0, 0, 0.08)',
-				'card-hover': '0 8px 30px rgba(0, 0, 0, 0.12)',
-			}
+				'chatfuel': '0 8px 30px rgba(0, 0, 0, 0.12)',
+				'card-hover': '0 12px 40px rgba(0, 0, 0, 0.15)',
+				'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+			},
+			backgroundImage: {
+				'gradient-primary': 'linear-gradient(135deg, #3B82F6 0%, #10B981 100%)',
+				'gradient-secondary': 'linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%)',
+				'gradient-hero': 'linear-gradient(135deg, #1e88e5 0%, #10B981 100%)',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
