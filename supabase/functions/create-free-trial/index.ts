@@ -113,31 +113,63 @@ serve(async (req) => {
       console.log("Created new Stripe customer:", customerId);
     }
     
-    // Create a checkout session for $0 payment (free trial) but require payment method
-    console.log("Creating Stripe checkout session...");
+    // Create a subscription with a trial period instead of a one-time payment
+    console.log("Creating Stripe checkout session with trial period...");
+    
+    // First, create a free trial product/price if it doesn't exist
+    let trialPriceId;
+    const trialProductName = "7-Day Free Trial - All AI Agents";
+    
+    // Look for an existing price with this description
+    const existingPrices = await stripe.prices.list({
+      lookup_keys: ["7-day-free-trial-all-agents"],
+      limit: 1,
+    });
+    
+    if (existingPrices.data.length > 0) {
+      trialPriceId = existingPrices.data[0].id;
+      console.log("Using existing trial price:", trialPriceId);
+    } else {
+      // Create a new product for the trial
+      const product = await stripe.products.create({
+        name: trialProductName,
+        description: "Full access to all AI agents for 7 days",
+      });
+      
+      // Create a price for the product
+      const price = await stripe.prices.create({
+        product: product.id,
+        unit_amount: 1000, // £10.00, will be charged after trial
+        currency: "gbp",
+        recurring: {
+          interval: "month",
+        },
+        lookup_key: "7-day-free-trial-all-agents",
+      });
+      
+      trialPriceId = price.id;
+      console.log("Created new trial price:", trialPriceId);
+    }
+    
+    // Create the checkout session for subscription with trial
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ['card'],
+      payment_method_types: ["card"],
       line_items: [
         {
-          price_data: {
-            currency: 'gbp',
-            product_data: {
-              name: '7-Day Free Trial - All AI Agents',
-              description: 'Full access to all AI agents for 7 days',
-            },
-            unit_amount: 0, // Free
-          },
+          price: trialPriceId,
           quantity: 1,
         },
       ],
-      payment_method_collection: 'always', // Always collect payment method even for $0
-      mode: 'payment',
+      mode: "subscription",
+      subscription_data: {
+        trial_period_days: 7,
+      },
       success_url: successUrl || `${req.headers.get("origin")}/trial-success`,
       cancel_url: cancelUrl || `${req.headers.get("origin")}/?canceled=true`,
       metadata: {
         user_id: userId,
-        is_trial: 'true',
+        is_trial: "true",
       },
     });
     
@@ -150,7 +182,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating free trial:", error);
     
     return new Response(JSON.stringify({ 

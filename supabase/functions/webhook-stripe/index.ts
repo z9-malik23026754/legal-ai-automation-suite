@@ -67,8 +67,7 @@ serve(async (req) => {
         
         console.log("Processing completed checkout session:", session.id);
         
-        // Get the plan_id from metadata
-        const planId = session.metadata?.plan_id;
+        // Get the user_id from metadata
         const userId = session.metadata?.user_id;
         const isTrial = session.metadata?.is_trial === 'true';
         
@@ -77,20 +76,32 @@ serve(async (req) => {
           return new Response("Missing user ID in session metadata", { status: 400 });
         }
         
-        console.log("Session metadata:", { planId, userId, isTrial });
+        console.log("Session metadata:", { userId, isTrial });
+        
+        // Get subscription ID from the session
+        const subscriptionId = session.subscription;
+        if (!subscriptionId) {
+          console.error("No subscription ID found in session");
+          return new Response("No subscription ID found in session", { status: 400 });
+        }
+        
+        // Retrieve the subscription details from Stripe
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        console.log("Retrieved subscription:", subscriptionId, "status:", subscription.status);
         
         // Update subscription status in database
-        let updateData = {};
+        let updateData = {
+          stripe_subscription_id: subscriptionId,
+          stripe_customer_id: session.customer,
+          updated_at: new Date().toISOString()
+        };
         
-        if (isTrial) {
+        if (isTrial || subscription.status === 'trialing') {
           // For free trial, enable all agents
           console.log("Processing free trial activation");
           
-          // Calculate trial end date (7 days from now)
-          const trialEndDate = new Date();
-          trialEndDate.setDate(trialEndDate.getDate() + 7);
-          
           updateData = { 
+            ...updateData,
             markus: true, 
             kara: true, 
             connor: true, 
@@ -98,39 +109,23 @@ serve(async (req) => {
             luther: true, 
             all_in_one: true,
             status: 'trial',
-            trial_start: new Date().toISOString(),
-            trial_end: trialEndDate.toISOString()
+            trial_start: new Date(subscription.trial_start * 1000).toISOString(),
+            trial_end: new Date(subscription.trial_end * 1000).toISOString()
           };
-        } else if (planId) {
+        } else if (subscription.status === 'active') {
           // For regular subscription
-          switch (planId) {
-            case 'markus':
-              updateData = { markus: true };
-              break;
-            case 'kara':
-              updateData = { kara: true };
-              break;
-            case 'connor':
-              updateData = { connor: true };
-              break;
-            case 'chloe':
-              updateData = { chloe: true };
-              break;
-            case 'luther':
-              updateData = { luther: true };
-              break;
-            case 'all-in-one':
-              updateData = { markus: true, kara: true, connor: true, chloe: true, luther: true, all_in_one: true };
-              break;
-            default:
-              console.error("Invalid plan ID:", planId);
-              return new Response("Invalid plan ID in session metadata", { status: 400 });
-          }
-          
-          updateData.status = 'active';
-        } else {
-          console.error("Missing plan information and not marked as trial");
-          return new Response("Missing plan information in session metadata", { status: 400 });
+          // Here you would normally check the product ID to determine which agents to enable
+          // But for simplicity, we'll enable all agents for all active subscriptions
+          updateData = { 
+            ...updateData,
+            markus: true, 
+            kara: true, 
+            connor: true, 
+            chloe: true, 
+            luther: true, 
+            all_in_one: true,
+            status: 'active'
+          };
         }
         
         console.log("Updating subscription with data:", updateData);
@@ -155,10 +150,7 @@ serve(async (req) => {
           console.log("Updating existing subscription");
           dbOperation = supabase
             .from("subscriptions")
-            .update({
-              ...updateData,
-              updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq("user_id", userId);
         } else {
           // Create new subscription
@@ -179,6 +171,76 @@ serve(async (req) => {
         }
         
         console.log("Successfully processed webhook for user:", userId);
+        break;
+      }
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+        console.log(`Processing ${event.type} for subscription:`, subscription.id);
+        
+        // Get the customer ID
+        const customerId = subscription.customer;
+        
+        // Find the user by the Stripe customer ID
+        const { data: userSubscription, error: fetchError } = await supabase
+          .from("subscriptions")
+          .select("*")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
+          
+        if (fetchError) {
+          console.error("Error fetching subscription by customer ID:", fetchError);
+          return new Response(`Error fetching subscription: ${fetchError.message}`, { status: 500 });
+        }
+        
+        if (!userSubscription) {
+          console.log("No subscription found for customer:", customerId);
+          return new Response("No subscription found for this customer", { status: 404 });
+        }
+        
+        // Update subscription status based on the event
+        let updateData = {};
+        
+        if (event.type === 'customer.subscription.deleted' || subscription.status === 'canceled') {
+          // Subscription was canceled, disable all agents
+          updateData = {
+            status: 'canceled',
+            markus: false,
+            kara: false,
+            connor: false,
+            chloe: false,
+            luther: false,
+            all_in_one: false,
+            updated_at: new Date().toISOString()
+          };
+        } else if (subscription.status === 'active') {
+          // Subscription is active (possibly after trial)
+          updateData = {
+            status: 'active',
+            updated_at: new Date().toISOString()
+          };
+        } else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+          // Payment issues, mark subscription accordingly but don't disable access yet
+          updateData = {
+            status: subscription.status,
+            updated_at: new Date().toISOString()
+          };
+        }
+        
+        console.log("Updating subscription with data:", updateData);
+        
+        // Update the subscription in the database
+        const { error } = await supabase
+          .from("subscriptions")
+          .update(updateData)
+          .eq("id", userSubscription.id);
+          
+        if (error) {
+          console.error("Error updating subscription status:", error);
+          return new Response(`Error updating subscription status: ${error.message}`, { status: 500 });
+        }
+        
+        console.log("Successfully updated subscription status");
         break;
       }
       default:
