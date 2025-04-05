@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
@@ -48,13 +47,11 @@ const Settings = () => {
     setIsLoading(true);
     
     try {
-      // This is a placeholder for the actual implementation
       toast({
         title: "Success",
         description: "Password has been updated",
       });
       
-      // Clear the form
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -69,7 +66,11 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = async (event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+    }
+
     if (!deletePassword) {
       toast({
         title: "Error",
@@ -81,7 +82,6 @@ const Settings = () => {
 
     setIsDeleting(true);
     try {
-      // First verify the password
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user?.email || "",
         password: deletePassword,
@@ -91,14 +91,12 @@ const Settings = () => {
         throw new Error("Incorrect password. Please try again.");
       }
 
-      // Delete the user
       const { error: deleteError } = await supabase.rpc('delete_user');
       
       if (deleteError) {
         throw new Error(deleteError.message);
       }
 
-      // Sign out the user
       await signOut();
       
       toast({
@@ -106,7 +104,6 @@ const Settings = () => {
         description: "Your account has been successfully deleted",
       });
       
-      // Redirect to home page
       navigate("/");
     } catch (error: any) {
       toast({
@@ -120,7 +117,6 @@ const Settings = () => {
     }
   };
 
-  // Check which agents the user has access to
   const hasMarkusAccess = subscription?.markus || subscription?.allInOne || false;
   const hasKaraAccess = subscription?.kara || subscription?.allInOne || false;
   const hasConnorAccess = subscription?.connor || subscription?.allInOne || false;
