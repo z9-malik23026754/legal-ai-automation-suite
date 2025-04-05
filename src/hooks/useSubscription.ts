@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -69,6 +70,7 @@ export const useSubscription = () => {
   const isSubscribed = (planId: string): boolean => {
     if (!subscription) return false;
     
+    // If user is in trial, they have access to all plans
     if (subscription.status === 'trial') {
       return true;
     }

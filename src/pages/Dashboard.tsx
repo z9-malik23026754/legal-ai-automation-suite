@@ -36,12 +36,15 @@ const Dashboard = () => {
     );
   }
 
+  // Check if user is in trial mode
+  const isInTrialMode = subscription?.status === 'trial';
+  
   // Check which agents the user has access to
-  const hasMarkusAccess = subscription?.markus || subscription?.allInOne;
-  const hasKaraAccess = subscription?.kara || subscription?.allInOne;
-  const hasConnorAccess = subscription?.connor || subscription?.allInOne;
-  const hasChloeAccess = subscription?.chloe || subscription?.allInOne;
-  const hasLutherAccess = subscription?.luther || subscription?.allInOne;
+  const hasMarkusAccess = isInTrialMode || subscription?.markus || subscription?.allInOne;
+  const hasKaraAccess = isInTrialMode || subscription?.kara || subscription?.allInOne;
+  const hasConnorAccess = isInTrialMode || subscription?.connor || subscription?.allInOne;
+  const hasChloeAccess = isInTrialMode || subscription?.chloe || subscription?.allInOne;
+  const hasLutherAccess = isInTrialMode || subscription?.luther || subscription?.allInOne;
   
   // Check if user has any subscriptions at all
   const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess || hasLutherAccess;
@@ -91,7 +94,9 @@ const Dashboard = () => {
               </div>
               <div className="text-xs">
                 <p className="font-medium truncate">{user.email}</p>
-                <p className="text-muted-foreground truncate">Free Plan</p>
+                <p className="text-muted-foreground truncate">
+                  {isInTrialMode ? 'Trial Plan' : (subscription ? 'Paid Plan' : 'Free Plan')}
+                </p>
               </div>
             </div>
           </SidebarFooter>

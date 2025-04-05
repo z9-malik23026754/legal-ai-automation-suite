@@ -13,29 +13,32 @@ export const getAgentInfo = (
   let agentName = "";
   let agentColor = "";
   
+  // Check if user is in trial mode - if so, they have access to all agents
+  const isInTrialMode = subscription?.status === 'trial';
+  
   switch(agentId) {
     case "markus":
-      hasAccess = subscription?.markus || subscription?.allInOne || false;
+      hasAccess = isInTrialMode || subscription?.markus || subscription?.allInOne || false;
       agentName = "Markus";
       agentColor = "markus";
       break;
     case "kara":
-      hasAccess = subscription?.kara || subscription?.allInOne || false;
+      hasAccess = isInTrialMode || subscription?.kara || subscription?.allInOne || false;
       agentName = "Kara";
       agentColor = "kara";
       break;
     case "connor":
-      hasAccess = subscription?.connor || subscription?.allInOne || false;
+      hasAccess = isInTrialMode || subscription?.connor || subscription?.allInOne || false;
       agentName = "Connor";
       agentColor = "connor";
       break;
     case "chloe":
-      hasAccess = subscription?.chloe || subscription?.allInOne || false;
+      hasAccess = isInTrialMode || subscription?.chloe || subscription?.allInOne || false;
       agentName = "Chloe";
       agentColor = "chloe";
       break;
     case "luther":
-      hasAccess = subscription?.luther || subscription?.allInOne || false;
+      hasAccess = isInTrialMode || subscription?.luther || subscription?.allInOne || false;
       agentName = "Luther";
       agentColor = "luther";
       break;
