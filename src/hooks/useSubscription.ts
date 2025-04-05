@@ -3,6 +3,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+export type SubscriptionWithTrial = {
+  markus: boolean;
+  kara: boolean;
+  connor: boolean;
+  chloe: boolean;
+  luther: boolean;
+  allInOne: boolean;
+  status?: string;
+  trialEnd?: string;
+  trialStart?: string;
+};
+
 export const useSubscription = () => {
   const { user, session, subscription, checkSubscription } = useAuth();
   const { toast } = useToast();
@@ -10,7 +22,6 @@ export const useSubscription = () => {
 
   const handleSubscribe = async (planId: string) => {
     if (!user) {
-      // If not logged in, redirect to sign up
       window.location.href = "/signup";
       return;
     }
@@ -19,14 +30,12 @@ export const useSubscription = () => {
     try {
       console.log("Starting checkout process for plan:", planId);
       
-      // Call our edge function to create a checkout session
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           planId,
           successUrl: `${window.location.origin}/payment-success?plan=${planId}`,
           cancelUrl: `${window.location.origin}/pricing?canceled=true`
         },
-        // Include the API key as a header to make sure it's authenticated
         headers: session?.access_token 
           ? { Authorization: `Bearer ${session.access_token}` } 
           : undefined
@@ -40,7 +49,6 @@ export const useSubscription = () => {
       console.log("Checkout response:", data);
       
       if (data?.url) {
-        // Open Stripe checkout in a new tab instead of redirecting the current window
         window.open(data.url, "_blank");
       } else {
         console.error("No checkout URL returned:", data);
@@ -61,13 +69,10 @@ export const useSubscription = () => {
   const isSubscribed = (planId: string): boolean => {
     if (!subscription) return false;
     
-    // Check if user is on a trial
     if (subscription.status === 'trial') {
-      // For trials, all plans are accessible
       return true;
     }
     
-    // Otherwise check specific plan access
     if (planId === 'markus' && subscription.markus) {
       return true;
     }

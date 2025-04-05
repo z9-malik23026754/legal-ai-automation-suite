@@ -53,7 +53,7 @@ serve(async (req) => {
       });
     }
     
-    // If there's a Stripe subscription ID, verify it's status with Stripe
+    // If there's a Stripe subscription ID, verify its status with Stripe
     if (subscription?.stripe_subscription_id) {
       const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
         apiVersion: "2023-10-16",
@@ -70,6 +70,7 @@ serve(async (req) => {
               markus: false,
               kara: false,
               connor: false,
+              chloe: false,
               luther: false, 
               all_in_one: false
             })
@@ -80,8 +81,10 @@ serve(async (req) => {
               markus: false,
               kara: false,
               connor: false,
+              chloe: false,
               luther: false,
-              all_in_one: false
+              all_in_one: false,
+              status: stripeSubscription.status
             }
           }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },

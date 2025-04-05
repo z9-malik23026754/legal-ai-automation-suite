@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 
-// Define Subscription type
+// Define Subscription type with trial properties
 export type Subscription = {
   markus: boolean;
   kara: boolean;
@@ -11,6 +11,9 @@ export type Subscription = {
   chloe: boolean;
   luther: boolean;
   allInOne: boolean;
+  status?: string;
+  trialEnd?: string;
+  trialStart?: string;
 };
 
 // Define AuthContextType
@@ -20,7 +23,7 @@ type AuthContextType = {
   isLoading: boolean;
   subscription: Subscription | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, options?: any) => Promise<void>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
 };
@@ -82,6 +85,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           chloe: !!data.subscription.chloe,
           luther: !!data.subscription.luther,
           allInOne: !!data.subscription.all_in_one,
+          status: data.subscription.status,
+          trialEnd: data.subscription.trial_end,
+          trialStart: data.subscription.trial_start
         });
       }
     } catch (error) {
@@ -101,9 +107,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Sign up method
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, options?: any) => {
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options
+      });
       if (error) throw error;
     } catch (error: any) {
       console.error("Error signing up:", error.message);

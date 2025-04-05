@@ -40,17 +40,13 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // Sign up the user first
-      await signUp({
-        email: data.email,
-        password: Math.random().toString(36).slice(-12), // Generate a random password
-        options: {
-          data: {
-            first_name: data.firstName,
-            last_name: data.lastName,
-            company_name: data.companyName,
-            is_trial_user: true
-          }
+      // Sign up the user first - fixing the error by providing both required arguments
+      await signUp(data.email, Math.random().toString(36).slice(-12), {
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          company_name: data.companyName,
+          is_trial_user: true
         }
       });
       
