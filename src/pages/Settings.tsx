@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
@@ -66,11 +67,7 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteAccount = async (event?: React.MouseEvent) => {
-    if (event) {
-      event.preventDefault();
-    }
-
+  const handleDeleteAccount = async () => {
     if (!deletePassword) {
       toast({
         title: "Error",
