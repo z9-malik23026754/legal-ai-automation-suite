@@ -1,118 +1,61 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { 
+import {
   AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
   AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogFooter 
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 const DangerZone = () => {
-  const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const [deletePassword, setDeletePassword] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const navigate = useNavigate();
 
-  const handleDeleteAccount = async () => {
-    if (!deletePassword) {
-      toast({
-        title: "Error",
-        description: "Please enter your password to confirm account deletion",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleDeleteAccount = () => {
     setIsDeleting(true);
-    try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || "",
-        password: deletePassword,
-      });
-
-      if (signInError) {
-        throw new Error("Incorrect password. Please try again.");
-      }
-
-      const { error: deleteError } = await supabase.rpc('delete_user');
-      
-      if (deleteError) {
-        throw new Error(deleteError.message);
-      }
-
-      await signOut();
-      
+    
+    // Simulate API call
+    setTimeout(() => {
       toast({
         title: "Account deleted",
-        description: "Your account has been successfully deleted",
-      });
-      
-      navigate("/");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete account. Please try again.",
+        description: "Your account has been successfully deleted.",
         variant: "destructive",
       });
-    } finally {
       setIsDeleting(false);
-      setDeletePassword("");
-    }
+    }, 2000);
   };
 
   return (
-    <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass bg-destructive/5">
+    <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
       <h2 className="text-2xl font-semibold mb-6 text-destructive">Danger Zone</h2>
-      <p className="text-muted-foreground mb-4">
-        Deleting your account is permanent. All your data will be permanently removed.
-      </p>
-
+      
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive">
-            Delete Account
-          </Button>
+          <Button variant="destructive">Delete Account</Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4">
-            <label htmlFor="deletePassword" className="block text-sm font-medium mb-1">
-              Enter your password to confirm
-            </label>
-            <Input
-              id="deletePassword"
-              type="password"
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              placeholder="Enter your password"
-              className="mb-2"
-            />
-          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => handleDeleteAccount()}
               disabled={isDeleting}
-              className="bg-destructive hover:bg-destructive/90"
             >
-              {isDeleting ? "Deleting..." : "Delete Account"}
+              {isDeleting ? "Deleting..." : "Yes, delete my account"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

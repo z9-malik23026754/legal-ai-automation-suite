@@ -1,8 +1,8 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { FormField } from "@/components/ui/form-field";
 
 const AccountSecurity = () => {
   const { toast } = useToast();
@@ -50,44 +50,32 @@ const AccountSecurity = () => {
       <h2 className="text-2xl font-semibold mb-6">Account Security</h2>
       
       <form onSubmit={handleChangePassword} className="space-y-4">
-        <div>
-          <label htmlFor="currentPassword" className="block text-sm font-medium mb-1">
-            Current Password
-          </label>
-          <Input
-            id="currentPassword"
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            required
-          />
-        </div>
+        <FormField
+          id="currentPassword"
+          label="Current Password"
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+        />
         
-        <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
-            New Password
-          </label>
-          <Input
-            id="newPassword"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
-        </div>
+        <FormField
+          id="newPassword"
+          label="New Password"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+        />
         
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
-            Confirm New Password
-          </label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
+        <FormField
+          id="confirmPassword"
+          label="Confirm New Password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
         
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Updating..." : "Update Password"}
