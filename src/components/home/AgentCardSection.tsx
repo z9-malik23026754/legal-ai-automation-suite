@@ -17,7 +17,7 @@ const AgentCardSection = () => {
           description="Our suite of specialized AI agents designed to handle different aspects of your business operations and customer engagement."
         />
 
-        <div className="grid md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
           {agentData.map((agent) => (
             <AgentCard
               key={agent.name}
