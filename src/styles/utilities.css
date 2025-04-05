@@ -1,0 +1,52 @@
+
+/* Text utility classes */
+.text-markus {
+  color: #3B82F6;
+}
+
+.text-kara {
+  color: #8B5CF6;
+}
+
+.text-connor {
+  color: #10B981;
+}
+
+.text-chloe {
+  color: #EC4899;
+}
+
+.text-luther {
+  color: #6366F1;
+}
+
+/* Agent label styles */
+.agent-label-markus {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3B82F6;
+  @apply rounded-lg border-[1.5px] border-[#3B82F6]/20;
+}
+
+.agent-label-kara {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #8B5CF6;
+  @apply rounded-lg border-[1.5px] border-[#8B5CF6]/20;
+}
+
+.agent-label-connor {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  @apply rounded-lg border-[1.5px] border-[#10B981]/20;
+}
+
+.agent-label-chloe {
+  background-color: rgba(236, 72, 153, 0.1);
+  color: #EC4899;
+  @apply rounded-lg border-[1.5px] border-[#EC4899]/20;
+}
+
+.agent-label-luther {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #6366F1;
+  @apply rounded-lg border-[1.5px] border-[#6366F1]/20;
+}

@@ -1,0 +1,101 @@
+
+/* Modern glass morphism styles */
+.glass-card {
+  @apply backdrop-blur-lg bg-white/20 border border-white/30 rounded-2xl shadow-glass;
+}
+
+.glass-card-dark {
+  @apply backdrop-blur-lg bg-black/20 border border-white/10 rounded-2xl shadow-glass;
+}
+
+/* Updated agent card styles with more modern design and glass effect */
+.agent-card-markus {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.7), rgba(37, 99, 235, 0.7));
+  color: white;
+  @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
+}
+
+.agent-card-kara {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.7), rgba(124, 58, 237, 0.7));
+  color: white;
+  @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
+}
+
+.agent-card-connor {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.7), rgba(5, 150, 105, 0.7));
+  color: white;
+  @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
+}
+
+.agent-card-chloe {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.7), rgba(219, 39, 119, 0.7));
+  color: white;
+  @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
+}
+
+.agent-card-luther {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.7), rgba(79, 70, 229, 0.7));
+  color: white;
+  @apply shadow-glass transition-all duration-300 hover:shadow-card-hover;
+}
+
+/* Agent glow styles */
+.agent-glow-markus {
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+  @apply transition-shadow duration-300;
+}
+
+.agent-glow-kara {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
+  @apply transition-shadow duration-300;
+}
+
+.agent-glow-connor {
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+  @apply transition-shadow duration-300;
+}
+
+.agent-glow-chloe {
+  box-shadow: 0 0 30px rgba(236, 72, 153, 0.1);
+  @apply transition-shadow duration-300;
+}
+
+.agent-glow-luther {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+  @apply transition-shadow duration-300;
+}
+
+/* New component styles */
+.chatfuel-card {
+  @apply rounded-xl bg-white/20 backdrop-blur-lg border border-white/30 shadow-glass hover:shadow-card-hover transition-all duration-300;
+}
+
+.chatfuel-button {
+  @apply rounded-lg px-4 py-2 font-medium transition-all duration-200 shadow-sm hover:shadow-md;
+}
+
+.chatfuel-gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r;
+}
+
+.chatfuel-input {
+  @apply border rounded-lg p-2 w-full focus:ring-2 focus:ring-primary/20 focus:outline-none backdrop-blur-sm bg-white/50;
+}
+
+/* Icon card styles */
+.icon-card {
+  @apply glass-card p-6 flex items-center justify-center aspect-square relative overflow-hidden transition-all duration-300 hover:scale-105;
+}
+
+.icon-card-icon {
+  @apply w-16 h-16 text-white/90 z-10;
+}
+
+.icon-card-bg {
+  @apply absolute inset-0 z-0 opacity-20 bg-gradient-to-br from-white to-transparent;
+}
+
+.chat-container {
+  height: calc(100vh - 200px);
+  @apply rounded-xl overflow-hidden border border-border shadow-glass;
+}
