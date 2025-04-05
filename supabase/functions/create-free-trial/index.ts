@@ -165,6 +165,7 @@ serve(async (req) => {
       subscription_data: {
         trial_period_days: 7,
       },
+      payment_method_collection: "always", // Always require payment method
       success_url: successUrl || `${req.headers.get("origin")}/trial-success`,
       cancel_url: cancelUrl || `${req.headers.get("origin")}/?canceled=true`,
       metadata: {
