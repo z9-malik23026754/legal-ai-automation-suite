@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { FormField } from "@/components/ui/form-field";
+import { supabase } from "@/integrations/supabase/client";
 
 const AccountSecurity = () => {
   const { toast } = useToast();
@@ -26,6 +27,13 @@ const AccountSecurity = () => {
     setIsLoading(true);
     
     try {
+      // Update password in Supabase
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) throw error;
+      
       toast({
         title: "Success",
         description: "Password has been updated",
@@ -34,10 +42,10 @@ const AccountSecurity = () => {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update password",
+        description: error.message || "Failed to update password",
         variant: "destructive",
       });
     } finally {

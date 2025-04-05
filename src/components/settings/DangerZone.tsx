@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,20 +18,49 @@ import {
 
 const DangerZone = () => {
   const { toast } = useToast();
+  const { session, signOut } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
+    if (!session?.access_token) {
+      toast({
+        title: "Error",
+        description: "You need to be logged in to delete your account",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsDeleting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Call the delete-account edge function
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      
+      if (error) throw error;
+      
       toast({
         title: "Account deleted",
         description: "Your account has been successfully deleted.",
+      });
+      
+      // Sign out after successful deletion
+      await signOut();
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Error deleting account",
+        description: "There was an error deleting your account. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsDeleting(false);
-    }, 2000);
+    }
   };
 
   return (

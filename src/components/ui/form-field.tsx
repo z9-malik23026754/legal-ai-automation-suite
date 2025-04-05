@@ -11,6 +11,7 @@ interface FormFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 const FormField = ({
@@ -21,6 +22,7 @@ const FormField = ({
   onChange,
   required = false,
   placeholder,
+  disabled = false,
 }: FormFieldProps) => {
   return (
     <div className="space-y-2">
@@ -34,6 +36,7 @@ const FormField = ({
         onChange={onChange}
         required={required}
         placeholder={placeholder}
+        disabled={disabled}
       />
     </div>
   );
