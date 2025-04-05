@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -124,6 +123,7 @@ export default {
 				'chatfuel': '0 8px 30px rgba(0, 0, 0, 0.12)',
 				'card-hover': '0 12px 40px rgba(0, 0, 0, 0.15)',
 				'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+				'glass-hover': '0 8px 32px 0 rgba(31, 38, 135, 0.25)',
 			},
 			backgroundImage: {
 				'gradient-primary': 'linear-gradient(135deg, #3B82F6 0%, #10B981 100%)',

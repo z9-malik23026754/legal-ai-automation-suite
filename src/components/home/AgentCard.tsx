@@ -22,18 +22,18 @@ const AgentCard: React.FC<AgentCardProps> = ({
   colorClass,
 }) => {
   return (
-    <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/20 hover:border-border hover:-translate-y-2 backdrop-blur-sm bg-white/20">
+    <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg border border-white/20 hover:border-white/30 hover:-translate-y-2 backdrop-blur-md bg-white/10 shadow-glass">
       <div className={`agent-card-${name.toLowerCase()} p-6 relative`}>
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent backdrop-blur-sm"></div>
         <div className="relative z-10">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center mb-4">
             <Icon className="h-6 w-6" />
           </div>
           <h3 className="text-xl font-bold mb-2">{name}</h3>
           <p className="opacity-90">{title}</p>
         </div>
       </div>
-      <div className="p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+      <div className="p-6 bg-white/20 dark:bg-gray-900/30 backdrop-blur-md">
         <p className="mb-6 text-muted-foreground">
           {description}
         </p>
