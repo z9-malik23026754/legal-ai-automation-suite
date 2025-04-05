@@ -2,11 +2,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 
 const HeroSection = () => {
   const { user } = useAuth();
+  const { startTrial, isProcessing } = useStartFreeTrial();
 
   return (
     <section className="relative gradient-background min-h-[90vh] flex items-center overflow-hidden">
@@ -56,6 +58,16 @@ const HeroSection = () => {
                     Get Started <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-white text-white hover:bg-white/10 backdrop-blur-sm"
+                  onClick={startTrial}
+                  disabled={isProcessing}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Start 7-Day Free Trial
+                </Button>
                 <Link to="/pricing">
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 backdrop-blur-sm">
                     View Pricing

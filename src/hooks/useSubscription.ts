@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -62,6 +61,13 @@ export const useSubscription = () => {
   const isSubscribed = (planId: string): boolean => {
     if (!subscription) return false;
     
+    // Check if user is on a trial
+    if (subscription.status === 'trial') {
+      // For trials, all plans are accessible
+      return true;
+    }
+    
+    // Otherwise check specific plan access
     if (planId === 'markus' && subscription.markus) {
       return true;
     }
@@ -84,9 +90,30 @@ export const useSubscription = () => {
     return false;
   };
 
+  const getTrialStatus = () => {
+    if (!subscription || subscription.status !== 'trial') {
+      return null;
+    }
+    
+    const trialEnd = subscription.trialEnd ? new Date(subscription.trialEnd) : null;
+    if (!trialEnd) {
+      return null;
+    }
+    
+    const now = new Date();
+    const daysRemaining = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return {
+      isActive: true,
+      endDate: trialEnd,
+      daysRemaining: daysRemaining > 0 ? daysRemaining : 0
+    };
+  };
+
   return {
     handleSubscribe,
     isSubscribed,
-    processingPlan
+    processingPlan,
+    getTrialStatus
   };
 };
