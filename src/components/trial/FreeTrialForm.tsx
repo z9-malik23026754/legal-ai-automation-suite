@@ -25,7 +25,7 @@ interface FreeTrialFormProps {
 }
 
 const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
-  const { startTrial, isProcessing } = useStartFreeTrial();
+  const { initiateStripeCheckout } = useStartFreeTrial();
   const { signUp } = useAuth();
   const { toast } = useToast();
   
@@ -57,16 +57,16 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
       
       toast({
         title: "Account created successfully",
-        description: "Starting your free trial...",
+        description: "Redirecting to Stripe checkout...",
       });
       
       // Close the dialog
       onClose();
       
       // Important: Add a small delay to allow the authentication state to update
-      setTimeout(() => {
-        // Start the free trial process
-        startTrial();
+      setTimeout(async () => {
+        // Start the Stripe checkout process
+        await initiateStripeCheckout();
       }, 1000);
     } catch (error) {
       console.error("Error creating account:", error);
@@ -143,8 +143,8 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
           <Button variant="outline" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isProcessing}>
-            {isProcessing ? "Processing..." : "Start Free Trial"}
+          <Button type="submit">
+            Start Free Trial
           </Button>
         </div>
       </form>

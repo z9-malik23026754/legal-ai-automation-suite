@@ -12,21 +12,25 @@ export const useStartFreeTrial = () => {
   const { user, session } = useAuth();
 
   const startTrial = async () => {
-    // If user is not logged in, show the sign-up form first
+    // If user is not logged in, show the free trial signup form
     if (!user) {
       openDialog({
-        title: "Get Started with Your Free Trial",
+        title: "Start Your 7-Day Free Trial",
         content: "FreeTrial",
         size: "lg"
       });
       return;
     }
 
+    // If user is already logged in, proceed directly to Stripe checkout
+    await initiateStripeCheckout();
+  };
+
+  const initiateStripeCheckout = async () => {
     setIsProcessing(true);
     try {
-      console.log("Starting free trial process for user:", user.id);
+      console.log("Starting free trial process for user:", user?.id);
       
-      // Create a free trial checkout session
       const { data, error } = await supabase.functions.invoke('create-free-trial', {
         body: {
           successUrl: `${window.location.origin}/trial-success`,
@@ -65,6 +69,7 @@ export const useStartFreeTrial = () => {
 
   return {
     startTrial,
+    initiateStripeCheckout,
     isProcessing
   };
 };
