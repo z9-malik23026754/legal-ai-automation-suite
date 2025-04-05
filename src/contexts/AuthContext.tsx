@@ -44,6 +44,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+      
+      // When auth state changes, check subscription status
+      if (session?.user) {
+        checkSubscription();
+      }
     });
 
     // Get initial session
@@ -52,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setIsLoading(false);
       
-      if (session) {
+      if (session?.user) {
         checkSubscription();
       }
     });
@@ -67,6 +72,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!session?.access_token) return;
     
     try {
+      console.log("Checking subscription status for user:", user?.id);
+      
       // Call our edge function to check subscription status
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         method: 'GET',
@@ -75,10 +82,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error checking subscription:", error);
+        throw error;
+      }
+
+      console.log("Subscription check response:", data);
 
       if (data.subscription) {
-        setSubscription({
+        // Update subscription state
+        const subscriptionData = {
           markus: !!data.subscription.markus,
           kara: !!data.subscription.kara,
           connor: !!data.subscription.connor,
@@ -88,7 +101,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           status: data.subscription.status,
           trialEnd: data.subscription.trial_end,
           trialStart: data.subscription.trial_start
-        });
+        };
+        
+        console.log("Updated subscription data:", subscriptionData);
+        setSubscription(subscriptionData);
+      } else {
+        console.log("No subscription data found");
+        setSubscription(null);
       }
     } catch (error) {
       console.error("Error checking subscription:", error);

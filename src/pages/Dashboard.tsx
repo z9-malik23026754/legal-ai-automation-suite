@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,14 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import SidebarLinks from "@/components/dashboard/SidebarLinks";
 
 const Dashboard = () => {
-  const { user, subscription } = useAuth();
+  const { user, subscription, checkSubscription } = useAuth();
+
+  // Force a check of subscription status when the dashboard loads
+  useEffect(() => {
+    if (checkSubscription) {
+      checkSubscription();
+    }
+  }, [checkSubscription]);
 
   // If no user, redirect to sign in (should be handled by a route guard in a real app)
   if (!user) {
@@ -106,7 +113,7 @@ const Dashboard = () => {
           <Navbar />
           <div className="container px-4 py-6 mx-auto max-w-7xl">
             <DashboardHeader 
-              userName={user.email.split('@')[0]} 
+              userName={user.email?.split('@')[0] || 'User'} 
               hasAnySubscription={hasAnySubscription} 
             />
 

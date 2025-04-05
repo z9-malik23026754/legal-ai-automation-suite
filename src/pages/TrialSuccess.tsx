@@ -12,15 +12,28 @@ const TrialSuccess = () => {
   
   useEffect(() => {
     // Update subscription status after successful trial activation
-    if (checkSubscription) {
-      checkSubscription();
-    }
+    const refreshSubscription = async () => {
+      if (checkSubscription) {
+        try {
+          await checkSubscription();
+          
+          // Show toast notification about unlocked agents
+          toast({
+            title: "All AI Agents Unlocked",
+            description: "You now have full access to all AI agents for the next 7 days.",
+          });
+        } catch (error) {
+          console.error("Error updating subscription status:", error);
+          toast({
+            title: "Subscription Update Failed",
+            description: "There was an issue updating your subscription status. Please refresh the page.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
     
-    // Show toast notification about unlocked agents
-    toast({
-      title: "All AI Agents Unlocked",
-      description: "You now have full access to all AI agents for the next 7 days.",
-    });
+    refreshSubscription();
   }, [checkSubscription, toast]);
 
   return (

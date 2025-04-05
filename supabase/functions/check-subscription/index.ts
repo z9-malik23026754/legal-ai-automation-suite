@@ -38,6 +38,8 @@ serve(async (req) => {
       throw new Error("Invalid user token");
     }
     
+    console.log("Checking subscription for user:", user.id);
+    
     // Get user's subscription details from database
     const { data: subscription, error: subError } = await supabase
       .from("subscriptions")
@@ -45,7 +47,7 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
       
-    if (subError) {
+    if (subError && subError.code !== 'PGRST116') { // Ignore "no rows returned" error
       console.error("Error fetching subscription:", subError);
       return new Response(JSON.stringify({ subscription: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -53,17 +55,67 @@ serve(async (req) => {
       });
     }
     
+    console.log("Found subscription:", subscription);
+    
     // If there's a Stripe subscription ID, verify its status with Stripe
     if (subscription?.stripe_subscription_id) {
-      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      if (!stripeKey) {
+        throw new Error("STRIPE_SECRET_KEY is not set");
+      }
+      
+      const stripe = new Stripe(stripeKey, {
         apiVersion: "2023-10-16",
       });
       
       try {
         const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripe_subscription_id);
+        console.log("Stripe subscription status:", stripeSubscription.status);
         
-        // Update local subscription status based on Stripe's status
-        if (stripeSubscription.status !== "active") {
+        // For trial subscriptions, ensure all agents are accessible
+        if (stripeSubscription.status === 'trialing' && subscription.status !== 'trial') {
+          console.log("Updating trial subscription status");
+          
+          await supabase
+            .from("subscriptions")
+            .update({
+              status: 'trial',
+              markus: true,
+              kara: true,
+              connor: true,
+              chloe: true,
+              luther: true,
+              all_in_one: true,
+              trial_start: new Date(stripeSubscription.trial_start * 1000).toISOString(),
+              trial_end: new Date(stripeSubscription.trial_end * 1000).toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq("user_id", user.id);
+            
+          // Return the updated subscription
+          return new Response(JSON.stringify({ 
+            subscription: {
+              markus: true,
+              kara: true,
+              connor: true,
+              chloe: true,
+              luther: true,
+              all_in_one: true,
+              status: 'trial',
+              trial_start: new Date(stripeSubscription.trial_start * 1000).toISOString(),
+              trial_end: new Date(stripeSubscription.trial_end * 1000).toISOString()
+            }
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+        
+        // If subscription is no longer active, update the database
+        if (stripeSubscription.status !== "active" && stripeSubscription.status !== "trialing" && 
+            (subscription.status === 'active' || subscription.status === 'trial')) {
+          console.log("Updating expired subscription status");
+          
           await supabase
             .from("subscriptions")
             .update({
@@ -72,7 +124,9 @@ serve(async (req) => {
               connor: false,
               chloe: false,
               luther: false, 
-              all_in_one: false
+              all_in_one: false,
+              status: stripeSubscription.status,
+              updated_at: new Date().toISOString()
             })
             .eq("user_id", user.id);
             

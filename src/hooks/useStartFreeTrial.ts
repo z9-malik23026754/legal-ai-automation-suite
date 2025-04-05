@@ -29,7 +29,12 @@ export const useStartFreeTrial = () => {
   const initiateStripeCheckout = async () => {
     setIsProcessing(true);
     try {
-      console.log("Starting free trial process for user:", user?.id);
+      // Make sure we have a valid user ID
+      if (!user || !user.id) {
+        throw new Error("User ID not available. Please try signing in again.");
+      }
+      
+      console.log("Starting free trial process for user:", user.id);
       
       const { data, error } = await supabase.functions.invoke('create-free-trial', {
         body: {
