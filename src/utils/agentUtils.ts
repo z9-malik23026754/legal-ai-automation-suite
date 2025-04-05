@@ -19,7 +19,8 @@ export const getAgentInfo = (
     return { hasAccess: false, agentName, agentColor };
   }
   
-  // Check if user is in trial mode or has a paid subscription
+  // Check if user is in trial mode or has a paid subscription - THIS IS THE PRIMARY CHECK
+  // This should override all other checks
   const isInTrialMode = subscription?.status === 'trial';
   const hasActiveSubscription = subscription?.status === 'active';
   
@@ -29,10 +30,10 @@ export const getAgentInfo = (
   console.log(`Is in trial mode: ${isInTrialMode}`);
   console.log(`Has active subscription: ${hasActiveSubscription}`);
   
-  // If user has trial or active subscription, they have access to all agents
-  // This is the primary rule: trials and active subscriptions get access to everything
+  // CRITICAL: If user has trial or active subscription, they MUST have access to all agents
+  // This is the highest priority rule and overrides everything else
   if (isInTrialMode || hasActiveSubscription) {
-    console.log("User has trial or active subscription - granting access to all agents");
+    console.log("User has trial or active subscription - GRANTING ACCESS TO ALL AGENTS");
     hasAccess = true;
   }
   
@@ -40,7 +41,7 @@ export const getAgentInfo = (
     case "markus":
       agentName = "Markus";
       agentColor = "markus";
-      // If not already granted by trial or subscription, check specific agent permissions
+      // Only check individual permissions if not already granted by trial/subscription
       if (!hasAccess) {
         hasAccess = subscription?.markus || subscription?.allInOne || false;
       }

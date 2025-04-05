@@ -10,12 +10,28 @@ const HeroButtons = () => {
   const { user, subscription } = useAuth();
   const { startTrial, isProcessing } = useStartFreeTrial();
   
-  // Check if user already has a trial or any type of subscription
-  const hasActiveSubscription = subscription?.status === 'trial' || 
-                                subscription?.status === 'active' ||
-                                (subscription && (subscription.markus || subscription.kara || 
-                                  subscription.connor || subscription.chloe || 
-                                  subscription.luther || subscription.allInOne));
+  // CRITICAL: Explicitly check if user already has a trial or any type of subscription
+  // This determines if the free trial button should be shown
+  const isInTrialMode = subscription?.status === 'trial';
+  const hasActiveSubscription = subscription?.status === 'active';
+  
+  const hasAnySubscription = isInTrialMode || 
+                            hasActiveSubscription || 
+                            (subscription && (
+                              subscription.markus || 
+                              subscription.kara || 
+                              subscription.connor || 
+                              subscription.chloe || 
+                              subscription.luther || 
+                              subscription.allInOne
+                            ));
+  
+  console.log("HeroButtons - User subscription status:", {
+    isInTrialMode,
+    hasActiveSubscription,
+    hasAnySubscription,
+    subscriptionStatus: subscription?.status
+  });
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
@@ -27,8 +43,8 @@ const HeroButtons = () => {
             </Button>
           </Link>
           
-          {/* Only show free trial button if user doesn't have a trial or subscription */}
-          {!hasActiveSubscription && (
+          {/* CRITICAL: Only show free trial button if user doesn't have a trial or subscription */}
+          {!hasAnySubscription && (
             <Button 
               size="lg" 
               variant="default" 

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -124,11 +125,19 @@ const Dashboard = () => {
     );
   }
 
-  // Check if user is in trial mode or has active subscription
+  // CRITICAL: Check if user is in trial mode or has active subscription - THIS MUST BE CORRECT
   const isInTrialMode = subscription?.status === 'trial';
   const hasActiveSubscription = subscription?.status === 'active';
   
-  // Check which agents the user has access to
+  console.log("Dashboard - User subscription status:", {
+    isInTrialMode,
+    hasActiveSubscription,
+    subscriptionStatus: subscription?.status,
+    hasMarkus: subscription?.markus,
+    hasKara: subscription?.kara
+  });
+  
+  // CRITICAL: If user has trial or active subscription, they have access to ALL agents
   const hasMarkusAccess = isInTrialMode || hasActiveSubscription || subscription?.markus || subscription?.allInOne;
   const hasKaraAccess = isInTrialMode || hasActiveSubscription || subscription?.kara || subscription?.allInOne;
   const hasConnorAccess = isInTrialMode || hasActiveSubscription || subscription?.connor || subscription?.allInOne;

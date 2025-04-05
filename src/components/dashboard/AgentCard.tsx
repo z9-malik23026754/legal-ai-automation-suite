@@ -20,6 +20,9 @@ const AgentCard: React.FC<AgentCardProps> = ({
   icon,
   hasAccess,
 }) => {
+  // Debug log to ensure the hasAccess value is being correctly passed
+  console.log(`AgentCard ${agentId} - hasAccess:`, hasAccess);
+
   const getIconComponent = () => {
     switch (icon) {
       case "MessageSquare":

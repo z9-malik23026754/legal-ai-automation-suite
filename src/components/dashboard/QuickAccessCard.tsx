@@ -3,7 +3,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
 
 interface QuickAccessCardProps {
   hasMarkusAccess: boolean;
@@ -20,6 +19,15 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
   hasChloeAccess = false,
   hasLutherAccess = false
 }) => {
+  // Add debugging logs to verify access
+  console.log("QuickAccessCard - Agent access:", {
+    hasMarkusAccess,
+    hasKaraAccess,
+    hasConnorAccess,
+    hasChloeAccess,
+    hasLutherAccess
+  });
+  
   return (
     <div className="glass-card border-white/10 rounded-lg shadow-glass overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-lg"></div>

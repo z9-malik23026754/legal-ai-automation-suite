@@ -77,8 +77,9 @@ export const useSubscription = () => {
   const isSubscribed = (planId: string): boolean => {
     if (!subscription) return false;
     
-    // If user is in trial mode or has active subscription, they have access to all plans
+    // CRITICAL: If user is in trial mode or has active subscription, they have access to all plans
     if (subscription.status === 'trial' || subscription.status === 'active') {
+      console.log(`User has ${subscription.status} status - giving access to plan: ${planId}`);
       return true;
     }
     
@@ -128,14 +129,23 @@ export const useSubscription = () => {
   const hasAnySubscription = (): boolean => {
     if (!subscription) return false;
     
-    return subscription.status === 'trial' || 
-           subscription.status === 'active' ||
-           subscription.markus || 
+    // CRITICAL: Check for trial status first
+    if (subscription.status === 'trial' || subscription.status === 'active') {
+      console.log(`User has subscription with status: ${subscription.status}`);
+      return true;
+    }
+    
+    // Then check for individual agent access
+    const hasIndividualAccess = subscription.markus || 
            subscription.kara || 
            subscription.connor || 
            subscription.chloe || 
            subscription.luther || 
            subscription.allInOne;
+           
+    console.log("User has individual agent access:", hasIndividualAccess);
+    
+    return hasIndividualAccess;
   };
 
   return {

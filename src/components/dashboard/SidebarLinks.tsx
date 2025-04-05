@@ -25,6 +25,15 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
   hasChloeAccess = false,
   hasLutherAccess = false
 }) => {
+  // Log access status for each agent to help debug
+  console.log("SidebarLinks - Agent access:", {
+    hasMarkusAccess,
+    hasKaraAccess,
+    hasConnorAccess,
+    hasChloeAccess,
+    hasLutherAccess
+  });
+  
   return (
     <>
       <SidebarGroup>
