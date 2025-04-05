@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,11 +45,23 @@ const HeroSection = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             {user ? (
-              <Link to="/dashboard">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
-                  Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/dashboard">
+                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
+                    Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-white text-white hover:bg-white/10 backdrop-blur-sm"
+                  onClick={startTrial}
+                  disabled={isProcessing}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Start 7-Day Free Trial
                 </Button>
-              </Link>
+              </div>
             ) : (
               <>
                 <Link to="/signup">
