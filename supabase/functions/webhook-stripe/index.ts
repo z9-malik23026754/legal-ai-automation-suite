@@ -70,39 +70,67 @@ serve(async (req) => {
         // Get the plan_id from metadata
         const planId = session.metadata?.plan_id;
         const userId = session.metadata?.user_id;
+        const isTrial = session.metadata?.is_trial === 'true';
         
-        if (!planId || !userId) {
-          console.error("Missing plan or user ID in session metadata");
-          return new Response("Missing plan or user ID in session metadata", { status: 400 });
+        if (!userId) {
+          console.error("Missing user ID in session metadata");
+          return new Response("Missing user ID in session metadata", { status: 400 });
         }
         
-        console.log("Session metadata:", { planId, userId });
+        console.log("Session metadata:", { planId, userId, isTrial });
         
         // Update subscription status in database
         let updateData = {};
         
-        switch (planId) {
-          case 'markus':
-            updateData = { markus: true };
-            break;
-          case 'kara':
-            updateData = { kara: true };
-            break;
-          case 'connor':
-            updateData = { connor: true };
-            break;
-          case 'chloe':
-            updateData = { chloe: true };
-            break;
-          case 'luther':
-            updateData = { luther: true };
-            break;
-          case 'all-in-one':
-            updateData = { markus: true, kara: true, connor: true, chloe: true, luther: true, all_in_one: true };
-            break;
-          default:
-            console.error("Invalid plan ID:", planId);
-            return new Response("Invalid plan ID in session metadata", { status: 400 });
+        if (isTrial) {
+          // For free trial, enable all agents
+          console.log("Processing free trial activation");
+          
+          // Calculate trial end date (7 days from now)
+          const trialEndDate = new Date();
+          trialEndDate.setDate(trialEndDate.getDate() + 7);
+          
+          updateData = { 
+            markus: true, 
+            kara: true, 
+            connor: true, 
+            chloe: true, 
+            luther: true, 
+            all_in_one: true,
+            status: 'trial',
+            trial_start: new Date().toISOString(),
+            trial_end: trialEndDate.toISOString()
+          };
+        } else if (planId) {
+          // For regular subscription
+          switch (planId) {
+            case 'markus':
+              updateData = { markus: true };
+              break;
+            case 'kara':
+              updateData = { kara: true };
+              break;
+            case 'connor':
+              updateData = { connor: true };
+              break;
+            case 'chloe':
+              updateData = { chloe: true };
+              break;
+            case 'luther':
+              updateData = { luther: true };
+              break;
+            case 'all-in-one':
+              updateData = { markus: true, kara: true, connor: true, chloe: true, luther: true, all_in_one: true };
+              break;
+            default:
+              console.error("Invalid plan ID:", planId);
+              return new Response("Invalid plan ID in session metadata", { status: 400 });
+          }
+          
+          updateData.status = 'active';
+        } else {
+          console.error("Missing plan information and not marked as trial");
+          return new Response("Missing plan information in session metadata", { status: 400 });
         }
         
         console.log("Updating subscription with data:", updateData);
@@ -129,7 +157,6 @@ serve(async (req) => {
             .from("subscriptions")
             .update({
               ...updateData,
-              status: 'active',
               updated_at: new Date().toISOString()
             })
             .eq("user_id", userId);
@@ -140,8 +167,7 @@ serve(async (req) => {
             .from("subscriptions")
             .insert({
               user_id: userId,
-              ...updateData,
-              status: 'active'
+              ...updateData
             });
         }
         
@@ -152,7 +178,7 @@ serve(async (req) => {
           return new Response(`Error updating subscription: ${error.message}`, { status: 500 });
         }
         
-        console.log("Successfully processed webhook for plan:", planId);
+        console.log("Successfully processed webhook for user:", userId);
         break;
       }
       default:

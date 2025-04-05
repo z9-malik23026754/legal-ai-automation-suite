@@ -80,11 +80,12 @@ serve(async (req) => {
       console.error("Error checking existing subscription:", subError);
     }
     
-    // If user already has an active subscription, return an error
-    if (existingSubscription && existingSubscription.status === 'active') {
+    // If user already has an active subscription or trial, return an error
+    if (existingSubscription && 
+        (existingSubscription.status === 'active' || existingSubscription.status === 'trial')) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: "You already have an active subscription" 
+        error: "You already have an active subscription or trial" 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
@@ -112,11 +113,7 @@ serve(async (req) => {
       console.log("Created new Stripe customer:", customerId);
     }
     
-    // Calculate trial end date (7 days from now)
-    const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 7);
-    
-    // Create a checkout session for $0 payment (free trial)
+    // Create a checkout session for $0 payment (free trial) but require payment method
     console.log("Creating Stripe checkout session...");
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -134,6 +131,7 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
+      payment_method_collection: 'always', // Always collect payment method even for $0
       mode: 'payment',
       success_url: successUrl || `${req.headers.get("origin")}/trial-success`,
       cancel_url: cancelUrl || `${req.headers.get("origin")}/?canceled=true`,
@@ -144,46 +142,6 @@ serve(async (req) => {
     });
     
     console.log("Stripe session created:", session.id, "URL:", session.url);
-    
-    // Create or update the subscription record in database
-    if (existingSubscription) {
-      // Update existing record
-      console.log("Updating existing subscription record for user:", userId);
-      await supabase
-        .from("subscriptions")
-        .update({
-          stripe_customer_id: customerId,
-          markus: true,
-          kara: true,
-          connor: true,
-          chloe: true,
-          luther: true,
-          all_in_one: true,
-          status: 'trial',
-          trial_start: new Date().toISOString(),
-          trial_end: trialEndDate.toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq("user_id", userId);
-    } else {
-      // Create new record
-      console.log("Creating new subscription record for user:", userId);
-      await supabase
-        .from("subscriptions")
-        .insert({
-          user_id: userId,
-          stripe_customer_id: customerId,
-          markus: true,
-          kara: true,
-          connor: true,
-          chloe: true,
-          luther: true,
-          all_in_one: true,
-          status: 'trial',
-          trial_start: new Date().toISOString(),
-          trial_end: trialEndDate.toISOString()
-        });
-    }
     
     return new Response(JSON.stringify({ 
       success: true,
