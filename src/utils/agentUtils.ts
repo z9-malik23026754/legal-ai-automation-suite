@@ -30,6 +30,7 @@ export const getAgentInfo = (
   console.log(`Has active subscription: ${hasActiveSubscription}`);
   
   // If user has trial or active subscription, they have access to all agents
+  // This is the primary rule: trials and active subscriptions get access to everything
   if (isInTrialMode || hasActiveSubscription) {
     console.log("User has trial or active subscription - granting access to all agents");
     hasAccess = true;
