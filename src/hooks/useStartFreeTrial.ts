@@ -9,7 +9,7 @@ export const useStartFreeTrial = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { openDialog } = useDialog();
-  const { user, session } = useAuth();
+  const { user, session, checkSubscription } = useAuth();
 
   const startTrial = async () => {
     // If user is not logged in, show the free trial signup form
@@ -54,6 +54,13 @@ export const useStartFreeTrial = () => {
       console.log("Free trial checkout response:", data);
       
       if (data?.url) {
+        // Force refresh the subscription status before redirecting
+        try {
+          await checkSubscription();
+        } catch (e) {
+          console.error("Failed to refresh subscription status:", e);
+        }
+        
         // Redirect the user to the Stripe checkout page
         window.location.href = data.url;
       } else {

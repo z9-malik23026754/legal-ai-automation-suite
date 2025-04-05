@@ -204,6 +204,20 @@ const handleSubscriptionUpdate = async (supabase: any, subscription: any) => {
       status: 'active',
       updated_at: new Date().toISOString()
     };
+  } else if (subscription.status === 'trialing') {
+    // Subscription is in trial mode, enable all agents
+    updateData = {
+      status: 'trial',
+      markus: true,
+      kara: true,
+      connor: true,
+      chloe: true,
+      luther: true,
+      all_in_one: true,
+      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
+      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+      updated_at: new Date().toISOString()
+    };
   } else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
     // Payment issues, mark subscription accordingly but don't disable access yet
     updateData = {

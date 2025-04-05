@@ -1,9 +1,9 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { PieChart, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
+import { PieChart, MessageSquare, Phone, Mail, ClipboardList, BarChart3, Loader } from "lucide-react";
 import {
   SidebarProvider,
   Sidebar,
@@ -23,13 +23,47 @@ import SidebarLinks from "@/components/dashboard/SidebarLinks";
 
 const Dashboard = () => {
   const { user, subscription, checkSubscription } = useAuth();
+  const [isRefreshing, setIsRefreshing] = useState(true);
 
   // Force a check of subscription status when the dashboard loads
   useEffect(() => {
-    if (checkSubscription) {
-      checkSubscription();
-    }
-  }, [checkSubscription]);
+    const refreshSubscription = async () => {
+      if (checkSubscription) {
+        try {
+          setIsRefreshing(true);
+          // Try multiple times to refresh subscription status to ensure we have the latest data
+          for (let i = 0; i < 3; i++) {
+            await checkSubscription();
+            
+            // If we confirmed a subscription/trial, we can stop trying
+            if (subscription && (
+              subscription.status === 'trial' || 
+              subscription.status === 'active' ||
+              subscription.markus || 
+              subscription.kara || 
+              subscription.connor || 
+              subscription.chloe || 
+              subscription.luther || 
+              subscription.allInOne
+            )) {
+              break;
+            }
+            
+            // Wait a short time before trying again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (error) {
+          console.error("Error refreshing subscription status:", error);
+        } finally {
+          setIsRefreshing(false);
+        }
+      } else {
+        setIsRefreshing(false);
+      }
+    };
+    
+    refreshSubscription();
+  }, [checkSubscription, subscription]);
 
   // If no user, redirect to sign in (should be handled by a route guard in a real app)
   if (!user) {
@@ -72,6 +106,16 @@ const Dashboard = () => {
     { title: "Email Opens", value: "68%", change: "+5%" },
     { title: "Active Cases", value: 16, change: "0%" }
   ];
+
+  // Display loading state while refreshing subscription
+  if (isRefreshing) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <Loader className="h-12 w-12 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground">Loading your dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>

@@ -16,37 +16,63 @@ export const getAgentInfo = (
   // Check if user is in trial mode - if so, they have access to all agents
   const isInTrialMode = subscription?.status === 'trial';
   
+  // Debug logs
+  console.log(`Checking access for agent: ${agentId}`);
+  console.log(`Subscription status: ${subscription?.status}`);
+  console.log(`Is in trial mode: ${isInTrialMode}`);
+  
+  if (isInTrialMode) {
+    console.log("User has trial access - granting access to all agents");
+    hasAccess = true;
+  }
+  
   switch(agentId) {
     case "markus":
-      hasAccess = isInTrialMode || subscription?.markus || subscription?.allInOne || false;
       agentName = "Markus";
       agentColor = "markus";
+      // If not already granted by trial, check specific permissions
+      if (!hasAccess) {
+        hasAccess = subscription?.markus || subscription?.allInOne || false;
+      }
       break;
     case "kara":
-      hasAccess = isInTrialMode || subscription?.kara || subscription?.allInOne || false;
       agentName = "Kara";
       agentColor = "kara";
+      // If not already granted by trial, check specific permissions
+      if (!hasAccess) {
+        hasAccess = subscription?.kara || subscription?.allInOne || false;
+      }
       break;
     case "connor":
-      hasAccess = isInTrialMode || subscription?.connor || subscription?.allInOne || false;
       agentName = "Connor";
       agentColor = "connor";
+      // If not already granted by trial, check specific permissions
+      if (!hasAccess) {
+        hasAccess = subscription?.connor || subscription?.allInOne || false;
+      }
       break;
     case "chloe":
-      hasAccess = isInTrialMode || subscription?.chloe || subscription?.allInOne || false;
       agentName = "Chloe";
       agentColor = "chloe";
+      // If not already granted by trial, check specific permissions
+      if (!hasAccess) {
+        hasAccess = subscription?.chloe || subscription?.allInOne || false;
+      }
       break;
     case "luther":
-      hasAccess = isInTrialMode || subscription?.luther || subscription?.allInOne || false;
       agentName = "Luther";
       agentColor = "luther";
+      // If not already granted by trial, check specific permissions
+      if (!hasAccess) {
+        hasAccess = subscription?.luther || subscription?.allInOne || false;
+      }
       break;
     default:
-      hasAccess = false;
       agentName = "";
       agentColor = "";
   }
+  
+  console.log(`Access decision for ${agentId}: ${hasAccess}`);
   
   return { hasAccess, agentName, agentColor };
 };

@@ -73,9 +73,10 @@ serve(async (req) => {
         console.log("Stripe subscription status:", stripeSubscription.status);
         
         // For trial subscriptions, ensure all agents are accessible
-        if (stripeSubscription.status === 'trialing' && subscription.status !== 'trial') {
-          console.log("Updating trial subscription status");
+        if (stripeSubscription.status === 'trialing') {
+          console.log("User has an active trial - unlocking all agents");
           
+          // Update database with trial status
           await supabase
             .from("subscriptions")
             .update({
@@ -147,6 +148,45 @@ serve(async (req) => {
         }
       } catch (stripeError) {
         console.error("Error checking Stripe subscription:", stripeError);
+      }
+    }
+    
+    // If the subscription already has trial status in our database, ensure all agents are enabled
+    if (subscription?.status === 'trial') {
+      console.log("User has trial status in database - ensuring all agents are unlocked");
+      
+      // Ensure all agents are enabled
+      if (!subscription.markus || !subscription.kara || !subscription.connor || 
+          !subscription.chloe || !subscription.luther || !subscription.all_in_one) {
+        
+        await supabase
+          .from("subscriptions")
+          .update({
+            markus: true,
+            kara: true,
+            connor: true,
+            chloe: true,
+            luther: true,
+            all_in_one: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq("user_id", user.id);
+          
+        return new Response(JSON.stringify({ 
+          subscription: {
+            ...subscription,
+            markus: true,
+            kara: true,
+            connor: true,
+            chloe: true,
+            luther: true,
+            all_in_one: true,
+            status: 'trial'
+          }
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
       }
     }
     
