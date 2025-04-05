@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
@@ -67,6 +66,7 @@ const Settings = () => {
     }
   };
 
+  // Modified to ensure it doesn't expect any arguments
   const handleDeleteAccount = async () => {
     if (!deletePassword) {
       toast({
