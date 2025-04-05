@@ -231,7 +231,7 @@ const Settings = () => {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction 
-                          onClick={handleDeleteAccount}
+                          onClick={() => handleDeleteAccount()}
                           disabled={isDeleting}
                           className="bg-destructive hover:bg-destructive/90"
                         >
