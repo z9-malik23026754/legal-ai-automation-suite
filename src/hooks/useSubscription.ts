@@ -50,6 +50,13 @@ export const useSubscription = () => {
       console.log("Checkout response:", data);
       
       if (data?.url) {
+        // Force refresh the subscription status before redirecting
+        try {
+          await checkSubscription();
+        } catch (e) {
+          console.error("Failed to refresh subscription status:", e);
+        }
+        
         window.open(data.url, "_blank");
       } else {
         console.error("No checkout URL returned:", data);
@@ -70,11 +77,12 @@ export const useSubscription = () => {
   const isSubscribed = (planId: string): boolean => {
     if (!subscription) return false;
     
-    // If user is in trial, they have access to all plans
-    if (subscription.status === 'trial') {
+    // If user is in trial mode or has active subscription, they have access to all plans
+    if (subscription.status === 'trial' || subscription.status === 'active') {
       return true;
     }
     
+    // Check for specific agent access
     if (planId === 'markus' && subscription.markus) {
       return true;
     }
@@ -117,10 +125,24 @@ export const useSubscription = () => {
     };
   };
 
+  const hasAnySubscription = (): boolean => {
+    if (!subscription) return false;
+    
+    return subscription.status === 'trial' || 
+           subscription.status === 'active' ||
+           subscription.markus || 
+           subscription.kara || 
+           subscription.connor || 
+           subscription.chloe || 
+           subscription.luther || 
+           subscription.allInOne;
+  };
+
   return {
     handleSubscribe,
     isSubscribed,
     processingPlan,
-    getTrialStatus
+    getTrialStatus,
+    hasAnySubscription
   };
 };

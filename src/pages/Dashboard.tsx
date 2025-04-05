@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,10 +19,12 @@ import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import SidebarLinks from "@/components/dashboard/SidebarLinks";
+import { useToast } from "@/components/ui/use-toast";
 
 const Dashboard = () => {
   const { user, subscription, checkSubscription } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(true);
+  const { toast } = useToast();
 
   // Force a check of subscription status when the dashboard loads
   useEffect(() => {
@@ -31,11 +32,14 @@ const Dashboard = () => {
       if (checkSubscription) {
         try {
           setIsRefreshing(true);
+          console.log("Starting subscription refresh on dashboard load");
+          
           // Try multiple times to refresh subscription status to ensure we have the latest data
           for (let i = 0; i < 3; i++) {
+            console.log(`Subscription refresh attempt ${i + 1}`);
             await checkSubscription();
             
-            // If we confirmed a subscription/trial, we can stop trying
+            // If we confirmed a subscription/trial, log it and stop trying
             if (subscription && (
               subscription.status === 'trial' || 
               subscription.status === 'active' ||
@@ -46,14 +50,57 @@ const Dashboard = () => {
               subscription.luther || 
               subscription.allInOne
             )) {
+              console.log("Subscription status confirmed:", subscription);
               break;
             }
             
             // Wait a short time before trying again
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
+          
+          // After refreshing, check if we have access to any agents
+          const hasAnyAccess = subscription && (
+            subscription.status === 'trial' || 
+            subscription.status === 'active' ||
+            subscription.markus || 
+            subscription.kara || 
+            subscription.connor || 
+            subscription.chloe || 
+            subscription.luther || 
+            subscription.allInOne
+          );
+          
+          // If we have a trial or subscription but agent access isn't working, show a toast
+          if (subscription?.status === 'trial' || subscription?.status === 'active') {
+            if (!hasAnyAccess) {
+              // This should not happen - refresh the page if it does
+              toast({
+                title: "Agent access issue detected",
+                description: "We're refreshing the page to fix this issue.",
+                variant: "destructive",
+              });
+              
+              // Force a page refresh as a last resort
+              setTimeout(() => {
+                window.location.reload();
+              }, 3000);
+            } else {
+              // For trials, show a confirmation toast
+              if (subscription.status === 'trial') {
+                toast({
+                  title: "Free Trial Active",
+                  description: "All AI agents are unlocked for your 7-day free trial period.",
+                });
+              }
+            }
+          }
         } catch (error) {
           console.error("Error refreshing subscription status:", error);
+          toast({
+            title: "Couldn't verify subscription",
+            description: "There was an issue loading your subscription details. Please try refreshing the page.",
+            variant: "destructive",
+          });
         } finally {
           setIsRefreshing(false);
         }
@@ -63,7 +110,7 @@ const Dashboard = () => {
     };
     
     refreshSubscription();
-  }, [checkSubscription, subscription]);
+  }, [checkSubscription, subscription, toast]);
 
   // If no user, redirect to sign in (should be handled by a route guard in a real app)
   if (!user) {
@@ -77,15 +124,16 @@ const Dashboard = () => {
     );
   }
 
-  // Check if user is in trial mode
+  // Check if user is in trial mode or has active subscription
   const isInTrialMode = subscription?.status === 'trial';
+  const hasActiveSubscription = subscription?.status === 'active';
   
   // Check which agents the user has access to
-  const hasMarkusAccess = isInTrialMode || subscription?.markus || subscription?.allInOne;
-  const hasKaraAccess = isInTrialMode || subscription?.kara || subscription?.allInOne;
-  const hasConnorAccess = isInTrialMode || subscription?.connor || subscription?.allInOne;
-  const hasChloeAccess = isInTrialMode || subscription?.chloe || subscription?.allInOne;
-  const hasLutherAccess = isInTrialMode || subscription?.luther || subscription?.allInOne;
+  const hasMarkusAccess = isInTrialMode || hasActiveSubscription || subscription?.markus || subscription?.allInOne;
+  const hasKaraAccess = isInTrialMode || hasActiveSubscription || subscription?.kara || subscription?.allInOne;
+  const hasConnorAccess = isInTrialMode || hasActiveSubscription || subscription?.connor || subscription?.allInOne;
+  const hasChloeAccess = isInTrialMode || hasActiveSubscription || subscription?.chloe || subscription?.allInOne;
+  const hasLutherAccess = isInTrialMode || hasActiveSubscription || subscription?.luther || subscription?.allInOne;
   
   // Check if user has any subscriptions at all
   const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess || hasLutherAccess;
@@ -113,6 +161,7 @@ const Dashboard = () => {
       <div className="min-h-screen flex flex-col items-center justify-center">
         <Loader className="h-12 w-12 text-primary animate-spin mb-4" />
         <p className="text-muted-foreground">Loading your dashboard...</p>
+        <p className="text-xs text-muted-foreground mt-2">Verifying subscription status...</p>
       </div>
     );
   }
@@ -146,7 +195,7 @@ const Dashboard = () => {
               <div className="text-xs">
                 <p className="font-medium truncate">{user.email}</p>
                 <p className="text-muted-foreground truncate">
-                  {isInTrialMode ? 'Trial Plan' : (subscription ? 'Paid Plan' : 'Free Plan')}
+                  {isInTrialMode ? 'Trial Plan' : (hasActiveSubscription ? 'Paid Plan' : 'Free Plan')}
                 </p>
               </div>
             </div>
@@ -160,6 +209,17 @@ const Dashboard = () => {
               userName={user.email?.split('@')[0] || 'User'} 
               hasAnySubscription={hasAnySubscription} 
             />
+
+            {/* Show trial notification if in trial mode */}
+            {isInTrialMode && (
+              <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <h3 className="font-medium text-green-600 mb-1">Free Trial Active</h3>
+                <p className="text-sm text-muted-foreground">
+                  You have full access to all AI agents during your 7-day free trial period. 
+                  Trial ends on {new Date(subscription.trialEnd || "").toLocaleDateString()}.
+                </p>
+              </div>
+            )}
 
             {!hasAnySubscription ? (
               <WelcomeCard />

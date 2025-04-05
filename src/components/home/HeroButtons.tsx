@@ -10,11 +10,12 @@ const HeroButtons = () => {
   const { user, subscription } = useAuth();
   const { startTrial, isProcessing } = useStartFreeTrial();
   
-  // Check if user already has a trial or subscription
-  const hasTrialOrSubscription = subscription?.status === 'trial' || 
-    (subscription && (subscription.markus || subscription.kara || 
-    subscription.connor || subscription.chloe || subscription.luther || 
-    subscription.allInOne));
+  // Check if user already has a trial or any type of subscription
+  const hasActiveSubscription = subscription?.status === 'trial' || 
+                                subscription?.status === 'active' ||
+                                (subscription && (subscription.markus || subscription.kara || 
+                                  subscription.connor || subscription.chloe || 
+                                  subscription.luther || subscription.allInOne));
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
@@ -26,8 +27,8 @@ const HeroButtons = () => {
             </Button>
           </Link>
           
-          {/* Only show free trial button if user doesn't have trial or subscription */}
-          {!hasTrialOrSubscription && (
+          {/* Only show free trial button if user doesn't have a trial or subscription */}
+          {!hasActiveSubscription && (
             <Button 
               size="lg" 
               variant="default" 

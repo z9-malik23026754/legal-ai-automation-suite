@@ -10,6 +10,7 @@ const TrialSuccess = () => {
   const { checkSubscription, subscription } = useAuth();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   
   useEffect(() => {
     // Update subscription status after successful trial activation
@@ -18,24 +19,39 @@ const TrialSuccess = () => {
       
       if (checkSubscription) {
         try {
-          // Try multiple times to refresh subscription status
-          for (let i = 0; i < 3; i++) {
+          // Try multiple times to refresh subscription status with increasing delays
+          for (let i = 0; i < 5; i++) {
+            console.log(`Trial success page - subscription refresh attempt ${i + 1}`);
             await checkSubscription();
+            setRetryCount(i + 1);
             
             // If we got subscription data with trial status, break the loop
             if (subscription?.status === 'trial') {
+              console.log("Trial status confirmed:", subscription);
               break;
             }
             
-            // Wait a second before trying again
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Increasing backoff delay 
+            const delay = Math.min(2000 * (i + 1), 10000);
+            console.log(`Waiting ${delay}ms before retry`);
+            await new Promise(resolve => setTimeout(resolve, delay));
           }
           
-          // Show toast notification about unlocked agents
-          toast({
-            title: "All AI Agents Unlocked",
-            description: "You now have full access to all AI agents for the next 7 days.",
-          });
+          // Check if we got trial status after all retries
+          if (subscription?.status === 'trial') {
+            // Show toast notification about unlocked agents
+            toast({
+              title: "All AI Agents Unlocked",
+              description: "You now have full access to all AI agents for the next 7 days.",
+            });
+          } else {
+            // If we still don't have trial status after retries, show a warning
+            toast({
+              title: "Subscription Update Pending",
+              description: "Your trial is being activated. It may take a moment for all features to unlock.",
+              variant: "warning"
+            });
+          }
         } catch (error) {
           console.error("Error updating subscription status:", error);
           toast({
@@ -54,6 +70,18 @@ const TrialSuccess = () => {
     refreshSubscription();
   }, [checkSubscription, toast, subscription]);
 
+  // Force page refresh if we get stuck
+  useEffect(() => {
+    // If we've retried 5 times and still don't have trial status, offer to refresh
+    if (retryCount >= 5 && !isRefreshing && subscription?.status !== 'trial') {
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [retryCount, isRefreshing, subscription]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 flex items-center justify-center">
@@ -62,7 +90,8 @@ const TrialSuccess = () => {
             {isRefreshing ? (
               <div className="flex flex-col items-center justify-center mb-4">
                 <Loader className="h-12 w-12 text-primary animate-spin mb-4" />
-                <p className="text-muted-foreground">Unlocking your agents...</p>
+                <p className="text-muted-foreground">Unlocking your agents... ({retryCount}/5)</p>
+                <p className="text-xs text-muted-foreground mt-2">This may take a few moments</p>
               </div>
             ) : (
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
@@ -87,6 +116,15 @@ const TrialSuccess = () => {
                 You now have full access to Markus, Kara, Connor, Chloe, and Luther for your free trial period.
               </p>
             </div>
+            
+            {subscription?.status !== 'trial' && !isRefreshing && (
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg mb-6">
+                <h3 className="font-medium text-yellow-600 mb-1">Subscription Status Pending</h3>
+                <p className="text-sm text-muted-foreground">
+                  Your trial activation is still processing. The page will refresh automatically in a few seconds.
+                </p>
+              </div>
+            )}
             
             <div className="space-y-3">
               <Button asChild className="w-full">

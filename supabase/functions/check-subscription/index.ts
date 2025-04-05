@@ -55,7 +55,7 @@ serve(async (req) => {
       });
     }
     
-    console.log("Found subscription:", subscription);
+    console.log("Found subscription from database:", subscription);
     
     // If there's a Stripe subscription ID, verify its status with Stripe
     if (subscription?.stripe_subscription_id) {
@@ -69,6 +69,7 @@ serve(async (req) => {
       });
       
       try {
+        console.log("Checking Stripe subscription:", subscription.stripe_subscription_id);
         const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripe_subscription_id);
         console.log("Stripe subscription status:", stripeSubscription.status);
         
@@ -77,7 +78,7 @@ serve(async (req) => {
           console.log("User has an active trial - unlocking all agents");
           
           // Update database with trial status
-          await supabase
+          const { error: updateError } = await supabase
             .from("subscriptions")
             .update({
               status: 'trial',
@@ -93,6 +94,10 @@ serve(async (req) => {
             })
             .eq("user_id", user.id);
             
+          if (updateError) {
+            console.error("Error updating trial subscription:", updateError);
+          }
+            
           // Return the updated subscription
           return new Response(JSON.stringify({ 
             subscription: {
@@ -101,15 +106,35 @@ serve(async (req) => {
               connor: true,
               chloe: true,
               luther: true,
-              all_in_one: true,
+              allInOne: true,
               status: 'trial',
-              trial_start: new Date(stripeSubscription.trial_start * 1000).toISOString(),
-              trial_end: new Date(stripeSubscription.trial_end * 1000).toISOString()
+              trialStart: new Date(stripeSubscription.trial_start * 1000).toISOString(),
+              trialEnd: new Date(stripeSubscription.trial_end * 1000).toISOString()
             }
           }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,
           });
+        }
+        
+        // If subscription is active, ensure all agents are accessible
+        if (stripeSubscription.status === 'active') {
+          console.log("User has an active subscription - checking plan-specific access");
+          
+          // For simplicity, we're granting access to all agents with an active subscription
+          // In a real app, you would check which specific plan they purchased
+          const { error: updateActiveError } = await supabase
+            .from("subscriptions")
+            .update({
+              status: 'active',
+              // Enable all agents or specific ones based on the plan
+              updated_at: new Date().toISOString()
+            })
+            .eq("user_id", user.id);
+            
+          if (updateActiveError) {
+            console.error("Error updating active subscription:", updateActiveError);
+          }
         }
         
         // If subscription is no longer active, update the database
@@ -138,7 +163,7 @@ serve(async (req) => {
               connor: false,
               chloe: false,
               luther: false,
-              all_in_one: false,
+              allInOne: false,
               status: stripeSubscription.status
             }
           }), {
@@ -180,13 +205,26 @@ serve(async (req) => {
             connor: true,
             chloe: true,
             luther: true,
-            all_in_one: true,
+            allInOne: true,
             status: 'trial'
           }
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
+      }
+    }
+    
+    // Convert database field all_in_one to camelCase allInOne for frontend
+    if (subscription) {
+      subscription.allInOne = subscription.all_in_one;
+      
+      // Convert trial_start and trial_end to camelCase
+      if (subscription.trial_start) {
+        subscription.trialStart = subscription.trial_start;
+      }
+      if (subscription.trial_end) {
+        subscription.trialEnd = subscription.trial_end;
       }
     }
     

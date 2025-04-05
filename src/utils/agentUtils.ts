@@ -13,16 +13,25 @@ export const getAgentInfo = (
   let agentName = "";
   let agentColor = "";
   
-  // Check if user is in trial mode - if so, they have access to all agents
+  // If no subscription data available yet, deny access by default
+  if (!subscription) {
+    console.log("No subscription data available, denying access by default");
+    return { hasAccess: false, agentName, agentColor };
+  }
+  
+  // Check if user is in trial mode or has a paid subscription
   const isInTrialMode = subscription?.status === 'trial';
+  const hasActiveSubscription = subscription?.status === 'active';
   
   // Debug logs
   console.log(`Checking access for agent: ${agentId}`);
   console.log(`Subscription status: ${subscription?.status}`);
   console.log(`Is in trial mode: ${isInTrialMode}`);
+  console.log(`Has active subscription: ${hasActiveSubscription}`);
   
-  if (isInTrialMode) {
-    console.log("User has trial access - granting access to all agents");
+  // If user has trial or active subscription, they have access to all agents
+  if (isInTrialMode || hasActiveSubscription) {
+    console.log("User has trial or active subscription - granting access to all agents");
     hasAccess = true;
   }
   
@@ -30,7 +39,7 @@ export const getAgentInfo = (
     case "markus":
       agentName = "Markus";
       agentColor = "markus";
-      // If not already granted by trial, check specific permissions
+      // If not already granted by trial or subscription, check specific agent permissions
       if (!hasAccess) {
         hasAccess = subscription?.markus || subscription?.allInOne || false;
       }
@@ -38,7 +47,6 @@ export const getAgentInfo = (
     case "kara":
       agentName = "Kara";
       agentColor = "kara";
-      // If not already granted by trial, check specific permissions
       if (!hasAccess) {
         hasAccess = subscription?.kara || subscription?.allInOne || false;
       }
@@ -46,7 +54,6 @@ export const getAgentInfo = (
     case "connor":
       agentName = "Connor";
       agentColor = "connor";
-      // If not already granted by trial, check specific permissions
       if (!hasAccess) {
         hasAccess = subscription?.connor || subscription?.allInOne || false;
       }
@@ -54,7 +61,6 @@ export const getAgentInfo = (
     case "chloe":
       agentName = "Chloe";
       agentColor = "chloe";
-      // If not already granted by trial, check specific permissions
       if (!hasAccess) {
         hasAccess = subscription?.chloe || subscription?.allInOne || false;
       }
@@ -62,7 +68,6 @@ export const getAgentInfo = (
     case "luther":
       agentName = "Luther";
       agentColor = "luther";
-      // If not already granted by trial, check specific permissions
       if (!hasAccess) {
         hasAccess = subscription?.luther || subscription?.allInOne || false;
       }
@@ -72,7 +77,7 @@ export const getAgentInfo = (
       agentColor = "";
   }
   
-  console.log(`Access decision for ${agentId}: ${hasAccess}`);
+  console.log(`Final access decision for ${agentId}: ${hasAccess}`);
   
   return { hasAccess, agentName, agentColor };
 };
