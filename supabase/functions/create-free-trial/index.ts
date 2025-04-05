@@ -45,6 +45,7 @@ serve(async (req) => {
     // Parse request body
     const body = await req.json();
     const { successUrl, cancelUrl } = body;
+    console.log("Request body:", { successUrl, cancelUrl });
     
     // Get authenticated user
     const authHeader = req.headers.get("Authorization");
@@ -56,11 +57,13 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
+      console.error("User error:", userError);
       throw new Error("Invalid user token");
     }
     
     const userId = user.id;
     const userEmail = user.email;
+    console.log("User authenticated:", { userId, userEmail });
     
     if (!userEmail) {
       throw new Error("User email not available");
@@ -94,8 +97,10 @@ serve(async (req) => {
     // Check if this user already has a Stripe customer ID
     if (existingSubscription?.stripe_customer_id) {
       customerId = existingSubscription.stripe_customer_id;
+      console.log("Using existing Stripe customer:", customerId);
     } else {
       // Create new customer in Stripe
+      console.log("Creating new Stripe customer for user:", userEmail);
       const customer = await stripe.customers.create({
         email: userEmail,
         metadata: {
@@ -104,6 +109,7 @@ serve(async (req) => {
       });
       
       customerId = customer.id;
+      console.log("Created new Stripe customer:", customerId);
     }
     
     // Calculate trial end date (7 days from now)
@@ -111,6 +117,7 @@ serve(async (req) => {
     trialEndDate.setDate(trialEndDate.getDate() + 7);
     
     // Create a checkout session for $0 payment (free trial)
+    console.log("Creating Stripe checkout session...");
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -136,9 +143,12 @@ serve(async (req) => {
       },
     });
     
+    console.log("Stripe session created:", session.id, "URL:", session.url);
+    
     // Create or update the subscription record in database
     if (existingSubscription) {
       // Update existing record
+      console.log("Updating existing subscription record for user:", userId);
       await supabase
         .from("subscriptions")
         .update({
@@ -157,6 +167,7 @@ serve(async (req) => {
         .eq("user_id", userId);
     } else {
       // Create new record
+      console.log("Creating new subscription record for user:", userId);
       await supabase
         .from("subscriptions")
         .insert({

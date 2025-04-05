@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 // Form validation schema
 const formSchema = z.object({
@@ -26,6 +27,7 @@ interface FreeTrialFormProps {
 const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
   const { startTrial, isProcessing } = useStartFreeTrial();
   const { signUp } = useAuth();
+  const { toast } = useToast();
   
   // Default form values
   const form = useForm<FormValues>({
@@ -40,8 +42,11 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // Sign up the user first - fixing the error by providing both required arguments
-      await signUp(data.email, Math.random().toString(36).slice(-12), {
+      // Generate a random password for the user
+      const randomPassword = Math.random().toString(36).slice(-12);
+      
+      // Sign up the user first
+      await signUp(data.email, randomPassword, {
         data: {
           first_name: data.firstName,
           last_name: data.lastName,
@@ -50,13 +55,26 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
         }
       });
       
+      toast({
+        title: "Account created successfully",
+        description: "Starting your free trial...",
+      });
+      
       // Close the dialog
       onClose();
       
-      // Start the free trial process
-      await startTrial();
+      // Important: Add a small delay to allow the authentication state to update
+      setTimeout(() => {
+        // Start the free trial process
+        startTrial();
+      }, 1000);
     } catch (error) {
       console.error("Error creating account:", error);
+      toast({
+        title: "Error creating account",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
     }
   };
 

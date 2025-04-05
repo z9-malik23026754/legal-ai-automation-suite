@@ -24,6 +24,8 @@ export const useStartFreeTrial = () => {
 
     setIsProcessing(true);
     try {
+      console.log("Starting free trial process for user:", user.id);
+      
       // Create a free trial checkout session
       const { data, error } = await supabase.functions.invoke('create-free-trial', {
         body: {
@@ -36,12 +38,17 @@ export const useStartFreeTrial = () => {
       });
 
       if (error) {
+        console.error("Supabase function error:", error);
         throw error;
       }
       
+      console.log("Free trial checkout response:", data);
+      
       if (data?.url) {
+        // Redirect the user to the Stripe checkout page
         window.location.href = data.url;
       } else {
+        console.error("No checkout URL returned:", data);
         throw new Error("No checkout URL returned");
       }
     } catch (error: any) {
