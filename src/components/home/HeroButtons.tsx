@@ -21,8 +21,8 @@ const HeroButtons = () => {
           </Link>
           <Button 
             size="lg" 
-            variant="outline" 
-            className="border-white text-white hover:bg-white/10 backdrop-blur-sm"
+            variant="default" 
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg animate-pulse"
             onClick={startTrial}
             disabled={isProcessing}
           >
@@ -39,19 +39,15 @@ const HeroButtons = () => {
           </Link>
           <Button 
             size="lg" 
-            variant="outline" 
-            className="border-white text-white hover:bg-white/10 backdrop-blur-sm"
+            variant="default" 
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg animate-pulse"
             onClick={startTrial}
             disabled={isProcessing}
           >
             <Clock className="mr-2 h-4 w-4" />
             Start 7-Day Free Trial
           </Button>
-          <Link to="/pricing">
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 backdrop-blur-sm">
-              View Pricing
-            </Button>
-          </Link>
+          {/* Removed the "View Pricing" button to ensure the Free Trial button stands out */}
         </>
       )}
     </div>
