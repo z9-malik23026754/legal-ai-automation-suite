@@ -73,7 +73,7 @@ const AgentCard: React.FC<AgentCardProps> = ({
         {hasAccess ? (
           <Link to={`/agents/${agentId}`} className="w-full">
             <Button className={`w-full bg-${agentId}-500/10 hover:bg-${agentId}-500/20 text-${agentId}-600 border border-${agentId}-500/20`}>
-              {agentId === "markus" ? "Chat with" : "Use"} {title} <ArrowRight className="ml-2 h-4 w-4" />
+              Access {title} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         ) : (

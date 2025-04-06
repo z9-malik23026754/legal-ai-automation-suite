@@ -1,25 +1,16 @@
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { PieChart, MessageSquare, Phone, Mail, ClipboardList, BarChart3, Loader } from "lucide-react";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarInset,
-} from "@/components/ui/sidebar";
-import Navbar from "@/components/Navbar";
-import StatsCard from "@/components/dashboard/StatsCard";
-import AgentCard from "@/components/dashboard/AgentCard";
-import NotificationCard from "@/components/dashboard/NotificationCard";
-import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
-import WelcomeCard from "@/components/dashboard/WelcomeCard";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import SidebarLinks from "@/components/dashboard/SidebarLinks";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarFooter, SidebarInset } from "@/components/ui/sidebar";
+import { PieChart } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import Navbar from "@/components/Navbar";
+import DashboardView from "@/components/dashboard/DashboardView";
+import DashboardLoader from "@/components/dashboard/DashboardLoader";
+import UnsubscribedView from "@/components/dashboard/UnsubscribedView";
+import SidebarLinks from "@/components/dashboard/SidebarLinks";
 
 const Dashboard = () => {
   const { user, subscription, checkSubscription } = useAuth();
@@ -146,32 +137,9 @@ const Dashboard = () => {
   // Check if user has any subscriptions at all
   const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess || hasLutherAccess;
 
-  // Recent notifications - for demo purposes
-  const recentNotifications = [
-    { title: "New client inquiry", time: "2 hours ago", agent: "Markus" },
-    { title: "Support ticket opened", time: "Yesterday", agent: "Kara" },
-    { title: "Email campaign completed", time: "2 days ago", agent: "Connor" },
-    { title: "Admin report ready", time: "3 days ago", agent: "Chloe" },
-    { title: "New lead qualified", time: "1 hour ago", agent: "Luther" }
-  ];
-
-  // Quick stats - for demo purposes
-  const quickStats = [
-    { title: "Client Inquiries", value: 24, change: "+12%" },
-    { title: "Support Tickets", value: 8, change: "-3%" },
-    { title: "Email Opens", value: "68%", change: "+5%" },
-    { title: "Active Cases", value: 16, change: "0%" }
-  ];
-
   // Display loading state while refreshing subscription
   if (isRefreshing) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <Loader className="h-12 w-12 text-primary animate-spin mb-4" />
-        <p className="text-muted-foreground">Loading your dashboard...</p>
-        <p className="text-xs text-muted-foreground mt-2">Verifying subscription status...</p>
-      </div>
-    );
+    return <DashboardLoader />;
   }
 
   return (
@@ -212,103 +180,25 @@ const Dashboard = () => {
         
         <SidebarInset className="bg-background/95 backdrop-blur-sm flex-1">
           <Navbar />
-          <div className="container px-4 py-6 mx-auto max-w-7xl">
-            <DashboardHeader 
-              userName={user.email?.split('@')[0] || 'User'} 
-              hasAnySubscription={hasAnySubscription} 
+          {hasAnySubscription ? (
+            <DashboardView 
+              userName={user.email?.split('@')[0] || 'User'}
+              subscription={subscription}
+              isInTrialMode={isInTrialMode}
+              hasActiveSubscription={hasActiveSubscription}
+              hasMarkusAccess={hasMarkusAccess}
+              hasKaraAccess={hasKaraAccess}
+              hasConnorAccess={hasConnorAccess}
+              hasChloeAccess={hasChloeAccess}
+              hasLutherAccess={hasLutherAccess}
+              hasAnySubscription={hasAnySubscription}
+              isRefreshing={isRefreshing}
             />
-
-            {/* Show trial notification if in trial mode */}
-            {isInTrialMode && (
-              <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <h3 className="font-medium text-green-600 mb-1">Free Trial Active</h3>
-                <p className="text-sm text-muted-foreground">
-                  You have full access to all AI agents during your 7-day free trial period. 
-                  Trial ends on {new Date(subscription.trialEnd || "").toLocaleDateString()}.
-                </p>
-              </div>
-            )}
-
-            {!hasAnySubscription ? (
-              <WelcomeCard />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {quickStats.map((stat, index) => (
-                  <StatsCard 
-                    key={index} 
-                    title={stat.title} 
-                    value={stat.value} 
-                    change={stat.change} 
-                  />
-                ))}
-              </div>
-            )}
-            
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-2">
-                <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Your AI Agents</h2>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <AgentCard 
-                    agentId="markus"
-                    title="Markus"
-                    description="Personalized chatbot for client intake and FAQs"
-                    icon="MessageSquare"
-                    hasAccess={hasMarkusAccess}
-                  />
-                  
-                  <AgentCard 
-                    agentId="kara"
-                    title="Kara"
-                    description="Customer support agent for tickets and inquiries"
-                    icon="Phone"
-                    hasAccess={hasKaraAccess}
-                  />
-                  
-                  <AgentCard 
-                    agentId="connor"
-                    title="Connor"
-                    description="Email marketing and content automation"
-                    icon="Mail"
-                    hasAccess={hasConnorAccess}
-                  />
-                  
-                  <AgentCard 
-                    agentId="chloe"
-                    title="Chloe"
-                    description="Administrative tasks and reporting dashboard"
-                    icon="ClipboardList"
-                    hasAccess={hasChloeAccess}
-                  />
-                  
-                  <AgentCard 
-                    agentId="luther"
-                    title="Luther"
-                    description="Sales automation and CRM tools for your business"
-                    icon="BarChart3"
-                    hasAccess={hasLutherAccess}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Recent Activity</h2>
-                <NotificationCard notifications={recentNotifications} />
-              </div>
-            </div>
-
-            {hasAnySubscription && (
-              <div className="mt-12">
-                <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Quick Access</h2>
-                <QuickAccessCard 
-                  hasMarkusAccess={hasMarkusAccess}
-                  hasKaraAccess={hasKaraAccess}
-                  hasConnorAccess={hasConnorAccess}
-                  hasChloeAccess={hasChloeAccess}
-                  hasLutherAccess={hasLutherAccess}
-                />
-              </div>
-            )}
-          </div>
+          ) : (
+            <UnsubscribedView 
+              userName={user.email?.split('@')[0] || 'User'} 
+            />
+          )}
         </SidebarInset>
       </div>
     </SidebarProvider>
