@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +36,7 @@ const DangerZone = () => {
     setIsDeleting(true);
     
     try {
+      console.log("Attempting to delete account...");
       // Call the delete-account edge function
       const { data, error } = await supabase.functions.invoke('delete-account', {
         method: 'POST',
@@ -44,7 +45,15 @@ const DangerZone = () => {
         },
       });
       
-      if (error) throw error;
+      console.log("Delete account response:", data, error);
+      
+      if (error) {
+        throw new Error(`Error invoking delete-account function: ${error.message}`);
+      }
+      
+      if (!data.success) {
+        throw new Error(data.error || "Failed to delete account");
+      }
       
       toast({
         title: "Account deleted",
@@ -58,7 +67,7 @@ const DangerZone = () => {
       console.error("Error deleting account:", error);
       toast({
         title: "Error deleting account",
-        description: "There was an error deleting your account. Please try again.",
+        description: error.message || "There was an error deleting your account. Please try again.",
         variant: "destructive",
       });
     } finally {
