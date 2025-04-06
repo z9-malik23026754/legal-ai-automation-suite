@@ -22,7 +22,7 @@ serve(async (req) => {
       console.error("Missing Supabase environment variables");
       return new Response(JSON.stringify({ success: false, error: "Server configuration error" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: 200, // Using 200 to ensure the error response is properly received
       });
     }
     
@@ -35,7 +35,7 @@ serve(async (req) => {
       console.error("No authorization header provided");
       return new Response(JSON.stringify({ success: false, error: "No authorization header provided" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
+        status: 200,
       });
     }
     
@@ -48,7 +48,7 @@ serve(async (req) => {
       console.error("User error:", userError);
       return new Response(JSON.stringify({ success: false, error: "Invalid user token" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
+        status: 200,
       });
     }
     
