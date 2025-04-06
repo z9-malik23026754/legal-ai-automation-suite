@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchDirectSubscription } from "@/utils/subscriptionUtils";
 
@@ -11,16 +11,18 @@ export const useSubscriptionRefresh = (
   const [isRefreshing, setIsRefreshing] = useState(true);
   const [refreshAttempts, setRefreshAttempts] = useState(0);
   const { toast } = useToast();
+  const refreshInProgress = useRef(false);
 
   // Force a check of subscription status when the dashboard loads
   // Using useCallback to stabilize the function reference
   const refreshSubscription = useCallback(async () => {
-    if (!checkSubscription || !userId) {
+    if (!checkSubscription || !userId || refreshInProgress.current) {
       setIsRefreshing(false);
       return;
     }
     
     try {
+      refreshInProgress.current = true;
       setIsRefreshing(true);
       console.log("Starting subscription refresh on dashboard load");
       
@@ -131,6 +133,7 @@ export const useSubscriptionRefresh = (
       });
     } finally {
       setIsRefreshing(false);
+      refreshInProgress.current = false;
     }
   }, [checkSubscription, userId, subscription, toast]);
   

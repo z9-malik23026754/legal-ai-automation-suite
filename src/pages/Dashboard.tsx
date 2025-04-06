@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardView from "@/components/dashboard/DashboardView";
 import DashboardLoader from "@/components/dashboard/DashboardLoader";
@@ -26,30 +25,47 @@ const Dashboard = () => {
   } = useDashboardState();
 
   const [initializing, setInitializing] = useState(true);
+  const stableLoaderState = useRef({ isRefreshing, initializing, isLoading, attemptCount: refreshAttempts });
+  const initTimeoutRef = useRef<number | null>(null);
   
-  // Initialize subscription status with debounce to prevent glitches
+  useEffect(() => {
+    const significantChange = 
+      stableLoaderState.current.isRefreshing !== isRefreshing ||
+      stableLoaderState.current.initializing !== initializing ||
+      stableLoaderState.current.isLoading !== isLoading ||
+      (refreshAttempts > stableLoaderState.current.attemptCount);
+      
+    if (significantChange) {
+      stableLoaderState.current = { 
+        isRefreshing, 
+        initializing, 
+        isLoading,
+        attemptCount: refreshAttempts
+      };
+    }
+  }, [isRefreshing, initializing, isLoading, refreshAttempts]);
+  
   useEffect(() => {
     let isActive = true;
     
     const initializeSubscription = async () => {
       if (!user) {
-        // Set a shorter initialization time if no user
-        setTimeout(() => {
+        if (initTimeoutRef.current) window.clearTimeout(initTimeoutRef.current);
+        initTimeoutRef.current = window.setTimeout(() => {
           if (isActive) setInitializing(false);
         }, 500);
         return;
       }
       
       try {
-        // Check subscription status
         if (checkSubscription) {
           await checkSubscription();
         }
       } catch (error) {
         console.error("Error initializing subscription:", error);
       } finally {
-        // Use a consistent minimum delay to prevent rapid flashing
-        setTimeout(() => {
+        if (initTimeoutRef.current) window.clearTimeout(initTimeoutRef.current);
+        initTimeoutRef.current = window.setTimeout(() => {
           if (isActive) setInitializing(false);
         }, 800);
       }
@@ -57,15 +73,23 @@ const Dashboard = () => {
 
     initializeSubscription();
     
-    // Cleanup function to prevent state updates after unmount
     return () => {
       isActive = false;
+      if (initTimeoutRef.current) {
+        window.clearTimeout(initTimeoutRef.current);
+      }
     };
   }, [user, checkSubscription]);
 
-  // Only show loader when actually loading data, this prevents flickering
-  if ((isRefreshing || initializing || isLoading) && user) {
-    return <DashboardLoader attemptCount={refreshAttempts} />;
+  const showLoader = () => {
+    if (!user) return false;
+    return stableLoaderState.current.isRefreshing || 
+           stableLoaderState.current.initializing || 
+           stableLoaderState.current.isLoading;
+  };
+
+  if (showLoader()) {
+    return <DashboardLoader attemptCount={stableLoaderState.current.attemptCount} />;
   }
 
   return (

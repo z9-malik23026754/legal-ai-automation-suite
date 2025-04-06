@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscriptionRefresh } from "@/hooks/useSubscriptionRefresh";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
@@ -10,6 +10,7 @@ export const useDashboardState = () => {
   const { user, subscription, checkSubscription } = useAuth();
   const [directDbCheck, setDirectDbCheck] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const loadingTimeoutRef = useRef<number | null>(null);
   
   // Use our type conversion function to ensure compatibility
   const dbSubscription = toDbSubscription(subscription);
@@ -44,19 +45,32 @@ export const useDashboardState = () => {
       console.error("Error checking direct subscription:", error);
     } finally {
       setDirectDbCheck(true);
-      setIsLoading(false);
+      // Set a minimum loading time to prevent flashing
+      if (loadingTimeoutRef.current) window.clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = window.setTimeout(() => {
+        setIsLoading(false);
+      }, 800); // Ensure a minimum loading time
     }
   }, [user?.id, directDbCheck]);
 
   // Additional direct DB check for the dashboard
   useEffect(() => {
     performDirectDbCheck();
+    
+    return () => {
+      if (loadingTimeoutRef.current) {
+        window.clearTimeout(loadingTimeoutRef.current);
+      }
+    };
   }, [performDirectDbCheck]);
 
   // Set loading to false when other operations complete
   useEffect(() => {
     if (!isRefreshing && directDbCheck) {
-      setIsLoading(false);
+      if (loadingTimeoutRef.current) window.clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = window.setTimeout(() => {
+        setIsLoading(false);
+      }, 500); // Small delay to prevent UI flashing
     }
   }, [isRefreshing, directDbCheck]);
 
