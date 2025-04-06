@@ -21,36 +21,50 @@ const Dashboard = () => {
     hasConnorAccess,
     hasChloeAccess,
     hasLutherAccess,
-    hasAnySubscription
+    hasAnySubscription,
+    isLoading
   } = useDashboardState();
 
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [initializing, setInitializing] = useState(true);
   
-  // Initialize subscription status
+  // Initialize subscription status with debounce to prevent glitches
   useEffect(() => {
+    let isActive = true;
+    
     const initializeSubscription = async () => {
-      if (user) {
-        try {
-          // Check subscription status
-          if (checkSubscription) {
-            await checkSubscription();
-          }
-        } catch (error) {
-          console.error("Error initializing subscription:", error);
-        }
+      if (!user) {
+        // Set a shorter initialization time if no user
+        setTimeout(() => {
+          if (isActive) setInitializing(false);
+        }, 500);
+        return;
       }
       
-      // After all checks, mark initialization as complete
-      // Set a minimum initialization time to ensure loading state is shown
-      const minDelay = user ? 1000 : 500; // Shorter delay if no user
-      setTimeout(() => setIsInitializing(false), minDelay);
+      try {
+        // Check subscription status
+        if (checkSubscription) {
+          await checkSubscription();
+        }
+      } catch (error) {
+        console.error("Error initializing subscription:", error);
+      } finally {
+        // Use a consistent minimum delay to prevent rapid flashing
+        setTimeout(() => {
+          if (isActive) setInitializing(false);
+        }, 800);
+      }
     };
 
     initializeSubscription();
-  }, [user, checkSubscription, toast]);
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isActive = false;
+    };
+  }, [user, checkSubscription]);
 
-  // Display loading state while refreshing subscription or initializing
-  if (isRefreshing || isInitializing) {
+  // Only show loader when actually loading data, this prevents flickering
+  if ((isRefreshing || initializing || isLoading) && user) {
     return <DashboardLoader attemptCount={refreshAttempts} />;
   }
 
