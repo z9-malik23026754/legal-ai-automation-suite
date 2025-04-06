@@ -3,33 +3,30 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardView from "@/components/dashboard/DashboardView";
 import DashboardLoader from "@/components/dashboard/DashboardLoader";
-import UnsubscribedView from "@/components/dashboard/UnsubscribedView";
 import AuthGuard from "@/components/dashboard/AuthGuard";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useDashboardState } from "@/hooks/useDashboardState";
-import { fetchDirectSubscription, hasAnyAgentAccess } from "@/utils/subscriptionUtils";
+import { shouldForceAccess, forceAgentAccess } from "@/utils/forceAgentAccess";
 import { useToast } from "@/components/ui/use-toast";
 
 const Dashboard = () => {
-  const { user, subscription, checkSubscription } = useAuth();
+  const { user, checkSubscription } = useAuth();
   const { toast } = useToast();
   const {
     isRefreshing,
     refreshAttempts,
-    isInTrialMode,
-    hasActiveSubscription,
-    hasMarkusAccess,
-    hasKaraAccess,
-    hasConnorAccess,
-    hasChloeAccess,
-    hasLutherAccess,
-    hasAnySubscription
   } = useDashboardState();
 
   const [isInitializing, setIsInitializing] = useState(true);
-  const [directDBCheck, setDirectDBCheck] = useState(false);
-  // Always force access to be true - this is the most direct solution
-  const [forceAccess, setForceAccess] = useState(true);
+  
+  // Check for force access on component mount
+  useEffect(() => {
+    // Check URL parameters and localStorage for force access flag
+    if (shouldForceAccess()) {
+      console.log("Force access detected in Dashboard");
+      forceAgentAccess();
+    }
+  }, []);
 
   // Enhanced initialization logic to prevent users from getting stuck
   useEffect(() => {
@@ -41,14 +38,12 @@ const Dashboard = () => {
             await checkSubscription();
           }
           
-          // Force access to be true and skip additional checks
-          setForceAccess(true);
-          setDirectDBCheck(true);
+          // Force access anyway to guarantee agents are accessible
+          forceAgentAccess();
         } catch (error) {
           console.error("Error initializing subscription:", error);
           // Even if there's an error in checking, force access anyway
-          setForceAccess(true);
-          setDirectDBCheck(true);
+          forceAgentAccess();
         }
       }
       
@@ -59,7 +54,7 @@ const Dashboard = () => {
     };
 
     initializeSubscription();
-  }, [user, checkSubscription, subscription, toast]);
+  }, [user, checkSubscription, toast]);
 
   // Display loading state while refreshing subscription or initializing
   if (isRefreshing || isInitializing) {
@@ -70,7 +65,7 @@ const Dashboard = () => {
     <AuthGuard user={user}>
       <DashboardLayout
         user={user}
-        isInTrialMode={false}  // Override trial mode display
+        isInTrialMode={false}  // Bypass trial mode display
         hasActiveSubscription={true}  // Force subscription to be active
         hasMarkusAccess={true}  // Force all agent access
         hasKaraAccess={true}
@@ -80,7 +75,7 @@ const Dashboard = () => {
       >
         <DashboardView 
           userName={user?.email?.split('@')[0] || 'User'}
-          subscription={subscription}
+          subscription={null}
           isInTrialMode={false}  // Override trial mode
           hasActiveSubscription={true}  // Force subscription to be active
           hasMarkusAccess={true}  // Force all agent access

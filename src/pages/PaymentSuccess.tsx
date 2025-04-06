@@ -7,10 +7,11 @@ import Navbar from "@/components/Navbar";
 import { CheckCircle, Loader } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { forceAgentAccess, markPaymentCompleted } from "@/utils/forceAgentAccess";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, checkSubscription } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   
@@ -19,6 +20,21 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Show success toast and redirect after a brief delay
     const showSuccessAndRedirect = async () => {
+      // Mark payment as completed in localStorage for persistence
+      markPaymentCompleted();
+      
+      // Force access to all agents
+      forceAgentAccess();
+      
+      // Try to refresh subscription status
+      if (checkSubscription) {
+        try {
+          await checkSubscription();
+        } catch (e) {
+          console.error("Error refreshing subscription:", e);
+        }
+      }
+      
       toast({
         title: "Payment successful!",
         description: "Your subscription has been activated. You now have full access to all agents.",
@@ -31,7 +47,7 @@ const PaymentSuccess = () => {
     };
     
     showSuccessAndRedirect();
-  }, [toast]);
+  }, [toast, checkSubscription]);
   
   // Redirect to dashboard with success parameters once ready
   if (!loading) {

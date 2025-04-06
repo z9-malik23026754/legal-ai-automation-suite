@@ -3,7 +3,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Lock, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
+import { ArrowRight, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
+import { shouldForceAccess } from "@/utils/forceAgentAccess";
 
 interface AgentCardProps {
   agentId: string;
@@ -20,8 +21,16 @@ const AgentCard: React.FC<AgentCardProps> = ({
   icon,
   hasAccess,
 }) => {
-  // Debug log to ensure the hasAccess value is being correctly passed
-  console.log(`AgentCard ${agentId} - hasAccess:`, hasAccess);
+  // Always grant access if force access is enabled
+  const forceAccess = shouldForceAccess();
+  const userHasAccess = forceAccess || hasAccess;
+  
+  // Debug log to ensure the hasAccess value is being correctly evaluated
+  console.log(`AgentCard ${agentId} - User access:`, {
+    originalAccess: hasAccess, 
+    forceAccess, 
+    finalAccess: userHasAccess
+  });
 
   const getIconComponent = () => {
     switch (icon) {
