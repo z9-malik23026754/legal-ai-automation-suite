@@ -29,20 +29,30 @@ export const useStartFreeTrial = () => {
   const initiateStripeCheckout = async () => {
     setIsProcessing(true);
     try {
-      // Make sure we have a valid user ID
-      if (!user || !user.id) {
-        throw new Error("User ID not available. Please try signing in again.");
+      // Fetch the latest user and session
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      // Make sure we have a valid user ID and session
+      if (!currentUser || !currentUser.id) {
+        console.error("User authentication issue:", currentUser);
+        throw new Error("User ID not available. Please try refreshing the page and signing in again.");
       }
       
-      console.log("Starting free trial process for user:", user.id);
+      if (!currentSession || !currentSession.access_token) {
+        console.error("Session authentication issue:", currentSession);
+        throw new Error("Authentication session error. Please try refreshing the page and signing in again.");
+      }
+      
+      console.log("Starting free trial process for user:", currentUser.id);
       
       const { data, error } = await supabase.functions.invoke('create-free-trial', {
         body: {
           successUrl: `${window.location.origin}/trial-success`,
           cancelUrl: `${window.location.origin}/?canceled=true`
         },
-        headers: session?.access_token 
-          ? { Authorization: `Bearer ${session.access_token}` } 
+        headers: currentSession.access_token 
+          ? { Authorization: `Bearer ${currentSession.access_token}` } 
           : undefined
       });
 

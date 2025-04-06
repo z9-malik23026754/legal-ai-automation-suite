@@ -23,7 +23,7 @@ type AuthContextType = {
   isLoading: boolean;
   subscription: Subscription | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, options?: any) => Promise<void>;
+  signUp: (email: string, password: string, options?: any) => Promise<{error?: any}>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
 };
@@ -87,13 +87,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Set up auth state listener
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      console.log("Auth state changed:", _event, newSession?.user?.id);
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
       setIsLoading(false);
       
       // When auth state changes, check subscription status
-      if (session?.user) {
+      if (newSession?.user) {
         checkSubscription();
       } else {
         setSubscription(null);
@@ -101,12 +102,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      console.log("Initial session:", initialSession?.user?.id);
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
       setIsLoading(false);
       
-      if (session?.user) {
+      if (initialSession?.user) {
         checkSubscription();
       } else {
         setSubscription(null);
@@ -132,15 +134,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Sign up method
   const signUp = async (email: string, password: string, options?: any) => {
     try {
-      const { error } = await supabase.auth.signUp({ 
+      const result = await supabase.auth.signUp({ 
         email, 
         password,
         options
       });
-      if (error) throw error;
+      
+      if (result.error) {
+        console.error("Sign up error:", result.error);
+        throw result.error;
+      }
+      
+      console.log("Sign up successful, user:", result.data.user);
+      return result;
     } catch (error: any) {
       console.error("Error signing up:", error.message);
-      throw error;
+      return { error };
     }
   };
 
