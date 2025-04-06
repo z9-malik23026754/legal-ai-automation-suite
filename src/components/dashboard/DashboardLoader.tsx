@@ -1,7 +1,9 @@
 
-import React, { useState, useEffect } from "react";
-import { Loader } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Loader, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { forceAgentAccess } from "@/utils/forceAgentAccess";
 
 interface DashboardLoaderProps {
   attemptCount?: number; 
@@ -11,36 +13,53 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) =
   const [showManualOption, setShowManualOption] = useState(false);
   const [message, setMessage] = useState("Please wait while we load your dashboard and activate your AI agents.");
   const [loadingStage, setLoadingStage] = useState(0);
+  const { toast } = useToast();
+  
+  // Check for payment success in URL
+  const isFromPayment = new URLSearchParams(window.location.search).get('from') === 'success';
   
   // Progress through different loading messages to show progress
   useEffect(() => {
+    // If coming from payment, start with a different message
+    if (isFromPayment && loadingStage === 0) {
+      setMessage("Payment confirmed! Finalizing your account access...");
+      // Force access immediately for users coming from payment
+      forceAgentAccess();
+    }
+    
     const messageTimers = [
       setTimeout(() => {
-        setMessage("Checking your subscription status...");
+        setMessage(isFromPayment 
+          ? "Setting up your AI agent access..." 
+          : "Checking your subscription status...");
         setLoadingStage(1);
-      }, 2000),
+      }, 1500),
       
       setTimeout(() => {
-        setMessage("Still preparing your AI agents. This may take a few moments...");
+        setMessage(isFromPayment 
+          ? "Almost there! Activating your AI agents..." 
+          : "Still preparing your AI agents. This may take a few moments...");
         setLoadingStage(2);
-      }, 5000),
+      }, 3500),
       
       setTimeout(() => {
-        setMessage("Almost there! Finalizing AI agent activation...");
+        setMessage(isFromPayment 
+          ? "Access confirmed! Preparing your dashboard..." 
+          : "Almost there! Finalizing AI agent activation...");
         setLoadingStage(3);
-      }, 8000),
+      }, 6000),
       
       setTimeout(() => {
-        setMessage("Your dashboard is taking longer than expected to load. Please be patient...");
+        setMessage("Your dashboard is taking longer than expected to load.");
         setLoadingStage(4);
         setShowManualOption(true);
-      }, 12000)
+      }, 9000)
     ];
     
     return () => {
       messageTimers.forEach(timer => clearTimeout(timer));
     };
-  }, []);
+  }, [isFromPayment]);
   
   // If attempt count changes, update the message but without resetting timers
   useEffect(() => {
@@ -55,22 +74,44 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) =
     }
   }, [attemptCount, loadingStage]);
   
-  const handleManualRefresh = () => {
+  const handleManualRefresh = useCallback(() => {
     // Before refreshing, set local flags to ensure access on reload
-    localStorage.setItem('forceAgentAccess', 'true');
-    window.location.reload();
-  };
+    forceAgentAccess();
+    
+    toast({
+      title: "Access granted",
+      description: "We've unlocked your AI agents. The page will refresh now.",
+      variant: "default"
+    });
+    
+    // Short delay to show the toast before refreshing
+    setTimeout(() => {
+      window.location.href = '/dashboard?access=true';
+    }, 1500);
+  }, [toast]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
       <div className="p-6 rounded-lg text-center max-w-md">
-        <Loader className="h-12 w-12 text-primary animate-spin mb-4 mx-auto" />
-        <h2 className="text-xl font-bold mb-2">Preparing Your AI Agents</h2>
+        {isFromPayment ? (
+          <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-full mb-6 mx-auto w-fit">
+            <Loader className="h-12 w-12 text-green-600 dark:text-green-400 animate-spin" />
+          </div>
+        ) : (
+          <Loader className="h-12 w-12 text-primary animate-spin mb-4 mx-auto" />
+        )}
+        
+        <h2 className="text-xl font-bold mb-2">
+          {isFromPayment ? "Activating Your Subscription" : "Preparing Your AI Agents"}
+        </h2>
+        
         <p className="text-muted-foreground mb-4">{message}</p>
         
         <div className="w-48 h-2 bg-muted rounded-full overflow-hidden mx-auto mb-4">
           <div 
-            className="h-full bg-primary rounded-full transition-all duration-1000 ease-in-out" 
+            className={`h-full rounded-full transition-all duration-1000 ease-in-out ${
+              isFromPayment ? 'bg-green-500' : 'bg-primary'
+            }`}
             style={{ 
               width: `${Math.min(25 * (loadingStage + 1), 100)}%`,
               animationDuration: '1.5s',
@@ -83,15 +124,18 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) =
         {showManualOption ? (
           <div className="mt-6">
             <p className="text-sm text-muted-foreground mb-3">
-              If this takes too long, you can try refreshing the page. This will ensure your access is ready.
+              {isFromPayment 
+                ? "Your payment has been confirmed! Click below to access your dashboard immediately."
+                : "If this takes too long, you can try manually refreshing the page."}
             </p>
             <Button 
-              variant="outline" 
+              variant={isFromPayment ? "default" : "outline"}
               size="sm" 
               onClick={handleManualRefresh}
-              className="mx-auto"
+              className={`mx-auto ${isFromPayment ? 'bg-green-600 hover:bg-green-700' : ''}`}
             >
-              Unlock Access & Refresh
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {isFromPayment ? "Access Dashboard Now" : "Unlock Access & Refresh"}
             </Button>
           </div>
         ) : (

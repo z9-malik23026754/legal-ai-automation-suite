@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageSquare, Phone, Mail, ClipboardList, BarChart3, Lock } from "lucide-react";
@@ -21,38 +21,48 @@ const AgentCard: React.FC<AgentCardProps> = ({
   icon,
   hasAccess,
 }) => {
+  const location = useLocation();
   const [userHasAccess, setUserHasAccess] = useState(hasAccess);
   
   // Check for all possible access flags on component mount and URL changes
   useEffect(() => {
     const checkAccess = () => {
+      // Check URL parameters
+      const params = new URLSearchParams(location.search);
+      const fromPayment = params.get('from') === 'success';
+      const accessGranted = params.get('access') === 'true';
+      
+      // Check local storage flags
       const forceAccess = shouldForceAccess();
-      const fromPayment = new URLSearchParams(window.location.search).get('from') === 'success';
-      const finalAccess = hasAccess || forceAccess || fromPayment;
+      
+      // Final access determination
+      const finalAccess = hasAccess || forceAccess || fromPayment || accessGranted;
       
       if (finalAccess !== userHasAccess) {
+        console.log(`AgentCard ${agentId} - Access updated:`, { 
+          fromProps: hasAccess,
+          fromURL: fromPayment || accessGranted,
+          fromStorage: forceAccess,
+          finalAccess
+        });
         setUserHasAccess(finalAccess);
       }
     };
     
-    // Check immediately and on URL change
+    // Initial check
     checkAccess();
     
-    // Listen for URL changes via history state
+    // Set up URL change listener
     const handleUrlChange = () => {
       checkAccess();
     };
     
     window.addEventListener('popstate', handleUrlChange);
+    
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
     };
-  }, [hasAccess, userHasAccess]);
-  
-  console.log(`AgentCard ${agentId} - User access:`, {
-    originalAccess: hasAccess, 
-    finalAccess: userHasAccess
-  });
+  }, [hasAccess, userHasAccess, agentId, location.search]);
 
   const getIconComponent = () => {
     switch (icon) {

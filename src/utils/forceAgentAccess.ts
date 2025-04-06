@@ -4,7 +4,7 @@
  * This ensures the best user experience even if the backend has issues
  */
 
-// Check for all possible access flags in localStorage
+// Check for all possible access flags in localStorage and URL parameters
 export const shouldForceAccess = (): boolean => {
   // Check all possible access flags
   const trialCompleted = localStorage.getItem('trialCompleted') === 'true';
@@ -24,21 +24,23 @@ export const shouldForceAccess = (): boolean => {
   // Check URL parameters as fallback
   try {
     const url = new URL(window.location.href);
+    
+    // Various URL parameters that can indicate successful payment
     const accessParam = url.searchParams.get('access');
+    const fromParam = url.searchParams.get('from');
+    const statusParam = url.searchParams.get('status');
     
-    // If URL indicates access, store in localStorage and return true
-    if (accessParam === 'true') {
-      console.log("Force access activated via URL parameters");
+    // If URL indicates access from payment success, store in localStorage and return true
+    if (accessParam === 'true' || fromParam === 'success' || statusParam === 'success') {
+      console.log("Force access activated via URL parameters:", {
+        access: accessParam,
+        from: fromParam,
+        status: statusParam
+      });
+      
+      // Store for future page loads
       localStorage.setItem('forceAgentAccess', 'true');
-      localStorage.setItem('trialCompleted', 'true');
-      return true;
-    }
-    
-    // Check for 'from=success' parameter which is sent after successful payment
-    if (url.searchParams.get('from') === 'success') {
-      console.log("Force access activated via 'from=success' URL parameter");
-      localStorage.setItem('forceAgentAccess', 'true');
-      localStorage.setItem('trialCompleted', 'true');
+      localStorage.setItem('paymentCompleted', 'true');
       return true;
     }
   } catch (e) {
@@ -54,6 +56,9 @@ export const forceAgentAccess = (): void => {
   localStorage.setItem('forceAgentAccess', 'true');
   localStorage.setItem('trialCompleted', 'true');
   localStorage.setItem('paymentCompleted', 'true');
+  
+  // Also add a timestamp for debugging
+  localStorage.setItem('accessGrantedAt', new Date().toISOString());
 };
 
 // Remove forced access
@@ -61,6 +66,7 @@ export const removeForceAgentAccess = (): void => {
   localStorage.removeItem('forceAgentAccess');
   localStorage.removeItem('paymentCompleted');
   localStorage.removeItem('trialCompleted');
+  localStorage.removeItem('accessGrantedAt');
 };
 
 // Mark payment as completed
@@ -69,6 +75,7 @@ export const markPaymentCompleted = (): void => {
   localStorage.setItem('paymentCompleted', 'true');
   localStorage.setItem('trialCompleted', 'true');
   localStorage.setItem('forceAgentAccess', 'true');
+  localStorage.setItem('accessGrantedAt', new Date().toISOString());
 };
 
 export default {
