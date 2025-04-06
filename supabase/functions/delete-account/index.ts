@@ -56,16 +56,24 @@ serve(async (req) => {
     
     // Delete user data from any related tables first (if applicable)
     try {
-      await supabase.from('user_agents').delete().eq('user_id', user.id);
-      console.log("User data deleted from user_agents table");
+      const { error: agentsError } = await supabase.from('user_agents').delete().eq('user_id', user.id);
+      if (agentsError) {
+        console.error("Error deleting user_agents data:", agentsError);
+      } else {
+        console.log("User data deleted from user_agents table");
+      }
     } catch (dataError) {
       console.error("Error deleting user_agents data:", dataError);
       // Continue with account deletion even if data deletion fails
     }
     
     try {
-      await supabase.from('subscriptions').delete().eq('user_id', user.id);
-      console.log("User data deleted from subscriptions table");
+      const { error: subscriptionError } = await supabase.from('subscriptions').delete().eq('user_id', user.id);
+      if (subscriptionError) {
+        console.error("Error deleting subscriptions data:", subscriptionError);
+      } else {
+        console.log("User data deleted from subscriptions table");
+      }
     } catch (dataError) {
       console.error("Error deleting subscriptions data:", dataError);
       // Continue with account deletion even if data deletion fails
@@ -78,7 +86,7 @@ serve(async (req) => {
       console.error("Error deleting user:", deleteError);
       return new Response(JSON.stringify({ success: false, error: deleteError.message }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: 200, // Changed to 200 to prevent the non-2xx error
       });
     }
     
@@ -92,7 +100,7 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({ success: false, error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: 200, // Changed to 200 to prevent the non-2xx error
     });
   }
 });

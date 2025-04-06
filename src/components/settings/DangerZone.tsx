@@ -21,6 +21,7 @@ const DangerZone = () => {
   const { toast } = useToast();
   const { session, signOut } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleDeleteAccount = async () => {
@@ -52,9 +53,13 @@ const DangerZone = () => {
         throw new Error(`Error invoking delete-account function: ${error.message}`);
       }
       
-      if (!data || !data.success) {
+      // Check if the data exists and if the deletion was successful
+      if (!data || data.success === false) {
         throw new Error((data && data.error) || "Failed to delete account");
       }
+      
+      // Close the dialog if it's open
+      setIsDialogOpen(false);
       
       toast({
         title: "Account deleted",
@@ -80,7 +85,7 @@ const DangerZone = () => {
     <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
       <h2 className="text-2xl font-semibold mb-6 text-destructive">Danger Zone</h2>
       
-      <AlertDialog>
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogTrigger asChild>
           <Button variant="destructive">Delete Account</Button>
         </AlertDialogTrigger>
@@ -96,7 +101,10 @@ const DangerZone = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={handleDeleteAccount}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteAccount();
+              }}
               disabled={isDeleting}
             >
               {isDeleting ? "Deleting..." : "Yes, delete my account"}
