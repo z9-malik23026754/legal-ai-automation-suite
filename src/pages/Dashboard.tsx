@@ -7,7 +7,7 @@ import UnsubscribedView from "@/components/dashboard/UnsubscribedView";
 import AuthGuard from "@/components/dashboard/AuthGuard";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useDashboardState } from "@/hooks/useDashboardState";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchDirectSubscription } from "@/utils/subscriptionUtils";
 
 const Dashboard = () => {
   const { user, subscription, checkSubscription } = useAuth();
@@ -27,37 +27,6 @@ const Dashboard = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [directDBCheck, setDirectDBCheck] = useState(false);
 
-  // Function to directly check subscription in the database
-  const checkDatabaseSubscription = async () => {
-    if (!user?.id) return null;
-    
-    try {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-        
-      if (error) {
-        console.error("Direct DB subscription check error:", error);
-        return null;
-      }
-      
-      console.log("Direct DB subscription check result:", data);
-      setDirectDBCheck(true);
-      
-      // If we found subscription in DB but not in context, refresh context
-      if (data && data.status && (!subscription || subscription.status !== data.status)) {
-        if (checkSubscription) await checkSubscription();
-      }
-      
-      return data;
-    } catch (err) {
-      console.error("Exception in direct DB subscription check:", err);
-      return null;
-    }
-  };
-
   // Ensure subscription is refreshed and agents are loaded before showing dashboard
   useEffect(() => {
     const initializeSubscription = async () => {
@@ -69,7 +38,8 @@ const Dashboard = () => {
           }
           
           // Also do a direct DB check
-          await checkDatabaseSubscription();
+          await fetchDirectSubscription(user.id);
+          setDirectDBCheck(true);
           
         } catch (error) {
           console.error("Error initializing subscription:", error);
