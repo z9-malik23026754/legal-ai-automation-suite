@@ -4,6 +4,28 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define a type for the direct database subscription response
+interface DatabaseSubscription {
+  id: string;
+  user_id: string;
+  status: string;
+  plan_type: string;
+  stripe_customer_id: string;
+  stripe_subscription_id: string;
+  created_at: string;
+  updated_at: string;
+  // These fields might not exist in the actual database schema
+  // but we check for their existence in the code
+  markus?: boolean;
+  kara?: boolean;
+  connor?: boolean;
+  chloe?: boolean;
+  luther?: boolean;
+  all_in_one?: boolean;
+  trial_start?: string;
+  trial_end?: string;
+}
+
 export const useDashboardState = () => {
   const { user, subscription, checkSubscription } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(true);
@@ -49,7 +71,7 @@ export const useDashboardState = () => {
         if (checkSubscription) await checkSubscription();
       }
       
-      return data;
+      return data as DatabaseSubscription | null;
     } catch (err) {
       console.error("Exception fetching subscription:", err);
       return null;

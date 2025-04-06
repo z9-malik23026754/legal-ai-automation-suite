@@ -43,35 +43,35 @@ export const getAgentInfo = (
       agentColor = "markus";
       // Only check individual permissions if not already granted by trial/subscription
       if (!hasAccess) {
-        hasAccess = subscription?.markus || subscription?.allInOne || false;
+        hasAccess = !!subscription?.markus || !!subscription?.allInOne || false;
       }
       break;
     case "kara":
       agentName = "Kara";
       agentColor = "kara";
       if (!hasAccess) {
-        hasAccess = subscription?.kara || subscription?.allInOne || false;
+        hasAccess = !!subscription?.kara || !!subscription?.allInOne || false;
       }
       break;
     case "connor":
       agentName = "Connor";
       agentColor = "connor";
       if (!hasAccess) {
-        hasAccess = subscription?.connor || subscription?.allInOne || false;
+        hasAccess = !!subscription?.connor || !!subscription?.allInOne || false;
       }
       break;
     case "chloe":
       agentName = "Chloe";
       agentColor = "chloe";
       if (!hasAccess) {
-        hasAccess = subscription?.chloe || subscription?.allInOne || false;
+        hasAccess = !!subscription?.chloe || !!subscription?.allInOne || false;
       }
       break;
     case "luther":
       agentName = "Luther";
       agentColor = "luther";
       if (!hasAccess) {
-        hasAccess = subscription?.luther || subscription?.allInOne || false;
+        hasAccess = !!subscription?.luther || !!subscription?.allInOne || false;
       }
       break;
     default:

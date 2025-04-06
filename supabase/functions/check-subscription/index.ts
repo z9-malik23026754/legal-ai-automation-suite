@@ -77,40 +77,68 @@ serve(async (req) => {
         if (stripeSubscription.status === 'trialing') {
           console.log("User has an active trial - unlocking all agents");
           
+          // Check if we have the agent-specific columns
+          const { data: tableInfo, error: tableError } = await supabase
+            .from("subscriptions")
+            .select();
+          
+          if (tableError) {
+            console.error("Error checking table structure:", tableError);
+          }
+          
           // Update database with trial status
+          const updateData: Record<string, any> = {
+            status: 'trial',
+            updated_at: new Date().toISOString()
+          };
+          
+          // Only add these fields if they exist in the table
+          if ('markus' in subscription) updateData.markus = true;
+          if ('kara' in subscription) updateData.kara = true;
+          if ('connor' in subscription) updateData.connor = true;
+          if ('chloe' in subscription) updateData.chloe = true;
+          if ('luther' in subscription) updateData.luther = true;
+          if ('all_in_one' in subscription) updateData.all_in_one = true;
+          
+          // Add trial dates if the fields exist
+          if ('trial_start' in subscription) {
+            updateData.trial_start = new Date(stripeSubscription.trial_start * 1000).toISOString();
+          }
+          
+          if ('trial_end' in subscription) {
+            updateData.trial_end = new Date(stripeSubscription.trial_end * 1000).toISOString();
+          }
+          
           const { error: updateError } = await supabase
             .from("subscriptions")
-            .update({
-              status: 'trial',
-              markus: true,
-              kara: true,
-              connor: true,
-              chloe: true,
-              luther: true,
-              all_in_one: true,
-              trial_start: new Date(stripeSubscription.trial_start * 1000).toISOString(),
-              trial_end: new Date(stripeSubscription.trial_end * 1000).toISOString(),
-              updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq("user_id", user.id);
             
           if (updateError) {
             console.error("Error updating trial subscription:", updateError);
           }
             
-          // Return the updated subscription
+          // Return the subscription
+          const frontendSubscription = {
+            markus: true,
+            kara: true,
+            connor: true,
+            chloe: true,
+            luther: true,
+            allInOne: true,
+            status: 'trial'
+          };
+          
+          if ('trial_start' in subscription) {
+            frontendSubscription.trialStart = new Date(stripeSubscription.trial_start * 1000).toISOString();
+          }
+          
+          if ('trial_end' in subscription) {
+            frontendSubscription.trialEnd = new Date(stripeSubscription.trial_end * 1000).toISOString();
+          }
+          
           return new Response(JSON.stringify({ 
-            subscription: {
-              markus: true,
-              kara: true,
-              connor: true,
-              chloe: true,
-              luther: true,
-              allInOne: true,
-              status: 'trial',
-              trialStart: new Date(stripeSubscription.trial_start * 1000).toISOString(),
-              trialEnd: new Date(stripeSubscription.trial_end * 1000).toISOString()
-            }
+            subscription: frontendSubscription
           }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,
@@ -123,13 +151,22 @@ serve(async (req) => {
           
           // For simplicity, we're granting access to all agents with an active subscription
           // In a real app, you would check which specific plan they purchased
+          const updateData: Record<string, any> = {
+            status: 'active',
+            updated_at: new Date().toISOString()
+          };
+          
+          // Only add these fields if they exist in the table
+          if ('markus' in subscription) updateData.markus = true;
+          if ('kara' in subscription) updateData.kara = true;
+          if ('connor' in subscription) updateData.connor = true;
+          if ('chloe' in subscription) updateData.chloe = true;
+          if ('luther' in subscription) updateData.luther = true;
+          if ('all_in_one' in subscription) updateData.all_in_one = true;
+          
           const { error: updateActiveError } = await supabase
             .from("subscriptions")
-            .update({
-              status: 'active',
-              // Enable all agents or specific ones based on the plan
-              updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq("user_id", user.id);
             
           if (updateActiveError) {
@@ -142,18 +179,22 @@ serve(async (req) => {
             (subscription.status === 'active' || subscription.status === 'trial')) {
           console.log("Updating expired subscription status");
           
+          const updateData: Record<string, any> = {
+            status: stripeSubscription.status,
+            updated_at: new Date().toISOString()
+          };
+          
+          // Only add these fields if they exist in the table
+          if ('markus' in subscription) updateData.markus = false;
+          if ('kara' in subscription) updateData.kara = false;
+          if ('connor' in subscription) updateData.connor = false;
+          if ('chloe' in subscription) updateData.chloe = false;
+          if ('luther' in subscription) updateData.luther = false;
+          if ('all_in_one' in subscription) updateData.all_in_one = false;
+          
           await supabase
             .from("subscriptions")
-            .update({
-              markus: false,
-              kara: false,
-              connor: false,
-              chloe: false,
-              luther: false, 
-              all_in_one: false,
-              status: stripeSubscription.status,
-              updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq("user_id", user.id);
             
           return new Response(JSON.stringify({ 
@@ -180,55 +221,56 @@ serve(async (req) => {
     if (subscription?.status === 'trial') {
       console.log("User has trial status in database - ensuring all agents are unlocked");
       
-      // Ensure all agents are enabled
-      if (!subscription.markus || !subscription.kara || !subscription.connor || 
-          !subscription.chloe || !subscription.luther || !subscription.all_in_one) {
-        
+      // Prepare update data
+      const updateData: Record<string, any> = {
+        updated_at: new Date().toISOString()
+      };
+      
+      let needsUpdate = false;
+      
+      // Only update fields that exist and need to be updated
+      if ('markus' in subscription && !subscription.markus) {
+        updateData.markus = true;
+        needsUpdate = true;
+      }
+      if ('kara' in subscription && !subscription.kara) {
+        updateData.kara = true;
+        needsUpdate = true;
+      }
+      if ('connor' in subscription && !subscription.connor) {
+        updateData.connor = true;
+        needsUpdate = true;
+      }
+      if ('chloe' in subscription && !subscription.chloe) {
+        updateData.chloe = true;
+        needsUpdate = true;
+      }
+      if ('luther' in subscription && !subscription.luther) {
+        updateData.luther = true;
+        needsUpdate = true;
+      }
+      if ('all_in_one' in subscription && !subscription.all_in_one) {
+        updateData.all_in_one = true;
+        needsUpdate = true;
+      }
+      
+      if (needsUpdate) {
         await supabase
           .from("subscriptions")
-          .update({
-            markus: true,
-            kara: true,
-            connor: true,
-            chloe: true,
-            luther: true,
-            all_in_one: true,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq("user_id", user.id);
-          
-        return new Response(JSON.stringify({ 
-          subscription: {
-            ...subscription,
-            markus: true,
-            kara: true,
-            connor: true,
-            chloe: true,
-            luther: true,
-            allInOne: true,
-            status: 'trial'
-          }
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
       }
     }
     
-    // Convert database field all_in_one to camelCase allInOne for frontend
-    if (subscription) {
-      subscription.allInOne = subscription.all_in_one;
-      
-      // Convert trial_start and trial_end to camelCase
-      if (subscription.trial_start) {
-        subscription.trialStart = subscription.trial_start;
-      }
-      if (subscription.trial_end) {
-        subscription.trialEnd = subscription.trial_end;
-      }
-    }
+    // Prepare the response with correct property names for frontend
+    const frontendSubscription = subscription ? {
+      ...subscription,
+      allInOne: subscription.all_in_one,
+      trialStart: subscription.trial_start,
+      trialEnd: subscription.trial_end
+    } : null;
     
-    return new Response(JSON.stringify({ subscription }), {
+    return new Response(JSON.stringify({ subscription: frontendSubscription }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
