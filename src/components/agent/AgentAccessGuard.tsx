@@ -35,13 +35,14 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     return <>{children}</>;
   }
   
-  // User doesn't have access - show toast and redirect to dashboard
+  // User doesn't have access - show toast and redirect to pricing page
   toast({
     title: "Access Restricted",
-    description: "You need a subscription to access this AI agent. Please upgrade your plan.",
+    description: "You need a subscription to access this AI agent. Please upgrade your plan or start a free trial.",
     variant: "destructive",
   });
   
+  // Redirect to pricing page instead of dashboard
   return <Navigate to="/pricing" replace />;
 };
 

@@ -41,6 +41,25 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
       </div>
       
       <div className="mb-10">
+        <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
+          <h2 className="text-2xl font-semibold mb-4">Start Your Free Trial Today</h2>
+          <p className="mb-6">
+            Get instant access to all AI agents for 7 days with no obligations. Simply start your free trial to unlock
+            all premium features immediately.
+          </p>
+          <Button 
+            onClick={startTrial} 
+            size="lg"
+            disabled={isProcessing}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
+          >
+            <Clock className="mr-2 h-4 w-4" />
+            {isProcessing ? "Processing..." : "Start 7-Day Free Trial"}
+          </Button>
+        </div>
+      </div>
+      
+      <div className="mb-10">
         <WelcomeCard />
       </div>
       
