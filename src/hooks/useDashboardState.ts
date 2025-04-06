@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscriptionRefresh } from "@/hooks/useSubscriptionRefresh";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
 import { fetchDirectSubscription } from "@/utils/subscriptionUtils";
+import { DatabaseSubscription } from "@/types/subscription";
 
 export const useDashboardState = () => {
   const { user, subscription, checkSubscription } = useAuth();
@@ -40,7 +41,8 @@ export const useDashboardState = () => {
   useEffect(() => {
     const checkDirectDb = async () => {
       if (user?.id && !directDbCheck) {
-        await fetchDirectSubscription(user.id);
+        const directSubscription = await fetchDirectSubscription(user.id);
+        console.log("Direct DB subscription check:", directSubscription);
         setDirectDbCheck(true);
       }
     };

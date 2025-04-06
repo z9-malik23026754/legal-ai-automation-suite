@@ -1,4 +1,6 @@
 
+import { DatabaseSubscription } from "@/types/subscription";
+
 interface AgentInfo {
   hasAccess: boolean;
   agentName: string;
@@ -7,7 +9,7 @@ interface AgentInfo {
 
 export const getAgentInfo = (
   agentId: string | undefined, 
-  subscription: any
+  subscription: DatabaseSubscription | null
 ): AgentInfo => {
   let hasAccess = false;
   let agentName = "";
@@ -44,35 +46,35 @@ export const getAgentInfo = (
       // Only check individual permissions if not already granted by trial/subscription
       if (!hasAccess) {
         // Use optional chaining to safely check if property exists
-        hasAccess = !!subscription?.markus || !!subscription?.allInOne || false;
+        hasAccess = !!subscription?.markus || !!subscription?.all_in_one || false;
       }
       break;
     case "kara":
       agentName = "Kara";
       agentColor = "kara";
       if (!hasAccess) {
-        hasAccess = !!subscription?.kara || !!subscription?.allInOne || false;
+        hasAccess = !!subscription?.kara || !!subscription?.all_in_one || false;
       }
       break;
     case "connor":
       agentName = "Connor";
       agentColor = "connor";
       if (!hasAccess) {
-        hasAccess = !!subscription?.connor || !!subscription?.allInOne || false;
+        hasAccess = !!subscription?.connor || !!subscription?.all_in_one || false;
       }
       break;
     case "chloe":
       agentName = "Chloe";
       agentColor = "chloe";
       if (!hasAccess) {
-        hasAccess = !!subscription?.chloe || !!subscription?.allInOne || false;
+        hasAccess = !!subscription?.chloe || !!subscription?.all_in_one || false;
       }
       break;
     case "luther":
       agentName = "Luther";
       agentColor = "luther";
       if (!hasAccess) {
-        hasAccess = !!subscription?.luther || !!subscription?.allInOne || false;
+        hasAccess = !!subscription?.luther || !!subscription?.all_in_one || false;
       }
       break;
     default:

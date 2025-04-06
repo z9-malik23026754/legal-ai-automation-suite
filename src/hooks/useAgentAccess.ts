@@ -1,9 +1,10 @@
 
 import { useEffect, useState } from "react";
+import { DatabaseSubscription, SubscriptionState } from "@/types/subscription";
 
-export const useAgentAccess = (subscription: any) => {
+export const useAgentAccess = (subscription: DatabaseSubscription | null) => {
   // Calculate access state based on subscription
-  const [accessState, setAccessState] = useState({
+  const [accessState, setAccessState] = useState<SubscriptionState>({
     isInTrialMode: false,
     hasActiveSubscription: false,
     hasMarkusAccess: false,
@@ -20,11 +21,11 @@ export const useAgentAccess = (subscription: any) => {
     const hasActiveSubscription = subscription?.status === 'active';
     
     // Determine agent access based on subscription status
-    const hasMarkusAccess = isInTrialMode || hasActiveSubscription || subscription?.markus || subscription?.allInOne;
-    const hasKaraAccess = isInTrialMode || hasActiveSubscription || subscription?.kara || subscription?.allInOne;
-    const hasConnorAccess = isInTrialMode || hasActiveSubscription || subscription?.connor || subscription?.allInOne;
-    const hasChloeAccess = isInTrialMode || hasActiveSubscription || subscription?.chloe || subscription?.allInOne;
-    const hasLutherAccess = isInTrialMode || hasActiveSubscription || subscription?.luther || subscription?.allInOne;
+    const hasMarkusAccess = isInTrialMode || hasActiveSubscription || !!subscription?.markus || !!subscription?.all_in_one;
+    const hasKaraAccess = isInTrialMode || hasActiveSubscription || !!subscription?.kara || !!subscription?.all_in_one;
+    const hasConnorAccess = isInTrialMode || hasActiveSubscription || !!subscription?.connor || !!subscription?.all_in_one;
+    const hasChloeAccess = isInTrialMode || hasActiveSubscription || !!subscription?.chloe || !!subscription?.all_in_one;
+    const hasLutherAccess = isInTrialMode || hasActiveSubscription || !!subscription?.luther || !!subscription?.all_in_one;
     
     // Check if user has any subscriptions
     const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess || hasLutherAccess;

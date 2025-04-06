@@ -42,6 +42,7 @@ export const hasAnyAgentAccess = (subscription: any): boolean => {
     subscription.connor || 
     subscription.chloe || 
     subscription.luther || 
-    subscription.allInOne
+    subscription.allInOne ||
+    subscription.all_in_one
   );
 };
