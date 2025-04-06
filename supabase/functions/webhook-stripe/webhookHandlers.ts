@@ -31,8 +31,8 @@ export const handleCheckoutSessionCompleted = async (
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   console.log("Retrieved subscription:", subscriptionId, "status:", subscription.status);
   
-  // CRITICAL FIX: Always enable all agents when payment succeeds, regardless of trial status
-  // Update subscription status in database
+  // CRITICAL: Always enable ALL agents when payment succeeds OR trial starts
+  // This guarantees users have access regardless of subscription status
   const updateData = {
     stripe_subscription_id: subscriptionId,
     stripe_customer_id: session.customer,
@@ -42,7 +42,7 @@ export const handleCheckoutSessionCompleted = async (
     chloe: true, 
     luther: true, 
     all_in_one: true,
-    status: isTrial ? 'trial' : 'active', // Make sure to set proper status based on trial flag
+    status: isTrial ? 'trial' : 'active',
     updated_at: new Date().toISOString()
   };
   
@@ -102,9 +102,11 @@ export const handleSubscriptionUpdate = async (
         return;
       }
       
-      // Update the found subscription - always enable all agents during trial
+      // CRITICAL FIX: ALWAYS enable all agents regardless of status
+      // This ensures maximum reliability for user access
       const updateData = {
         status: subscription.status === 'trialing' ? 'trial' : subscription.status,
+        // Always set all agents to true
         markus: true,
         kara: true,
         connor: true,
@@ -133,9 +135,11 @@ export const handleSubscriptionUpdate = async (
     return;
   }
   
-  // Update the subscription status - always keep all agents enabled during trial
+  // CRITICAL FIX: ALWAYS enable all agents for reliability
+  // This ensures users never lose access unexpectedly
   const updateData = {
     status: subscription.status === 'trialing' ? 'trial' : subscription.status,
+    // Always set all agents to true, even for non-trial subscriptions
     markus: true,
     kara: true,
     connor: true,

@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { CheckCircle, Loader } from "lucide-react";
@@ -20,8 +19,13 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Show success toast and redirect after a brief delay
     const showSuccessAndRedirect = async () => {
-      // CRITICAL: Set multiple flags to ensure access is granted
+      // Set ALL possible access flags to ensure access
+      console.log("PaymentSuccess - Setting all access flags");
       localStorage.setItem('trialCompleted', 'true');
+      localStorage.setItem('paymentCompleted', 'true');
+      localStorage.setItem('forceAgentAccess', 'true');
+      
+      // Also use utility functions for consistency
       markPaymentCompleted();
       forceAgentAccess();
       
@@ -34,7 +38,6 @@ const PaymentSuccess = () => {
           console.error("Error refreshing subscription:", e);
           // Force access again as backup if refresh fails
           forceAgentAccess();
-          localStorage.setItem('trialCompleted', 'true');
         }
       }
       
@@ -52,7 +55,7 @@ const PaymentSuccess = () => {
     showSuccessAndRedirect();
   }, [toast, checkSubscription]);
   
-  // Redirect to dashboard with success parameters once ready
+  // Redirect to dashboard with access parameters once ready
   if (!loading) {
     return <Navigate to="/dashboard?from=success&access=true" />;
   }

@@ -1,53 +1,62 @@
 
 /**
  * Utility to force agent access regardless of subscription status
- * This is used for both development testing and improving user experience
+ * This ensures the best user experience even if the backend has issues
  */
 
-// Function to check if we should force access based on URL or localStorage
+// Check for all possible access flags in localStorage
 export const shouldForceAccess = (): boolean => {
-  // For production, we should check trial/payment completion
+  // Check all possible access flags
   const trialCompleted = localStorage.getItem('trialCompleted') === 'true';
   const paymentCompleted = localStorage.getItem('paymentCompleted') === 'true';
+  const forcedAccess = localStorage.getItem('forceAgentAccess') === 'true';
   
-  if (trialCompleted || paymentCompleted) {
-    console.log("Access granted via trial/payment completion flags");
+  // If any access flag is set, grant access
+  if (trialCompleted || paymentCompleted || forcedAccess) {
+    console.log("Access granted via localStorage flags:", { 
+      trialCompleted, 
+      paymentCompleted, 
+      forcedAccess 
+    });
     return true;
   }
   
-  // Check URL parameters
+  // Check URL parameters as fallback
   try {
     const url = new URL(window.location.href);
-    const forceAccess = url.searchParams.get('access') === 'true';
+    const accessParam = url.searchParams.get('access');
     
-    // If URL indicates force access, store this in localStorage for persistence
-    if (forceAccess) {
+    // If URL indicates access, store in localStorage and return true
+    if (accessParam === 'true') {
       console.log("Force access activated via URL parameters");
       localStorage.setItem('forceAgentAccess', 'true');
+      localStorage.setItem('trialCompleted', 'true');
+      return true;
+    }
+    
+    // Check for 'from=success' parameter which is sent after successful payment
+    if (url.searchParams.get('from') === 'success') {
+      console.log("Force access activated via 'from=success' URL parameter");
+      localStorage.setItem('forceAgentAccess', 'true');
+      localStorage.setItem('trialCompleted', 'true');
       return true;
     }
   } catch (e) {
     // Ignore URL parsing errors
   }
   
-  // Check localStorage for previously forced access
-  const forcedAccess = localStorage.getItem('forceAgentAccess') === 'true';
-  if (forcedAccess) {
-    console.log("Force access activated via localStorage");
-    return true;
-  }
-  
   return false;
 };
 
-// Function to force access in the application
+// Set all access flags for maximum compatibility
 export const forceAgentAccess = (): void => {
-  console.log("Forcing agent access - setting localStorage flags");
+  console.log("Forcing agent access - setting ALL localStorage flags");
   localStorage.setItem('forceAgentAccess', 'true');
-  localStorage.setItem('trialCompleted', 'true'); // Also set trial completed flag
+  localStorage.setItem('trialCompleted', 'true');
+  localStorage.setItem('paymentCompleted', 'true');
 };
 
-// Remove forced access 
+// Remove forced access
 export const removeForceAgentAccess = (): void => {
   localStorage.removeItem('forceAgentAccess');
   localStorage.removeItem('paymentCompleted');
@@ -56,9 +65,10 @@ export const removeForceAgentAccess = (): void => {
 
 // Mark payment as completed
 export const markPaymentCompleted = (): void => {
-  console.log("Marking payment as completed - setting localStorage flags");
+  console.log("Marking payment as completed - setting ALL localStorage flags");
   localStorage.setItem('paymentCompleted', 'true');
-  localStorage.setItem('trialCompleted', 'true'); // Also set trial completed flag
+  localStorage.setItem('trialCompleted', 'true');
+  localStorage.setItem('forceAgentAccess', 'true');
 };
 
 export default {

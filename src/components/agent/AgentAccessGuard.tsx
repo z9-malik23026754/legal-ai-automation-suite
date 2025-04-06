@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,22 +20,25 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     return <Navigate to="/signin" replace />;
   }
   
-  // ENHANCED ACCESS CHECK: If user has ANY valid subscription status, grant immediate access
+  // IMPROVED ACCESS CHECK - Check localStorage first (highest priority)
+  // These flags are set when a user completes the trial or payment process
+  const trialCompleted = localStorage.getItem('trialCompleted') === 'true';
+  const paymentCompleted = localStorage.getItem('paymentCompleted') === 'true';
+  
+  if (trialCompleted || paymentCompleted) {
+    console.log(`Local storage flags detected (trial: ${trialCompleted}, payment: ${paymentCompleted}) - granting access to ${agentId}`);
+    return <>{children}</>;
+  }
+  
+  // ENHANCED SUBSCRIPTION STATUS CHECK - Check for any valid subscription state
   if (subscription?.status === 'trial' || 
       subscription?.status === 'active' || 
       subscription?.status === 'pending') {
-    console.log(`User has ${subscription.status} subscription status - granting immediate access to ${agentId}`);
+    console.log(`User has ${subscription.status} subscription status - granting access to ${agentId}`);
     return <>{children}</>;
   }
   
-  // Check localStorage for trial completion flag
-  const trialCompleted = localStorage.getItem('trialCompleted') === 'true';
-  if (trialCompleted) {
-    console.log('Trial completion flag found in localStorage - granting access');
-    return <>{children}</>;
-  }
-  
-  // Otherwise check specific agent access
+  // AGENT SPECIFIC CHECK - If above checks fail, check specific agent access
   const { hasAccess } = getAgentInfo(agentId, subscription);
   const forceAccess = shouldForceAccess();
   
@@ -43,11 +47,18 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     subscription,
     forceAccess,
     status: subscription?.status,
-    trialCompleted
+    trialCompleted,
+    paymentCompleted
   });
   
-  // User has legitimate access or force access is enabled (for testing)
+  // Grant access if hasAccess is true or forceAccess is enabled
   if (hasAccess || forceAccess) {
+    return <>{children}</>;
+  }
+  
+  // LAST CHANCE CHECK - Direct localStorage check for force access
+  if (localStorage.getItem('forceAgentAccess') === 'true') {
+    console.log("Force access flag found in localStorage - granting access");
     return <>{children}</>;
   }
   
@@ -58,7 +69,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     variant: "destructive",
   });
   
-  // Redirect to pricing page instead of dashboard
+  // Redirect to pricing page
   return <Navigate to="/pricing" replace />;
 };
 

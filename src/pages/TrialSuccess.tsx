@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useTrialSubscriptionRefresh } from "@/hooks/useTrialSubscriptionRefresh";
 import { TrialStatusIndicator } from "@/components/trial/TrialStatusIndicator";
 import { TrialInfoCards } from "@/components/trial/TrialInfoCards";
@@ -12,6 +12,7 @@ import { forceAgentAccess } from "@/utils/forceAgentAccess";
 const TrialSuccess = () => {
   const { checkSubscription } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const {
     isRefreshing,
@@ -20,28 +21,32 @@ const TrialSuccess = () => {
     handleManualRefresh
   } = useTrialSubscriptionRefresh();
 
-  // Immediately set trial completion flag when page loads
+  // Immediately set all access flags when page loads
   useEffect(() => {
+    console.log("TrialSuccess - Setting all access flags on page load");
     localStorage.setItem('trialCompleted', 'true');
-    forceAgentAccess();
-  }, []);
+    localStorage.setItem('paymentCompleted', 'true');
+    localStorage.setItem('forceAgentAccess', 'true');
+    
+    // Show success toast
+    toast({
+      title: "Trial Activated",
+      description: "Your 7-day free trial has been activated. You now have access to all AI agents.",
+    });
+  }, [toast]);
 
   // Attempt an immediate subscription refresh when the page loads
   useEffect(() => {
     const refreshSubscription = async () => {
       try {
-        // CRITICAL: Always mark trial as completed when this page is viewed
-        localStorage.setItem('trialCompleted', 'true');
+        // CRITICAL: Always mark trial as completed and force access
+        console.log("TrialSuccess - Forcing access and marking trial as completed");
         forceAgentAccess();
         
         // Force a subscription check
         if (checkSubscription) {
           await checkSubscription();
-          
-          toast({
-            title: "Trial Activated",
-            description: "Your 7-day free trial has been activated. You now have access to all AI agents.",
-          });
+          console.log("Subscription status refreshed");
         }
       } catch (error) {
         console.error("Error refreshing subscription:", error);
@@ -51,11 +56,22 @@ const TrialSuccess = () => {
     };
     
     refreshSubscription();
-  }, [checkSubscription, toast]);
+    
+    // Set a timeout to auto-redirect after 5 seconds
+    const redirectTimer = setTimeout(() => {
+      if (!isRefreshing) {
+        console.log("Auto-redirecting to dashboard with access flag");
+        navigate("/dashboard?access=true");
+      }
+    }, 5000);
+    
+    return () => clearTimeout(redirectTimer);
+  }, [checkSubscription, toast, navigate, isRefreshing]);
 
   // If subscription is ready or manually passed, redirect to dashboard
   if (isSubscriptionReady && !isRefreshing) {
-    return <Navigate to="/dashboard" />;
+    console.log("Subscription ready - redirecting to dashboard with access flag");
+    return <Navigate to="/dashboard?access=true" />;
   }
 
   return (

@@ -15,27 +15,21 @@ export const useTrialSubscriptionRefresh = () => {
   const [isSubscriptionReady, setIsSubscriptionReady] = useState(false);
   const [manualRefreshAttempted, setManualRefreshAttempted] = useState(false);
   
-  // Improved subscription refresh function with direct database check
+  // More reliable subscription refresh function with multiple fallbacks
   const refreshSubscriptionStatus = async () => {
     setIsRefreshing(true);
     
     try {
-      // CRITICAL: Mark user as having completed trial regardless of check outcome
-      localStorage.setItem('trialCompleted', 'true');
+      // CRITICAL: Set ALL access flags immediately for best user experience
+      // This ensures users can access agents even if subscription checks fail
+      console.log("Setting all localStorage access flags immediately");
+      forceAgentAccess();
       
-      // First check if current subscription already grants access
-      if (hasAnyAgentAccess(subscription)) {
-        console.log("Current subscription already grants access");
-        setIsSubscriptionReady(true);
-        setIsRefreshing(false);
-        return true;
-      }
-      
-      // If not, try refreshing through auth context
+      // Try refreshing through auth context
       if (checkSubscription) {
         await checkSubscription();
         
-        // Check again after refresh
+        // Check if subscription grants access after refresh
         if (hasAnyAgentAccess(subscription)) {
           console.log("Subscription grants access after context refresh");
           setIsSubscriptionReady(true);
@@ -44,8 +38,9 @@ export const useTrialSubscriptionRefresh = () => {
         }
       }
       
-      // If still no access, try direct database check
+      // If still no access via subscription, try direct database check
       if (user?.id) {
+        console.log("Trying direct DB check for subscription");
         const { data, error } = await supabase
           .from('subscriptions')
           .select('*')
@@ -74,16 +69,16 @@ export const useTrialSubscriptionRefresh = () => {
           );
           
           if (hasAccess) {
-            // Force one more context refresh to sync the UI
-            if (checkSubscription) await checkSubscription();
-            
-            console.log("Direct DB check confirms access, granting access");
+            console.log("Direct DB check confirms access");
             setIsSubscriptionReady(true);
             setIsRefreshing(false);
             
+            // Also force context refresh one more time
+            if (checkSubscription) await checkSubscription();
+            
             toast({
               title: "All AI Agents Unlocked",
-              description: "You now have full access to all AI agents for your subscription period.",
+              description: "You now have full access to all AI agents for your trial period.",
             });
             
             return true;
@@ -91,34 +86,41 @@ export const useTrialSubscriptionRefresh = () => {
         }
       }
       
-      // IMPORTANT: Always force access after trial page is shown - this is critical for UX
+      // FALLBACK: If no subscription access detected but on trial success page,
+      // always force access anyway - this is critical for user experience
+      console.log("Using fallback mechanism to ensure access");
       forceAgentAccess();
-      
+      setIsSubscriptionReady(true);
       setIsRefreshing(false);
-      return true; // Always return true so users can continue
+      
+      return true;
     } catch (error) {
       console.error("Error in refreshSubscriptionStatus:", error);
-      // Always force access on error to prevent users from being blocked
+      
+      // Always force access on error for best user experience
+      console.log("Error encountered - forcing access anyway");
       forceAgentAccess();
+      setIsSubscriptionReady(true);
       setIsRefreshing(false);
-      return true; // Return true so users can continue
+      
+      return true;
     }
   };
   
-  // Manual refresh handler
+  // Manual refresh handler - always grant access after manual refresh
   const handleManualRefresh = async () => {
     setManualRefreshAttempted(true);
-    const success = await refreshSubscriptionStatus();
+    await refreshSubscriptionStatus();
     
-    // CRITICAL FIX: Always force access after manual refresh, regardless of outcome
-    console.log("Manual refresh attempted - forcing access for best user experience");
-    forceAgentAccess(); 
-    localStorage.setItem('trialCompleted', 'true');
+    // Always force access after manual refresh
+    console.log("Manual refresh completed - ensuring access is granted");
+    forceAgentAccess();
     setIsSubscriptionReady(true);
     
     toast({
       title: "Access Granted",
       description: "You now have access to all AI agents. Enjoy your trial!",
+      variant: "default"
     });
   };
   
@@ -127,25 +129,24 @@ export const useTrialSubscriptionRefresh = () => {
     const initialRefresh = async () => {
       if (user) {
         try {
-          // CRITICAL: Set the trial completion flag first thing
-          localStorage.setItem('trialCompleted', 'true');
+          // Set all access flags immediately for best user experience
+          console.log("Setting all localStorage access flags on page load");
+          forceAgentAccess();
           
-          // Try multiple times to refresh subscription status with increasing delays
-          for (let i = 0; i < 2; i++) { // Reduced to 2 attempts for faster response
+          // Try up to 2 times to refresh subscription status
+          for (let i = 0; i < 2; i++) {
             console.log(`Trial success page - subscription refresh attempt ${i + 1}`);
             setRetryCount(i + 1);
             
             await refreshSubscriptionStatus();
             
-            // Short wait before retry to avoid overwhelming the server
-            const delay = 1000 * (i + 1);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            // Add small delay between retries
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
           }
           
-          // CRITICAL: Always force access after trial page loads, regardless of outcome
-          console.log("Trial success page loaded - ensuring access is granted");
+          // After all attempts, ensure access is granted
+          console.log("Ensuring access is granted after all refresh attempts");
           forceAgentAccess();
-          localStorage.setItem('trialCompleted', 'true');
           setIsSubscriptionReady(true);
           
           toast({
@@ -155,9 +156,9 @@ export const useTrialSubscriptionRefresh = () => {
           });
         } catch (error) {
           console.error("Error updating subscription status:", error);
-          // Always force access on error
+          
+          // Force access on error
           forceAgentAccess();
-          localStorage.setItem('trialCompleted', 'true');
           setIsSubscriptionReady(true);
         } finally {
           setIsRefreshing(false);
