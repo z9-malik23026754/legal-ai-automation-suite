@@ -75,3 +75,6 @@ const AgentCard: React.FC<AgentCardProps> = ({
       </CardFooter>
     </Card>
   );
+};
+
+export default AgentCard;
