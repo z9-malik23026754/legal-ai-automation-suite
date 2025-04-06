@@ -37,6 +37,7 @@ const DangerZone = () => {
     
     try {
       console.log("Attempting to delete account...");
+      
       // Call the delete-account edge function
       const { data, error } = await supabase.functions.invoke('delete-account', {
         method: 'POST',
@@ -51,8 +52,8 @@ const DangerZone = () => {
         throw new Error(`Error invoking delete-account function: ${error.message}`);
       }
       
-      if (!data.success) {
-        throw new Error(data.error || "Failed to delete account");
+      if (!data || !data.success) {
+        throw new Error((data && data.error) || "Failed to delete account");
       }
       
       toast({

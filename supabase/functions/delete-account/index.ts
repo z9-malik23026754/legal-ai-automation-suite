@@ -55,13 +55,19 @@ serve(async (req) => {
     console.log("User ID to delete:", user.id);
     
     // Delete user data from any related tables first (if applicable)
-    // For example, delete from subscriptions or user_agents table if they exist
     try {
       await supabase.from('user_agents').delete().eq('user_id', user.id);
-      await supabase.from('subscriptions').delete().eq('user_id', user.id);
-      console.log("User data deleted from related tables");
+      console.log("User data deleted from user_agents table");
     } catch (dataError) {
-      console.error("Error deleting user data:", dataError);
+      console.error("Error deleting user_agents data:", dataError);
+      // Continue with account deletion even if data deletion fails
+    }
+    
+    try {
+      await supabase.from('subscriptions').delete().eq('user_id', user.id);
+      console.log("User data deleted from subscriptions table");
+    } catch (dataError) {
+      console.error("Error deleting subscriptions data:", dataError);
       // Continue with account deletion even if data deletion fails
     }
     
