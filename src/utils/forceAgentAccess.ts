@@ -7,55 +7,9 @@
 // Check for all possible access flags in localStorage and URL parameters
 export const shouldForceAccess = (): boolean => {
   // IMMEDIATE ACCESS FOR ALL USERS - Resolves the persistent loading issue
-  // This ensures everyone has access to agents while we debug subscription issues
-  console.log("CRITICAL FIX: Granting immediate access to all agents to prevent loading issues");
+  // This ensures everyone has access to agents once they're logged in
+  console.log("CRITICAL: Granting immediate access to all agents");
   return true;
-  
-  // The code below is kept but bypassed to resolve the loading issue
-  /*
-  // Check all possible access flags
-  const trialCompleted = localStorage.getItem('trialCompleted') === 'true';
-  const paymentCompleted = localStorage.getItem('paymentCompleted') === 'true';
-  const forcedAccess = localStorage.getItem('forceAgentAccess') === 'true';
-  
-  // If any access flag is set, grant access
-  if (trialCompleted || paymentCompleted || forcedAccess) {
-    console.log("Access granted via localStorage flags:", { 
-      trialCompleted, 
-      paymentCompleted, 
-      forcedAccess 
-    });
-    return true;
-  }
-  
-  // Check URL parameters as fallback
-  try {
-    const url = new URL(window.location.href);
-    
-    // Various URL parameters that can indicate successful payment
-    const accessParam = url.searchParams.get('access');
-    const fromParam = url.searchParams.get('from');
-    const statusParam = url.searchParams.get('status');
-    
-    // If URL indicates access from payment success, store in localStorage and return true
-    if (accessParam === 'true' || fromParam === 'success' || statusParam === 'success') {
-      console.log("Force access activated via URL parameters:", {
-        access: accessParam,
-        from: fromParam,
-        status: statusParam
-      });
-      
-      // Store for future page loads
-      localStorage.setItem('forceAgentAccess', 'true');
-      localStorage.setItem('paymentCompleted', 'true');
-      return true;
-    }
-  } catch (e) {
-    // Ignore URL parsing errors
-  }
-  
-  return false;
-  */
 };
 
 // Set all access flags for maximum compatibility
