@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './providers/AuthProvider';
 import { DeveloperProvider } from './contexts/DeveloperContext';
 import { DialogProvider } from './hooks/useDialog';
 import Index from './pages/Index';
