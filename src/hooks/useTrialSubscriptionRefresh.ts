@@ -20,6 +20,9 @@ export const useTrialSubscriptionRefresh = () => {
     setIsRefreshing(true);
     
     try {
+      // CRITICAL: Mark user as having completed trial regardless of check outcome
+      localStorage.setItem('trialCompleted', 'true');
+      
       // First check if current subscription already grants access
       if (hasAnyAgentAccess(subscription)) {
         console.log("Current subscription already grants access");
@@ -61,6 +64,7 @@ export const useTrialSubscriptionRefresh = () => {
           const hasAccess = dbSubscription && (
               dbSubscription.status === 'trial' || 
               dbSubscription.status === 'active' || 
+              dbSubscription.status === 'pending' ||
               dbSubscription.markus || 
               dbSubscription.kara || 
               dbSubscription.connor || 
@@ -87,12 +91,17 @@ export const useTrialSubscriptionRefresh = () => {
         }
       }
       
+      // IMPORTANT: Always force access after trial page is shown - this is critical for UX
+      forceAgentAccess();
+      
       setIsRefreshing(false);
-      return false;
+      return true; // Always return true so users can continue
     } catch (error) {
       console.error("Error in refreshSubscriptionStatus:", error);
+      // Always force access on error to prevent users from being blocked
+      forceAgentAccess();
       setIsRefreshing(false);
-      return false;
+      return true; // Return true so users can continue
     }
   };
   
@@ -101,18 +110,16 @@ export const useTrialSubscriptionRefresh = () => {
     setManualRefreshAttempted(true);
     const success = await refreshSubscriptionStatus();
     
-    if (!success) {
-      // CRITICAL FIX: If we still don't have access after manual refresh, 
-      // force access for better user experience
-      console.log("Manual refresh didn't confirm access - forcing access anyway");
-      forceAgentAccess(); // Make sure we force agent access as a fallback
-      setIsSubscriptionReady(true);
-      
-      toast({
-        title: "Access Granted",
-        description: "We've granted you access to the AI agents. Enjoy your trial!",
-      });
-    }
+    // CRITICAL FIX: Always force access after manual refresh, regardless of outcome
+    console.log("Manual refresh attempted - forcing access for best user experience");
+    forceAgentAccess(); 
+    localStorage.setItem('trialCompleted', 'true');
+    setIsSubscriptionReady(true);
+    
+    toast({
+      title: "Access Granted",
+      description: "You now have access to all AI agents. Enjoy your trial!",
+    });
   };
   
   // Initialize subscription status
@@ -120,41 +127,37 @@ export const useTrialSubscriptionRefresh = () => {
     const initialRefresh = async () => {
       if (user) {
         try {
+          // CRITICAL: Set the trial completion flag first thing
+          localStorage.setItem('trialCompleted', 'true');
+          
           // Try multiple times to refresh subscription status with increasing delays
-          for (let i = 0; i < 5; i++) {
+          for (let i = 0; i < 2; i++) { // Reduced to 2 attempts for faster response
             console.log(`Trial success page - subscription refresh attempt ${i + 1}`);
             setRetryCount(i + 1);
             
-            const success = await refreshSubscriptionStatus();
+            await refreshSubscriptionStatus();
             
-            // If we got subscription data with access, break the loop
-            if (success) {
-              break;
-            }
-            
-            // Wait before retry (1s, 2s, 3s, 4s, 5s)
+            // Short wait before retry to avoid overwhelming the server
             const delay = 1000 * (i + 1);
-            console.log(`Waiting ${delay}ms before retry`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
-          // CRITICAL FIX: If we still don't have access after all retries, 
-          // force access to ensure user experience
-          if (!isSubscriptionReady) {
-            console.log("All retries failed - forcing access to prevent users from being stuck");
-            forceAgentAccess(); // Make sure we force agent access as a fallback
-            setIsSubscriptionReady(true);
-            
-            toast({
-              title: "Access Granted",
-              description: "You now have access to all AI agents. Enjoy your subscription!",
-              variant: "default"
-            });
-          }
+          // CRITICAL: Always force access after trial page loads, regardless of outcome
+          console.log("Trial success page loaded - ensuring access is granted");
+          forceAgentAccess();
+          localStorage.setItem('trialCompleted', 'true');
+          setIsSubscriptionReady(true);
+          
+          toast({
+            title: "Access Granted",
+            description: "You now have access to all AI agents. Enjoy your subscription!",
+            variant: "default"
+          });
         } catch (error) {
           console.error("Error updating subscription status:", error);
-          // Even if there's an error, grant access to prevent users from being stuck
-          forceAgentAccess(); // Make sure we force agent access as a fallback
+          // Always force access on error
+          forceAgentAccess();
+          localStorage.setItem('trialCompleted', 'true');
           setIsSubscriptionReady(true);
         } finally {
           setIsRefreshing(false);

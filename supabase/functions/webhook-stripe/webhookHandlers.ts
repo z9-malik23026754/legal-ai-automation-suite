@@ -1,3 +1,4 @@
+
 import { ServiceClients } from "./stripeClient.ts";
 import { updateSubscriptionRecord, updateSubscriptionStatus } from "./subscriptionService.ts";
 
@@ -30,7 +31,7 @@ export const handleCheckoutSessionCompleted = async (
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   console.log("Retrieved subscription:", subscriptionId, "status:", subscription.status);
   
-  // CRITICAL: Always enable all agents when payment succeeds, regardless of trial status
+  // CRITICAL FIX: Always enable all agents when payment succeeds, regardless of trial status
   // Update subscription status in database
   const updateData = {
     stripe_subscription_id: subscriptionId,

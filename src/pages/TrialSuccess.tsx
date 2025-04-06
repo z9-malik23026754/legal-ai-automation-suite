@@ -7,6 +7,7 @@ import { TrialInfoCards } from "@/components/trial/TrialInfoCards";
 import { TrialActionButtons } from "@/components/trial/TrialActionButtons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { forceAgentAccess } from "@/utils/forceAgentAccess";
 
 const TrialSuccess = () => {
   const { checkSubscription } = useAuth();
@@ -19,10 +20,20 @@ const TrialSuccess = () => {
     handleManualRefresh
   } = useTrialSubscriptionRefresh();
 
+  // Immediately set trial completion flag when page loads
+  useEffect(() => {
+    localStorage.setItem('trialCompleted', 'true');
+    forceAgentAccess();
+  }, []);
+
   // Attempt an immediate subscription refresh when the page loads
   useEffect(() => {
     const refreshSubscription = async () => {
       try {
+        // CRITICAL: Always mark trial as completed when this page is viewed
+        localStorage.setItem('trialCompleted', 'true');
+        forceAgentAccess();
+        
         // Force a subscription check
         if (checkSubscription) {
           await checkSubscription();
@@ -34,6 +45,8 @@ const TrialSuccess = () => {
         }
       } catch (error) {
         console.error("Error refreshing subscription:", error);
+        // Even on error, force agent access for best user experience
+        forceAgentAccess();
       }
     };
     

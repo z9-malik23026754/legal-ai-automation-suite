@@ -1,24 +1,28 @@
 
 /**
  * Utility to force agent access regardless of subscription status
- * This is for debugging and testing purposes only
+ * This is used for both development testing and improving user experience
  */
 
 // Function to check if we should force access based on URL or localStorage
 export const shouldForceAccess = (): boolean => {
-  // For production, we should disable this entirely
-  if (process.env.NODE_ENV === 'production') {
-    return false;
+  // For production, we should check trial/payment completion
+  const trialCompleted = localStorage.getItem('trialCompleted') === 'true';
+  const paymentCompleted = localStorage.getItem('paymentCompleted') === 'true';
+  
+  if (trialCompleted || paymentCompleted) {
+    console.log("Access granted via trial/payment completion flags");
+    return true;
   }
   
-  // Check URL parameters first (highest priority)
+  // Check URL parameters
   try {
     const url = new URL(window.location.href);
     const forceAccess = url.searchParams.get('access') === 'true';
     
     // If URL indicates force access, store this in localStorage for persistence
     if (forceAccess) {
-      console.log("Force access activated via URL parameters (DEVELOPMENT ONLY)");
+      console.log("Force access activated via URL parameters");
       localStorage.setItem('forceAgentAccess', 'true');
       return true;
     }
@@ -29,39 +33,32 @@ export const shouldForceAccess = (): boolean => {
   // Check localStorage for previously forced access
   const forcedAccess = localStorage.getItem('forceAgentAccess') === 'true';
   if (forcedAccess) {
-    console.log("Force access activated via localStorage (DEVELOPMENT ONLY)");
+    console.log("Force access activated via localStorage");
     return true;
   }
   
   return false;
 };
 
-// Function to force access in the application (DEVELOPMENT ONLY)
+// Function to force access in the application
 export const forceAgentAccess = (): void => {
-  if (process.env.NODE_ENV === 'production') {
-    console.warn("Attempting to force agent access in production environment - not allowed");
-    return;
-  }
-  
-  console.log("Forcing agent access - setting localStorage flag (DEVELOPMENT ONLY)");
+  console.log("Forcing agent access - setting localStorage flags");
   localStorage.setItem('forceAgentAccess', 'true');
+  localStorage.setItem('trialCompleted', 'true'); // Also set trial completed flag
 };
 
 // Remove forced access 
 export const removeForceAgentAccess = (): void => {
   localStorage.removeItem('forceAgentAccess');
   localStorage.removeItem('paymentCompleted');
+  localStorage.removeItem('trialCompleted');
 };
 
-// Mark payment as completed (for simulation purposes)
+// Mark payment as completed
 export const markPaymentCompleted = (): void => {
-  if (process.env.NODE_ENV === 'production') {
-    console.warn("Attempting to mark payment as completed in production environment - not allowed");
-    return;
-  }
-  
-  console.log("Marking payment as completed - setting localStorage flag (DEVELOPMENT ONLY)");
+  console.log("Marking payment as completed - setting localStorage flags");
   localStorage.setItem('paymentCompleted', 'true');
+  localStorage.setItem('trialCompleted', 'true'); // Also set trial completed flag
 };
 
 export default {

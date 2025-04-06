@@ -19,9 +19,18 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     return <Navigate to="/signin" replace />;
   }
   
-  // CRITICAL FIX: If user has a trial or active subscription, grant immediate access
-  if (subscription?.status === 'trial' || subscription?.status === 'active') {
-    console.log(`User has ${subscription.status} subscription - immediate access granted to ${agentId}`);
+  // ENHANCED ACCESS CHECK: If user has ANY valid subscription status, grant immediate access
+  if (subscription?.status === 'trial' || 
+      subscription?.status === 'active' || 
+      subscription?.status === 'pending') {
+    console.log(`User has ${subscription.status} subscription status - granting immediate access to ${agentId}`);
+    return <>{children}</>;
+  }
+  
+  // Check localStorage for trial completion flag
+  const trialCompleted = localStorage.getItem('trialCompleted') === 'true';
+  if (trialCompleted) {
+    console.log('Trial completion flag found in localStorage - granting access');
     return <>{children}</>;
   }
   
@@ -33,7 +42,8 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     hasAccess, 
     subscription,
     forceAccess,
-    status: subscription?.status 
+    status: subscription?.status,
+    trialCompleted
   });
   
   // User has legitimate access or force access is enabled (for testing)

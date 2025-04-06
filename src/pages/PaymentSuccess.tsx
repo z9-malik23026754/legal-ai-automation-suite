@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
@@ -19,7 +20,8 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Show success toast and redirect after a brief delay
     const showSuccessAndRedirect = async () => {
-      // CRITICAL: Mark payment as completed and force access in localStorage immediately
+      // CRITICAL: Set multiple flags to ensure access is granted
+      localStorage.setItem('trialCompleted', 'true');
       markPaymentCompleted();
       forceAgentAccess();
       
@@ -32,6 +34,7 @@ const PaymentSuccess = () => {
           console.error("Error refreshing subscription:", e);
           // Force access again as backup if refresh fails
           forceAgentAccess();
+          localStorage.setItem('trialCompleted', 'true');
         }
       }
       
