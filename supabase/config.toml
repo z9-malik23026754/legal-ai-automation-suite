@@ -1,14 +1,5 @@
 
 project_id = "qjjcfxskjdrjsiydzojs"
 
-[functions.webhook-stripe]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.create-free-trial]
-verify_jwt = false
-
-[functions.trial-watcher]
-verify_jwt = false
+[functions.check-subscription]
+verify_jwt = true
