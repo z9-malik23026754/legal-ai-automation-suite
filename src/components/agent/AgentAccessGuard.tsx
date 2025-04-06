@@ -24,6 +24,12 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   const { hasAccess } = getAgentInfo(agentId, subscription);
   const forceAccess = shouldForceAccess();
   
+  console.log(`AgentAccessGuard: Checking access for ${agentId}`, { 
+    hasAccess, 
+    subscription,
+    forceAccess
+  });
+  
   // User has legitimate access or force access is enabled (for testing)
   if (hasAccess || forceAccess) {
     return <>{children}</>;

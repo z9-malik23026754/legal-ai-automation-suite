@@ -231,6 +231,29 @@ serve(async (req) => {
       stripe
     );
     
+    // Pre-create a subscription record to ensure the user gets instant access
+    const { error: subCreationError } = await supabase
+      .from("subscriptions")
+      .upsert({
+        user_id: userId,
+        stripe_customer_id: customerId,
+        status: 'pending',
+        markus: false,
+        kara: false,
+        connor: false,
+        chloe: false,
+        luther: false,
+        all_in_one: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      
+    if (subCreationError) {
+      console.error("Error creating pending subscription:", subCreationError);
+    } else {
+      console.log("Created pending subscription record for user:", userId);
+    }
+    
     return new Response(JSON.stringify({ 
       success: true,
       url: session.url 

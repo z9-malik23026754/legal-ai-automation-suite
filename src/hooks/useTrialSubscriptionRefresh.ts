@@ -57,7 +57,7 @@ export const useTrialSubscriptionRefresh = () => {
           const dbSubscription = toDbSubscription(data);
           
           // Check if this direct data would grant access
-          if (dbSubscription && (
+          const hasAccess = dbSubscription && (
               dbSubscription.status === 'trial' || 
               dbSubscription.status === 'active' || 
               dbSubscription.markus || 
@@ -65,8 +65,10 @@ export const useTrialSubscriptionRefresh = () => {
               dbSubscription.connor || 
               dbSubscription.chloe || 
               dbSubscription.luther || 
-              dbSubscription.all_in_one)) {
-            
+              dbSubscription.all_in_one
+          );
+          
+          if (hasAccess) {
             // Force one more context refresh to sync the UI
             if (checkSubscription) await checkSubscription();
             
@@ -116,7 +118,7 @@ export const useTrialSubscriptionRefresh = () => {
       if (user) {
         try {
           // Try multiple times to refresh subscription status with increasing delays
-          for (let i = 0; i < 3; i++) {
+          for (let i = 0; i < 5; i++) {
             console.log(`Trial success page - subscription refresh attempt ${i + 1}`);
             setRetryCount(i + 1);
             
@@ -127,7 +129,7 @@ export const useTrialSubscriptionRefresh = () => {
               break;
             }
             
-            // Wait before retry (1s, 2s, 3s)
+            // Wait before retry (1s, 2s, 3s, 4s, 5s)
             const delay = 1000 * (i + 1);
             console.log(`Waiting ${delay}ms before retry`);
             await new Promise(resolve => setTimeout(resolve, delay));

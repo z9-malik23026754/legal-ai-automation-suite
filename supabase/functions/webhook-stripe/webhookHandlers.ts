@@ -41,12 +41,13 @@ export const handleCheckoutSessionCompleted = async (
     chloe: true, 
     luther: true, 
     all_in_one: true,
-    status: 'active', // Force status to active
+    status: isTrial ? 'trial' : 'active', // Make sure to set proper status based on trial flag
     updated_at: new Date().toISOString()
   };
   
   // If it's a trial, add trial dates
   if (isTrial || subscription.status === 'trialing') {
+    updateData.status = 'trial';
     updateData.trial_start = subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null;
     updateData.trial_end = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
   }
@@ -100,9 +101,9 @@ export const handleSubscriptionUpdate = async (
         return;
       }
       
-      // Update the found subscription - always enable all agents 
+      // Update the found subscription - always enable all agents during trial
       const updateData = {
-        status: subscription.status === 'active' ? 'active' : subscription.status,
+        status: subscription.status === 'trialing' ? 'trial' : subscription.status,
         markus: true,
         kara: true,
         connor: true,
@@ -111,6 +112,12 @@ export const handleSubscriptionUpdate = async (
         all_in_one: true,
         updated_at: new Date().toISOString()
       };
+      
+      // If it's a trial, add trial dates
+      if (subscription.status === 'trialing') {
+        updateData.trial_start = subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null;
+        updateData.trial_end = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+      }
       
       const { error: updateError } = await supabase
         .from("subscriptions")
@@ -125,9 +132,9 @@ export const handleSubscriptionUpdate = async (
     return;
   }
   
-  // Update the subscription status - always keep all agents enabled
+  // Update the subscription status - always keep all agents enabled during trial
   const updateData = {
-    status: subscription.status === 'active' ? 'active' : subscription.status,
+    status: subscription.status === 'trialing' ? 'trial' : subscription.status,
     markus: true,
     kara: true,
     connor: true,
@@ -136,6 +143,12 @@ export const handleSubscriptionUpdate = async (
     all_in_one: true,
     updated_at: new Date().toISOString()
   };
+  
+  // If it's a trial, add trial dates
+  if (subscription.status === 'trialing') {
+    updateData.trial_start = subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null;
+    updateData.trial_end = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+  }
   
   const { error: updateError } = await supabase
     .from("subscriptions")
