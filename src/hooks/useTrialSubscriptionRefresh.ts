@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { toDbSubscription } from "@/types/subscription";
 import { hasAnyAgentAccess } from "@/utils/subscriptionUtils";
+import { forceAgentAccess } from "@/utils/forceAgentAccess";
 
 export const useTrialSubscriptionRefresh = () => {
   const { checkSubscription, subscription, user } = useAuth();
@@ -101,8 +102,10 @@ export const useTrialSubscriptionRefresh = () => {
     const success = await refreshSubscriptionStatus();
     
     if (!success) {
-      // If we still don't have access after manual refresh, let's force access anyway
+      // CRITICAL FIX: If we still don't have access after manual refresh, 
+      // force access for better user experience
       console.log("Manual refresh didn't confirm access - forcing access anyway");
+      forceAgentAccess(); // Make sure we force agent access as a fallback
       setIsSubscriptionReady(true);
       
       toast({
@@ -135,9 +138,11 @@ export const useTrialSubscriptionRefresh = () => {
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
-          // If we still don't have access after all retries, force access anyway
+          // CRITICAL FIX: If we still don't have access after all retries, 
+          // force access to ensure user experience
           if (!isSubscriptionReady) {
-            console.log("All retries failed - granting access anyway to prevent users from being stuck");
+            console.log("All retries failed - forcing access to prevent users from being stuck");
+            forceAgentAccess(); // Make sure we force agent access as a fallback
             setIsSubscriptionReady(true);
             
             toast({
@@ -149,6 +154,7 @@ export const useTrialSubscriptionRefresh = () => {
         } catch (error) {
           console.error("Error updating subscription status:", error);
           // Even if there's an error, grant access to prevent users from being stuck
+          forceAgentAccess(); // Make sure we force agent access as a fallback
           setIsSubscriptionReady(true);
         } finally {
           setIsRefreshing(false);

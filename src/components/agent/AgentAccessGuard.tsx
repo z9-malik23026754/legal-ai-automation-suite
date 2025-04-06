@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,14 +19,21 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     return <Navigate to="/signin" replace />;
   }
   
-  // Check if user has access to this specific agent
+  // CRITICAL FIX: If user has a trial or active subscription, grant immediate access
+  if (subscription?.status === 'trial' || subscription?.status === 'active') {
+    console.log(`User has ${subscription.status} subscription - immediate access granted to ${agentId}`);
+    return <>{children}</>;
+  }
+  
+  // Otherwise check specific agent access
   const { hasAccess } = getAgentInfo(agentId, subscription);
   const forceAccess = shouldForceAccess();
   
   console.log(`AgentAccessGuard: Checking access for ${agentId}`, { 
     hasAccess, 
     subscription,
-    forceAccess
+    forceAccess,
+    status: subscription?.status 
   });
   
   // User has legitimate access or force access is enabled (for testing)

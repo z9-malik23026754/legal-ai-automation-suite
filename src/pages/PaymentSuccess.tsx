@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
@@ -20,18 +19,19 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Show success toast and redirect after a brief delay
     const showSuccessAndRedirect = async () => {
-      // Mark payment as completed in localStorage for persistence
+      // CRITICAL: Mark payment as completed and force access in localStorage immediately
       markPaymentCompleted();
-      
-      // Force access to all agents
       forceAgentAccess();
       
       // Try to refresh subscription status
       if (checkSubscription) {
         try {
           await checkSubscription();
+          console.log("Subscription status refreshed after payment");
         } catch (e) {
           console.error("Error refreshing subscription:", e);
+          // Force access again as backup if refresh fails
+          forceAgentAccess();
         }
       }
       
