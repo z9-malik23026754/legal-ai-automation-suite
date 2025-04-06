@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
+import { Session, AuthError } from "@supabase/supabase-js";
+import { useToast } from "@/components/ui/use-toast";
 
 // Define Subscription type with trial properties
 export type Subscription = {
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const { toast } = useToast();
   
   // Check subscription status
   const checkSubscription = async () => {
@@ -123,8 +125,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Sign in method
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
+      
+      if (error) {
+        console.error("Sign in error details:", error.message, error.status);
+        throw error;
+      }
+      
+      if (!data.user || !data.session) {
+        throw new Error("Sign in successful but no user or session data returned");
+      }
+      
+      console.log("Sign in successful, user:", data.user.id);
+      return data;
     } catch (error: any) {
       console.error("Error signing in:", error.message);
       throw error;

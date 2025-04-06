@@ -9,11 +9,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import { KeyRound, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { AuthError } from "@supabase/supabase-js";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { signIn, isLoading, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,6 +29,8 @@ const SignIn = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
+    
     if (!email || !password) {
       toast({
         title: "Missing information",
@@ -40,9 +44,27 @@ const SignIn = () => {
     
     try {
       await signIn(email, password);
+      // If we get here, sign in was successful
+      // We don't need to navigate as the useEffect will handle that
     } catch (error) {
       console.error("Login error:", error);
-      // Error is already handled in the signIn function
+      let message = "Failed to sign in. Please try again.";
+      
+      // Handle specific error types
+      if (error instanceof AuthError) {
+        if (error.message.includes("Invalid login credentials")) {
+          message = "The email or password you entered is incorrect";
+        } else if (error.message.includes("rate limit")) {
+          message = "Too many login attempts. Please try again later";
+        }
+      }
+      
+      setErrorMessage(message);
+      toast({
+        title: "Sign in failed",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -66,6 +88,12 @@ const SignIn = () => {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4 pt-2">
+              {errorMessage && (
+                <div className="p-3 text-sm bg-destructive/10 border border-destructive/20 text-destructive rounded-md">
+                  {errorMessage}
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="email" className="font-medium">Email</Label>
                 <div className="relative">
