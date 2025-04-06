@@ -1,20 +1,24 @@
 
 /**
  * Utility to force agent access regardless of subscription status
- * This is a robust solution to ensure users always get access after payment
+ * This is for debugging and testing purposes only
  */
 
-// Function to check if we should force access based on URL, localStorage, or session state
+// Function to check if we should force access based on URL or localStorage
 export const shouldForceAccess = (): boolean => {
+  // For production, we should disable this entirely
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+  
   // Check URL parameters first (highest priority)
   try {
     const url = new URL(window.location.href);
-    const fromSuccess = url.searchParams.get('from') === 'success';
     const forceAccess = url.searchParams.get('access') === 'true';
     
-    // If URL indicates success, store this in localStorage for persistence
-    if (fromSuccess || forceAccess) {
-      console.log("Force access activated via URL parameters");
+    // If URL indicates force access, store this in localStorage for persistence
+    if (forceAccess) {
+      console.log("Force access activated via URL parameters (DEVELOPMENT ONLY)");
       localStorage.setItem('forceAgentAccess', 'true');
       return true;
     }
@@ -25,47 +29,32 @@ export const shouldForceAccess = (): boolean => {
   // Check localStorage for previously forced access
   const forcedAccess = localStorage.getItem('forceAgentAccess') === 'true';
   if (forcedAccess) {
-    console.log("Force access activated via localStorage");
+    console.log("Force access activated via localStorage (DEVELOPMENT ONLY)");
     return true;
-  }
-
-  // If we're coming from stripe checkout, force access
-  try {
-    const referrer = document.referrer;
-    if (referrer && referrer.includes('checkout.stripe.com')) {
-      console.log("Force access activated via Stripe referrer");
-      localStorage.setItem('forceAgentAccess', 'true');
-      return true;
-    }
-  } catch (e) {
-    // Ignore referrer errors
   }
   
   return false;
 };
 
-// Function to force access in the application
+// Function to force access in the application (DEVELOPMENT ONLY)
 export const forceAgentAccess = (): void => {
-  console.log("Forcing agent access - setting localStorage flag");
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("Attempting to force agent access in production environment - not allowed");
+    return;
+  }
+  
+  console.log("Forcing agent access - setting localStorage flag (DEVELOPMENT ONLY)");
   localStorage.setItem('forceAgentAccess', 'true');
 };
 
-// Function to determine if the payment was successful based on page history
-export const hasCompletedPayment = (): boolean => {
-  // If we've been to payment success page or trial success, consider payment complete
-  return localStorage.getItem('paymentCompleted') === 'true' || 
-         localStorage.getItem('forceAgentAccess') === 'true';
-};
-
-// Mark payment as completed
-export const markPaymentCompleted = (): void => {
-  localStorage.setItem('paymentCompleted', 'true');
-  forceAgentAccess(); // Also force access when payment is completed
+// Remove forced access 
+export const removeForceAgentAccess = (): void => {
+  localStorage.removeItem('forceAgentAccess');
+  localStorage.removeItem('paymentCompleted');
 };
 
 export default {
   shouldForceAccess,
   forceAgentAccess,
-  hasCompletedPayment,
-  markPaymentCompleted
+  removeForceAgentAccess
 };

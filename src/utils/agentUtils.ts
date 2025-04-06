@@ -18,15 +18,7 @@ export const getAgentInfo = (
   let agentName = "";
   let agentColor = "";
   
-  // If we're in the middle of a page transition, default to allowing access
-  // This prevents flickering during page loads
-  if (!dbSubscription && subscription) {
-    console.log("No proper subscription data yet, but subscription exists - temporarily granting access");
-    hasAccess = true;
-  }
-  
-  // CRITICAL: If user has trial or active subscription, they MUST have access to all agents
-  // This is the highest priority rule and overrides everything else
+  // Check subscription status - ONLY grant access if they have an active subscription or trial
   if (dbSubscription?.status === 'trial' || dbSubscription?.status === 'active') {
     console.log(`User has ${dbSubscription.status} subscription - granting access to all agents`);
     hasAccess = true;
@@ -75,22 +67,6 @@ export const getAgentInfo = (
   }
   
   console.log(`Access decision for ${agentId}: ${hasAccess}`);
-  
-  // Fallback measure - check for URL parameters that might indicate special access
-  if (!hasAccess) {
-    try {
-      const url = new URL(window.location.href);
-      const fromSuccess = url.searchParams.get('from') === 'success';
-      const forceAccess = url.searchParams.get('access') === 'true';
-      
-      if (fromSuccess || forceAccess) {
-        console.log("Granting access based on URL parameters");
-        hasAccess = true;
-      }
-    } catch (e) {
-      // Ignore URL parsing errors
-    }
-  }
   
   return { hasAccess, agentName, agentColor };
 };

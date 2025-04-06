@@ -6,7 +6,6 @@ import DashboardLoader from "@/components/dashboard/DashboardLoader";
 import AuthGuard from "@/components/dashboard/AuthGuard";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useDashboardState } from "@/hooks/useDashboardState";
-import { shouldForceAccess, forceAgentAccess } from "@/utils/forceAgentAccess";
 import { useToast } from "@/components/ui/use-toast";
 
 const Dashboard = () => {
@@ -15,35 +14,29 @@ const Dashboard = () => {
   const {
     isRefreshing,
     refreshAttempts,
+    isInTrialMode,
+    hasActiveSubscription,
+    hasMarkusAccess,
+    hasKaraAccess,
+    hasConnorAccess,
+    hasChloeAccess,
+    hasLutherAccess,
+    hasAnySubscription
   } = useDashboardState();
 
   const [isInitializing, setIsInitializing] = useState(true);
   
-  // Check for force access on component mount
-  useEffect(() => {
-    // Check URL parameters and localStorage for force access flag
-    if (shouldForceAccess()) {
-      console.log("Force access detected in Dashboard");
-      forceAgentAccess();
-    }
-  }, []);
-
-  // Enhanced initialization logic to prevent users from getting stuck
+  // Initialize subscription status
   useEffect(() => {
     const initializeSubscription = async () => {
       if (user) {
         try {
-          // First check through auth context
+          // Check subscription status
           if (checkSubscription) {
             await checkSubscription();
           }
-          
-          // Force access anyway to guarantee agents are accessible
-          forceAgentAccess();
         } catch (error) {
           console.error("Error initializing subscription:", error);
-          // Even if there's an error in checking, force access anyway
-          forceAgentAccess();
         }
       }
       
@@ -65,25 +58,25 @@ const Dashboard = () => {
     <AuthGuard user={user}>
       <DashboardLayout
         user={user}
-        isInTrialMode={false}  // Bypass trial mode display
-        hasActiveSubscription={true}  // Force subscription to be active
-        hasMarkusAccess={true}  // Force all agent access
-        hasKaraAccess={true}
-        hasConnorAccess={true}
-        hasChloeAccess={true}
-        hasLutherAccess={true}
+        isInTrialMode={isInTrialMode}
+        hasActiveSubscription={hasActiveSubscription}
+        hasMarkusAccess={hasMarkusAccess}
+        hasKaraAccess={hasKaraAccess}
+        hasConnorAccess={hasConnorAccess}
+        hasChloeAccess={hasChloeAccess}
+        hasLutherAccess={hasLutherAccess}
       >
         <DashboardView 
           userName={user?.email?.split('@')[0] || 'User'}
           subscription={null}
-          isInTrialMode={false}  // Override trial mode
-          hasActiveSubscription={true}  // Force subscription to be active
-          hasMarkusAccess={true}  // Force all agent access
-          hasKaraAccess={true}
-          hasConnorAccess={true}
-          hasChloeAccess={true}
-          hasLutherAccess={true}
-          hasAnySubscription={true}  // Force user to have subscription
+          isInTrialMode={isInTrialMode}
+          hasActiveSubscription={hasActiveSubscription}
+          hasMarkusAccess={hasMarkusAccess}
+          hasKaraAccess={hasKaraAccess}
+          hasConnorAccess={hasConnorAccess}
+          hasChloeAccess={hasChloeAccess}
+          hasLutherAccess={hasLutherAccess}
+          hasAnySubscription={hasAnySubscription}
           isRefreshing={isRefreshing}
         />
       </DashboardLayout>
