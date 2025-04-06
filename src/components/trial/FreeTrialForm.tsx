@@ -50,7 +50,7 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
       const randomPassword = Math.random().toString(36).slice(-12);
       
       // Sign up the user first with metadata
-      const { error } = await signUp(data.email, randomPassword, {
+      const result = await signUp(data.email, randomPassword, {
         data: {
           first_name: data.firstName,
           last_name: data.lastName,
@@ -59,8 +59,8 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
         }
       });
       
-      if (error) {
-        throw error;
+      if (result.error) {
+        throw result.error;
       }
       
       toast({

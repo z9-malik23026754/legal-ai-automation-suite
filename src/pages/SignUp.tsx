@@ -44,27 +44,54 @@ const SignUp = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validatePasswords()) {
+      return;
+    }
+
+    if (!agreeToTerms) {
+      toast({
+        title: "Terms agreement required",
+        description: "Please agree to the terms of service to create an account",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      if (!validatePasswords()) {
-        setIsSubmitting(false);
-        return;
+      const result = await signUp(email, password);
+      
+      if (result?.error) {
+        throw result.error;
       }
-
-      if (!agreeToTerms) {
+      
+      // Success message
+      toast({
+        title: "Account created successfully",
+        description: "You can now sign in with your credentials",
+      });
+      
+      // Redirect to signin page after successful signup
+      navigate("/signin");
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      
+      // Handle specific error cases
+      if (error.message?.includes("email already in use")) {
         toast({
-          title: "Terms agreement required",
-          description: "Please agree to the terms of service to create an account",
+          title: "Email already registered",
+          description: "Please sign in with your existing account",
           variant: "destructive",
         });
-        setIsSubmitting(false);
-        return;
+      } else {
+        toast({
+          title: "Error creating account",
+          description: error.message || "Please try again later",
+          variant: "destructive",
+        });
       }
-
-      await signUp(email, password);
-    } catch (error) {
-      console.error("Signup error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -165,7 +192,7 @@ const SignUp = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isSubmitting || isLoading || !agreeToTerms}
+                disabled={isSubmitting || isLoading}
               >
                 {isSubmitting || isLoading ? "Creating account..." : "Create account"}
               </Button>
