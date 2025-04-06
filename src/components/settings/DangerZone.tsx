@@ -1,9 +1,10 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,7 @@ const DangerZone = () => {
   const { toast } = useToast();
   const { session, signOut } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const handleDeleteAccount = async () => {
     if (!session?.access_token) {
@@ -49,8 +51,9 @@ const DangerZone = () => {
         description: "Your account has been successfully deleted.",
       });
       
-      // Sign out after successful deletion
+      // Sign out after successful deletion and redirect to home page
       await signOut();
+      navigate("/");
     } catch (error) {
       console.error("Error deleting account:", error);
       toast({
@@ -83,7 +86,7 @@ const DangerZone = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => handleDeleteAccount()}
+              onClick={handleDeleteAccount}
               disabled={isDeleting}
             >
               {isDeleting ? "Deleting..." : "Yes, delete my account"}

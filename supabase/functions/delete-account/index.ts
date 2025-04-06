@@ -26,10 +26,10 @@ serve(async (req) => {
       });
     }
     
-    // Use service role key to delete user
-    const adminAuthClient = createClient(supabaseUrl, supabaseServiceKey).auth;
+    // Create Supabase client with admin privileges
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Get authenticated user
+    // Extract the JWT from the Authorization header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ success: false, error: "No authorization header provided" }), {
@@ -39,7 +39,9 @@ serve(async (req) => {
     }
     
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await adminAuthClient.getUser(token);
+    
+    // Get the user ID from the JWT
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
       console.error("User error:", userError);
@@ -49,8 +51,10 @@ serve(async (req) => {
       });
     }
     
+    console.log("User ID to delete:", user.id);
+    
     // Delete the user
-    const { error: deleteError } = await adminAuthClient.admin.deleteUser(user.id);
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
     
     if (deleteError) {
       console.error("Error deleting user:", deleteError);
