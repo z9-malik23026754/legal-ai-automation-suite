@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowRight, Loader } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ const TrialSuccess = () => {
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [isSubscriptionReady, setIsSubscriptionReady] = useState(false);
   
   useEffect(() => {
     // Update subscription status after successful trial activation
@@ -28,6 +29,7 @@ const TrialSuccess = () => {
             // If we got subscription data with trial status, break the loop
             if (subscription?.status === 'trial') {
               console.log("Trial status confirmed:", subscription);
+              setIsSubscriptionReady(true);
               break;
             }
             
@@ -44,6 +46,7 @@ const TrialSuccess = () => {
               title: "All AI Agents Unlocked",
               description: "You now have full access to all AI agents for the next 7 days.",
             });
+            setIsSubscriptionReady(true);
           } else {
             // If we still don't have trial status after retries, show a warning
             toast({
@@ -81,6 +84,11 @@ const TrialSuccess = () => {
       return () => clearTimeout(timer);
     }
   }, [retryCount, isRefreshing, subscription]);
+
+  // If subscription is ready, redirect to dashboard
+  if (isSubscriptionReady && !isRefreshing) {
+    return <Navigate to="/dashboard" />;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -127,10 +135,12 @@ const TrialSuccess = () => {
             )}
             
             <div className="space-y-3">
-              <Button asChild className="w-full">
-                <Link to="/dashboard">
-                  Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button 
+                disabled={isRefreshing || !isSubscriptionReady} 
+                className="w-full"
+                onClick={() => window.location.href = "/dashboard"}
+              >
+                Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button asChild variant="outline" className="w-full">
                 <Link to="/pricing">

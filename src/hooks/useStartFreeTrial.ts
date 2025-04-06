@@ -71,8 +71,16 @@ export const useStartFreeTrial = () => {
           console.error("Failed to refresh subscription status:", e);
         }
         
-        // Redirect the user to the Stripe checkout page
-        window.location.href = data.url;
+        toast({
+          title: "Starting your free trial",
+          description: "You'll be redirected to complete the process..."
+        });
+        
+        // Short delay before redirect to let user see the toast
+        setTimeout(() => {
+          // Redirect the user to the Stripe checkout page
+          window.location.href = data.url;
+        }, 1000);
       } else {
         console.error("No checkout URL returned:", data);
         throw new Error("No checkout URL returned");

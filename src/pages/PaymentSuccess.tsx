@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { CheckCircle, Loader } from "lucide-react";
@@ -9,11 +10,12 @@ import { useToast } from "@/components/ui/use-toast";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
-  const { checkSubscription } = useAuth();
+  const { checkSubscription, subscription } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSubscriptionReady, setIsSubscriptionReady] = useState(false);
   
   const planId = searchParams.get('plan');
   const sessionId = searchParams.get('session_id');
@@ -33,8 +35,19 @@ const PaymentSuccess = () => {
               description: "Your subscription has been activated.",
             });
             
-            // Update subscription status
-            await checkSubscription();
+            // Update subscription status multiple times to ensure it's active
+            for (let i = 0; i < 3; i++) {
+              await checkSubscription();
+              
+              // If we confirmed the subscription, mark as ready
+              if (subscription && subscription.status === 'active') {
+                console.log("Subscription active, ready to navigate");
+                setIsSubscriptionReady(true);
+                break;
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
           } else {
             setError(data.error || "Payment verification failed");
             toast({
@@ -61,13 +74,19 @@ const PaymentSuccess = () => {
         
         // Update subscription status
         await checkSubscription();
+        setIsSubscriptionReady(true);
       }
       
       setLoading(false);
     };
     
     verifyPayment();
-  }, [sessionId, toast, checkSubscription]);
+  }, [sessionId, toast, checkSubscription, subscription]);
+  
+  // Automatic redirect to dashboard when subscription is ready
+  if (success && isSubscriptionReady && !loading) {
+    return <Navigate to="/dashboard" />;
+  }
   
   // Map planId to human-readable name
   const getPlanName = () => {
@@ -89,8 +108,8 @@ const PaymentSuccess = () => {
             {loading ? (
               <div className="flex flex-col items-center justify-center">
                 <Loader className="h-12 w-12 text-primary animate-spin mb-4" />
-                <h1 className="text-2xl font-bold mb-2">Verifying your payment</h1>
-                <p className="text-muted-foreground">Please wait while we confirm your subscription...</p>
+                <h1 className="text-2xl font-bold mb-2">Activating Your Subscription</h1>
+                <p className="text-muted-foreground">Please wait while we confirm your subscription and prepare your AI agents...</p>
               </div>
             ) : success ? (
               <div className="flex flex-col items-center justify-center">
@@ -102,9 +121,18 @@ const PaymentSuccess = () => {
                   Thank you for subscribing to {getPlanName()}. Your account has been activated.
                 </p>
                 <div className="space-y-4">
-                  <Link to="/dashboard">
-                    <Button className="w-full">Go to Dashboard</Button>
-                  </Link>
+                  <Button 
+                    className="w-full" 
+                    disabled={!isSubscriptionReady}
+                    onClick={() => window.location.href = "/dashboard"}
+                  >
+                    Go to Dashboard
+                  </Button>
+                  {!isSubscriptionReady && (
+                    <p className="text-sm text-muted-foreground">
+                      Preparing your AI agents... This should only take a moment.
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (

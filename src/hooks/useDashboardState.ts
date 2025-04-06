@@ -25,13 +25,13 @@ export const useDashboardState = () => {
   // Force a check of subscription status when the dashboard loads
   useEffect(() => {
     const refreshSubscription = async () => {
-      if (checkSubscription) {
+      if (checkSubscription && user) {
         try {
           setIsRefreshing(true);
           console.log("Starting subscription refresh on dashboard load");
           
           // Try multiple times to refresh subscription status
-          for (let i = 0; i < 3; i++) {
+          for (let i = 0; i < 5; i++) {
             console.log(`Subscription refresh attempt ${i + 1}`);
             await checkSubscription();
             
@@ -50,10 +50,11 @@ export const useDashboardState = () => {
               break;
             }
             
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Wait before next attempt
+            await new Promise(resolve => setTimeout(resolve, 1500));
           }
           
-          // Check if we have access to any agents
+          // Check if we have access to any agents after all retries
           const hasAnyAccess = subscription && (
             subscription.status === 'trial' || 
             subscription.status === 'active' ||
@@ -68,24 +69,21 @@ export const useDashboardState = () => {
           // If we have a trial/subscription but agent access isn't working, show a toast
           if (subscription?.status === 'trial' || subscription?.status === 'active') {
             if (!hasAnyAccess) {
-              // This should not happen - refresh the page if it does
               toast({
                 title: "Agent access issue detected",
-                description: "We're refreshing the page to fix this issue.",
+                description: "We're refreshing your subscription status...",
                 variant: "destructive",
               });
               
-              setTimeout(() => {
-                window.location.reload();
-              }, 3000);
-            } else {
+              // Try one more time with a longer timeout
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              await checkSubscription();
+            } else if (subscription.status === 'trial') {
               // For trials, show a confirmation toast
-              if (subscription.status === 'trial') {
-                toast({
-                  title: "Free Trial Active",
-                  description: "All AI agents are unlocked for your 7-day free trial period.",
-                });
-              }
+              toast({
+                title: "Free Trial Active",
+                description: "All AI agents are unlocked for your 7-day free trial period.",
+              });
             }
           }
         } catch (error) {
@@ -104,7 +102,15 @@ export const useDashboardState = () => {
     };
     
     refreshSubscription();
-  }, [checkSubscription, subscription, toast]);
+  }, [checkSubscription, user, toast]);
+
+  // Additional effect to refresh subscription if subscription state changes
+  useEffect(() => {
+    if (subscription && !isRefreshing) {
+      // If subscription changes externally, update our refreshing state
+      console.log("Subscription state changed externally:", subscription);
+    }
+  }, [subscription, isRefreshing]);
 
   return {
     isRefreshing,

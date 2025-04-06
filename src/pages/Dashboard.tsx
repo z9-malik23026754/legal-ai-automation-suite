@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardView from "@/components/dashboard/DashboardView";
 import DashboardLoader from "@/components/dashboard/DashboardLoader";
@@ -9,7 +9,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useDashboardState } from "@/hooks/useDashboardState";
 
 const Dashboard = () => {
-  const { user, subscription } = useAuth();
+  const { user, subscription, checkSubscription } = useAuth();
   const {
     isRefreshing,
     isInTrialMode,
@@ -22,8 +22,27 @@ const Dashboard = () => {
     hasAnySubscription
   } = useDashboardState();
 
-  // Display loading state while refreshing subscription
-  if (isRefreshing) {
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Ensure subscription is refreshed and agents are loaded before showing dashboard
+  useEffect(() => {
+    const initializeSubscription = async () => {
+      if (user && checkSubscription) {
+        try {
+          await checkSubscription();
+        } catch (error) {
+          console.error("Error initializing subscription:", error);
+        }
+      }
+      // Set a minimum initialization time to ensure loading state is shown
+      setTimeout(() => setIsInitializing(false), 1000);
+    };
+
+    initializeSubscription();
+  }, [user, checkSubscription]);
+
+  // Display loading state while refreshing subscription or initializing
+  if (isRefreshing || isInitializing) {
     return <DashboardLoader />;
   }
 
