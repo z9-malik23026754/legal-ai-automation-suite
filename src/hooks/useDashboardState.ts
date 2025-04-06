@@ -4,11 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscriptionRefresh } from "@/hooks/useSubscriptionRefresh";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
 import { fetchDirectSubscription } from "@/utils/subscriptionUtils";
-import { DatabaseSubscription } from "@/types/subscription";
+import { toDbSubscription } from "@/types/subscription";
 
 export const useDashboardState = () => {
   const { user, subscription, checkSubscription } = useAuth();
   const [directDbCheck, setDirectDbCheck] = useState(false);
+  
+  // Use our type conversion function to ensure compatibility
+  const dbSubscription = toDbSubscription(subscription);
   
   // Handle subscription refreshing
   const { isRefreshing, refreshAttempts } = useSubscriptionRefresh(

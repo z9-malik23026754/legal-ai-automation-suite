@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { DatabaseSubscription } from "@/types/subscription";
+import { DatabaseSubscription, toDbSubscription } from "@/types/subscription";
 
 // Function to directly fetch subscription from database
 export const fetchDirectSubscription = async (userId: string | undefined): Promise<DatabaseSubscription | null> => {
@@ -30,19 +30,22 @@ export const fetchDirectSubscription = async (userId: string | undefined): Promi
 export const hasAnyAgentAccess = (subscription: any): boolean => {
   if (!subscription) return false;
   
+  // Convert to DatabaseSubscription if needed
+  const dbSubscription = toDbSubscription(subscription);
+  
   // Check for trial or active status first
-  if (subscription.status === 'trial' || subscription.status === 'active') {
+  if (dbSubscription?.status === 'trial' || dbSubscription?.status === 'active') {
     return true;
   }
   
   // Then check for individual agent access
   return !!(
-    subscription.markus || 
-    subscription.kara || 
-    subscription.connor || 
-    subscription.chloe || 
-    subscription.luther || 
-    subscription.allInOne ||
-    subscription.all_in_one
+    dbSubscription?.markus || 
+    dbSubscription?.kara || 
+    dbSubscription?.connor || 
+    dbSubscription?.chloe || 
+    dbSubscription?.luther || 
+    dbSubscription?.all_in_one ||
+    dbSubscription?.allInOne
   );
 };
