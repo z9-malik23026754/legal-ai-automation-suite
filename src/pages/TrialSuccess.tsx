@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { hasAnyAgentAccess } from "@/utils/subscriptionUtils";
+import { DatabaseSubscription, toDbSubscription } from "@/types/subscription";
 
 const TrialSuccess = () => {
   const { checkSubscription, subscription, user } = useAuth();
@@ -55,10 +56,19 @@ const TrialSuccess = () => {
         } else if (data) {
           console.log("Direct DB subscription check:", data);
           
+          // Convert to DatabaseSubscription to safely access properties
+          const dbSubscription = toDbSubscription(data);
+          
           // Check if this direct data would grant access
-          if (data.status === 'trial' || data.status === 'active' || 
-              data.markus || data.kara || data.connor || data.chloe || 
-              data.luther || data.all_in_one) {
+          if (dbSubscription && (
+              dbSubscription.status === 'trial' || 
+              dbSubscription.status === 'active' || 
+              dbSubscription.markus || 
+              dbSubscription.kara || 
+              dbSubscription.connor || 
+              dbSubscription.chloe || 
+              dbSubscription.luther || 
+              dbSubscription.all_in_one)) {
             
             // Force one more context refresh to sync the UI
             if (checkSubscription) await checkSubscription();
