@@ -1,6 +1,7 @@
 
 import React from "react";
 import ChatInterface from "@/components/ChatInterface";
+import AgentHeader from "@/components/agent/AgentHeader";
 
 interface AgentContainerProps {
   agentName: string;
@@ -17,6 +18,8 @@ const AgentContainer: React.FC<AgentContainerProps> = ({
 }) => {
   return (
     <>
+      <AgentHeader agentName={agentName} agentColor={agentColor} />
+      
       <div className={`border rounded-xl overflow-hidden shadow-chatfuel transition-all duration-300 chat-container agent-glow-${agentColor} bg-white`}>
         <ChatInterface 
           agentName={agentName}

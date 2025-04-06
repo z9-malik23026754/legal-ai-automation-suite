@@ -53,8 +53,20 @@ export const removeForceAgentAccess = (): void => {
   localStorage.removeItem('paymentCompleted');
 };
 
+// Mark payment as completed (for simulation purposes)
+export const markPaymentCompleted = (): void => {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("Attempting to mark payment as completed in production environment - not allowed");
+    return;
+  }
+  
+  console.log("Marking payment as completed - setting localStorage flag (DEVELOPMENT ONLY)");
+  localStorage.setItem('paymentCompleted', 'true');
+};
+
 export default {
   shouldForceAccess,
   forceAgentAccess,
-  removeForceAgentAccess
+  removeForceAgentAccess,
+  markPaymentCompleted
 };
