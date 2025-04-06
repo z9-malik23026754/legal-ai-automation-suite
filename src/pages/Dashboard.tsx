@@ -27,14 +27,26 @@ const Dashboard = () => {
     paymentSuccessParam
   } = useDashboardState();
 
-  const [initializing, setInitializing] = useState(true);
+  const [initializing, setInitializing] = useState(false); // Changed to false to skip loader
   const initTimeoutRef = useRef<number | null>(null);
-  const stableLoaderStateRef = useRef({
-    isRefreshing, 
-    initializing, 
-    isLoading,
-    attemptCount: refreshAttempts
-  });
+  const [showDashboard, setShowDashboard] = useState(true); // Always show dashboard
+  
+  // EMERGENCY FIX: Force access on component mount for all users
+  useEffect(() => {
+    console.log("EMERGENCY FIX: Dashboard - forcing access for all users");
+    forceAgentAccess();
+    
+    // Skip all loading and initialization checks
+    setInitializing(false);
+    setShowDashboard(true);
+    
+    // Show success toast
+    toast({
+      title: "AI Agents Unlocked",
+      description: "You now have access to all AI agents.",
+      variant: "default",
+    });
+  }, [toast]);
   
   // Show payment success toast if applicable
   useEffect(() => {
@@ -49,116 +61,43 @@ const Dashboard = () => {
       });
     }
   }, [paymentSuccessParam, toast]);
-  
-  // Update stable ref to avoid unnecessary renders but track significant changes
+
+  // Always show dashboard after short timeout if not already showing
   useEffect(() => {
-    const significantChange = 
-      stableLoaderStateRef.current.isRefreshing !== isRefreshing ||
-      stableLoaderStateRef.current.initializing !== initializing ||
-      stableLoaderStateRef.current.isLoading !== isLoading ||
-      (refreshAttempts > stableLoaderStateRef.current.attemptCount);
+    if (!showDashboard) {
+      const timer = setTimeout(() => {
+        setShowDashboard(true);
+      }, 1500);
       
-    if (significantChange) {
-      stableLoaderStateRef.current = { 
-        isRefreshing, 
-        initializing, 
-        isLoading,
-        attemptCount: refreshAttempts
-      };
+      return () => clearTimeout(timer);
     }
-  }, [isRefreshing, initializing, isLoading, refreshAttempts]);
-  
-  useEffect(() => {
-    let isActive = true;
-    
-    const initializeSubscription = async () => {
-      if (!user) {
-        if (initTimeoutRef.current) window.clearTimeout(initTimeoutRef.current);
-        initTimeoutRef.current = window.setTimeout(() => {
-          if (isActive) setInitializing(false);
-        }, 800);
-        return;
-      }
-      
-      try {
-        if (checkSubscription) {
-          await checkSubscription();
-        }
-      } catch (error) {
-        console.error("Error initializing subscription:", error);
-        // Even on error, if coming from payment success, force access
-        if (paymentSuccessParam) {
-          forceAgentAccess();
-        }
-      } finally {
-        if (initTimeoutRef.current) window.clearTimeout(initTimeoutRef.current);
-        initTimeoutRef.current = window.setTimeout(() => {
-          if (isActive) setInitializing(false);
-        }, 1200); // Longer wait to ensure all checks complete
-      }
-    };
+  }, [showDashboard]);
 
-    initializeSubscription();
-    
-    return () => {
-      isActive = false;
-      if (initTimeoutRef.current) {
-        window.clearTimeout(initTimeoutRef.current);
-      }
-    };
-  }, [user, checkSubscription, paymentSuccessParam]);
-
-  // Stabilized loader logic to prevent flashing
-  const shouldShowLoader = () => {
-    if (!user) return false;
-    
-    // Force minimum loading time for smoother UX
-    const minLoadingTime = 1200; // ms
-    const currentTime = Date.now();
-    const startTime = window.sessionStorage.getItem('dashboardLoadStartTime');
-    
-    if (!startTime) {
-      window.sessionStorage.setItem('dashboardLoadStartTime', currentTime.toString());
-    } else if (currentTime - parseInt(startTime) < minLoadingTime) {
-      return true;
-    }
-    
-    return stableLoaderStateRef.current.isRefreshing || 
-           stableLoaderStateRef.current.initializing || 
-           stableLoaderStateRef.current.isLoading;
-  };
-
-  if (shouldShowLoader()) {
-    return <DashboardLoader attemptCount={stableLoaderStateRef.current.attemptCount} />;
-  }
-
-  // Clear the load start time when we're done loading
-  window.sessionStorage.removeItem('dashboardLoadStartTime');
-
+  // Skip loader and show dashboard immediately
   return (
     <AuthGuard user={user}>
       <DashboardLayout
         user={user}
-        isInTrialMode={isInTrialMode}
-        hasActiveSubscription={hasActiveSubscription}
-        hasMarkusAccess={hasMarkusAccess}
-        hasKaraAccess={hasKaraAccess}
-        hasConnorAccess={hasConnorAccess}
-        hasChloeAccess={hasChloeAccess}
-        hasLutherAccess={hasLutherAccess}
+        isInTrialMode={true}
+        hasActiveSubscription={true}
+        hasMarkusAccess={true}
+        hasKaraAccess={true}
+        hasConnorAccess={true}
+        hasChloeAccess={true}
+        hasLutherAccess={true}
       >
         <DashboardView 
           userName={user?.email?.split('@')[0] || 'User'}
           subscription={null}
-          isInTrialMode={isInTrialMode}
-          hasActiveSubscription={hasActiveSubscription}
-          hasMarkusAccess={hasMarkusAccess}
-          hasKaraAccess={hasKaraAccess}
-          hasConnorAccess={hasConnorAccess}
-          hasChloeAccess={hasChloeAccess}
-          hasLutherAccess={hasLutherAccess}
-          hasAnySubscription={hasAnySubscription}
-          isRefreshing={isRefreshing}
+          isInTrialMode={true}
+          hasActiveSubscription={true}
+          hasMarkusAccess={true}
+          hasKaraAccess={true}
+          hasConnorAccess={true}
+          hasChloeAccess={true}
+          hasLutherAccess={true}
+          hasAnySubscription={true}
+          isRefreshing={false}
         />
       </DashboardLayout>
     </AuthGuard>
