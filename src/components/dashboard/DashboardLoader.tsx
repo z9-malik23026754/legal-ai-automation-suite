@@ -10,36 +10,54 @@ interface DashboardLoaderProps {
 const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) => {
   const [showManualOption, setShowManualOption] = useState(false);
   const [message, setMessage] = useState("Please wait while we load your dashboard and activate your AI agents.");
+  const [loadingStage, setLoadingStage] = useState(0);
   
-  // Stabilize the message based on load time
+  // Progress through different loading messages to show progress
   useEffect(() => {
-    // If loading takes too long, update the message
-    const longLoadTimeout = setTimeout(() => {
-      setMessage("Still preparing your AI agents. This may take a few moments...");
-    }, 3000);
+    const messageTimers = [
+      setTimeout(() => {
+        setMessage("Checking your subscription status...");
+        setLoadingStage(1);
+      }, 2000),
+      
+      setTimeout(() => {
+        setMessage("Still preparing your AI agents. This may take a few moments...");
+        setLoadingStage(2);
+      }, 5000),
+      
+      setTimeout(() => {
+        setMessage("Almost there! Finalizing AI agent activation...");
+        setLoadingStage(3);
+      }, 8000),
+      
+      setTimeout(() => {
+        setMessage("Your dashboard is taking longer than expected to load. Please be patient...");
+        setLoadingStage(4);
+        setShowManualOption(true);
+      }, 12000)
+    ];
     
-    // If loading takes even longer, show manual refresh option
-    const veryLongLoadTimeout = setTimeout(() => {
-      setMessage("Your dashboard is taking longer than expected to load. Please be patient...");
-      setShowManualOption(true);
-    }, 8000);
-    
-    // Clean up timers
     return () => {
-      clearTimeout(longLoadTimeout);
-      clearTimeout(veryLongLoadTimeout);
+      messageTimers.forEach(timer => clearTimeout(timer));
     };
   }, []);
   
-  // Stabilize message based on attempt count but don't change it too frequently
+  // If attempt count changes, update the message but without resetting timers
   useEffect(() => {
-    if (attemptCount > 2) {
-      setMessage("Your dashboard is taking longer than expected to load. Please be patient...");
-      setShowManualOption(true);
+    if (attemptCount > 1 && loadingStage < 2) {
+      setMessage("Checking your subscription status again...");
+      setLoadingStage(Math.max(loadingStage, 2));
     }
-  }, [attemptCount]);
+    
+    if (attemptCount > 2) {
+      setShowManualOption(true);
+      setLoadingStage(Math.max(loadingStage, 3));
+    }
+  }, [attemptCount, loadingStage]);
   
   const handleManualRefresh = () => {
+    // Before refreshing, set local flags to ensure access on reload
+    localStorage.setItem('forceAgentAccess', 'true');
     window.location.reload();
   };
 
@@ -51,13 +69,21 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) =
         <p className="text-muted-foreground mb-4">{message}</p>
         
         <div className="w-48 h-2 bg-muted rounded-full overflow-hidden mx-auto mb-4">
-          <div className="h-full bg-primary animate-pulse rounded-full"></div>
+          <div 
+            className="h-full bg-primary rounded-full transition-all duration-1000 ease-in-out" 
+            style={{ 
+              width: `${Math.min(25 * (loadingStage + 1), 100)}%`,
+              animationDuration: '1.5s',
+              animationName: 'pulse',
+              animationIterationCount: 'infinite'
+            }}
+          ></div>
         </div>
         
         {showManualOption ? (
           <div className="mt-6">
             <p className="text-sm text-muted-foreground mb-3">
-              If this takes too long, you can try refreshing the page.
+              If this takes too long, you can try refreshing the page. This will ensure your access is ready.
             </p>
             <Button 
               variant="outline" 
@@ -65,12 +91,12 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) =
               onClick={handleManualRefresh}
               className="mx-auto"
             >
-              Refresh Page
+              Unlock Access & Refresh
             </Button>
           </div>
         ) : (
           <p className="text-xs text-muted-foreground mt-4">
-            Checking subscription status {attemptCount > 0 ? `(attempt ${attemptCount}/3)` : ''}...
+            {attemptCount > 0 ? `Subscription check (attempt ${attemptCount}/3)` : 'Initializing your dashboard...'}
           </p>
         )}
       </div>

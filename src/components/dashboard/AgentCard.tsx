@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,13 +21,36 @@ const AgentCard: React.FC<AgentCardProps> = ({
   icon,
   hasAccess,
 }) => {
-  // Check for forced access (only for development or testing)
-  const forceAccess = shouldForceAccess();
-  const userHasAccess = hasAccess || forceAccess;
+  const [userHasAccess, setUserHasAccess] = useState(hasAccess);
+  
+  // Check for all possible access flags on component mount and URL changes
+  useEffect(() => {
+    const checkAccess = () => {
+      const forceAccess = shouldForceAccess();
+      const fromPayment = new URLSearchParams(window.location.search).get('from') === 'success';
+      const finalAccess = hasAccess || forceAccess || fromPayment;
+      
+      if (finalAccess !== userHasAccess) {
+        setUserHasAccess(finalAccess);
+      }
+    };
+    
+    // Check immediately and on URL change
+    checkAccess();
+    
+    // Listen for URL changes via history state
+    const handleUrlChange = () => {
+      checkAccess();
+    };
+    
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+    };
+  }, [hasAccess, userHasAccess]);
   
   console.log(`AgentCard ${agentId} - User access:`, {
     originalAccess: hasAccess, 
-    forceAccess, 
     finalAccess: userHasAccess
   });
 

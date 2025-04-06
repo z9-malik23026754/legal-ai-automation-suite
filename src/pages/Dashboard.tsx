@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardView from "@/components/dashboard/DashboardView";
@@ -6,6 +7,7 @@ import AuthGuard from "@/components/dashboard/AuthGuard";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useToast } from "@/components/ui/use-toast";
+import { forceAgentAccess } from "@/utils/forceAgentAccess";
 
 const Dashboard = () => {
   const { user, checkSubscription } = useAuth();
@@ -21,22 +23,43 @@ const Dashboard = () => {
     hasChloeAccess,
     hasLutherAccess,
     hasAnySubscription,
-    isLoading
+    isLoading,
+    paymentSuccessParam
   } = useDashboardState();
 
   const [initializing, setInitializing] = useState(true);
-  const stableLoaderState = useRef({ isRefreshing, initializing, isLoading, attemptCount: refreshAttempts });
   const initTimeoutRef = useRef<number | null>(null);
+  const stableLoaderStateRef = useRef({
+    isRefreshing, 
+    initializing, 
+    isLoading,
+    attemptCount: refreshAttempts
+  });
   
+  // Show payment success toast if applicable
+  useEffect(() => {
+    if (paymentSuccessParam) {
+      // Force agent access for users coming from payment success
+      forceAgentAccess();
+      
+      toast({
+        title: "Payment successful!",
+        description: "Your subscription has been activated. You now have access to all AI agents.",
+        variant: "default",
+      });
+    }
+  }, [paymentSuccessParam, toast]);
+  
+  // Update stable ref to avoid unnecessary renders but track significant changes
   useEffect(() => {
     const significantChange = 
-      stableLoaderState.current.isRefreshing !== isRefreshing ||
-      stableLoaderState.current.initializing !== initializing ||
-      stableLoaderState.current.isLoading !== isLoading ||
-      (refreshAttempts > stableLoaderState.current.attemptCount);
+      stableLoaderStateRef.current.isRefreshing !== isRefreshing ||
+      stableLoaderStateRef.current.initializing !== initializing ||
+      stableLoaderStateRef.current.isLoading !== isLoading ||
+      (refreshAttempts > stableLoaderStateRef.current.attemptCount);
       
     if (significantChange) {
-      stableLoaderState.current = { 
+      stableLoaderStateRef.current = { 
         isRefreshing, 
         initializing, 
         isLoading,
@@ -53,7 +76,7 @@ const Dashboard = () => {
         if (initTimeoutRef.current) window.clearTimeout(initTimeoutRef.current);
         initTimeoutRef.current = window.setTimeout(() => {
           if (isActive) setInitializing(false);
-        }, 500);
+        }, 800);
         return;
       }
       
@@ -63,11 +86,15 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error("Error initializing subscription:", error);
+        // Even on error, if coming from payment success, force access
+        if (paymentSuccessParam) {
+          forceAgentAccess();
+        }
       } finally {
         if (initTimeoutRef.current) window.clearTimeout(initTimeoutRef.current);
         initTimeoutRef.current = window.setTimeout(() => {
           if (isActive) setInitializing(false);
-        }, 800);
+        }, 1200); // Longer wait to ensure all checks complete
       }
     };
 
@@ -79,18 +106,34 @@ const Dashboard = () => {
         window.clearTimeout(initTimeoutRef.current);
       }
     };
-  }, [user, checkSubscription]);
+  }, [user, checkSubscription, paymentSuccessParam]);
 
-  const showLoader = () => {
+  // Stabilized loader logic to prevent flashing
+  const shouldShowLoader = () => {
     if (!user) return false;
-    return stableLoaderState.current.isRefreshing || 
-           stableLoaderState.current.initializing || 
-           stableLoaderState.current.isLoading;
+    
+    // Force minimum loading time for smoother UX
+    const minLoadingTime = 1200; // ms
+    const currentTime = Date.now();
+    const startTime = window.sessionStorage.getItem('dashboardLoadStartTime');
+    
+    if (!startTime) {
+      window.sessionStorage.setItem('dashboardLoadStartTime', currentTime.toString());
+    } else if (currentTime - parseInt(startTime) < minLoadingTime) {
+      return true;
+    }
+    
+    return stableLoaderStateRef.current.isRefreshing || 
+           stableLoaderStateRef.current.initializing || 
+           stableLoaderStateRef.current.isLoading;
   };
 
-  if (showLoader()) {
-    return <DashboardLoader attemptCount={stableLoaderState.current.attemptCount} />;
+  if (shouldShowLoader()) {
+    return <DashboardLoader attemptCount={stableLoaderStateRef.current.attemptCount} />;
   }
+
+  // Clear the load start time when we're done loading
+  window.sessionStorage.removeItem('dashboardLoadStartTime');
 
   return (
     <AuthGuard user={user}>

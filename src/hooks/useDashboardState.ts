@@ -5,12 +5,22 @@ import { useSubscriptionRefresh } from "@/hooks/useSubscriptionRefresh";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
 import { fetchDirectSubscription } from "@/utils/subscriptionUtils";
 import { toDbSubscription } from "@/types/subscription";
+import { forceAgentAccess } from "@/utils/forceAgentAccess";
 
 export const useDashboardState = () => {
   const { user, subscription, checkSubscription } = useAuth();
   const [directDbCheck, setDirectDbCheck] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const loadingTimeoutRef = useRef<number | null>(null);
+  const paymentSuccessParam = new URLSearchParams(window.location.search).get('from') === 'success';
+  
+  // Check for payment success URL parameter - immediate unlock
+  useEffect(() => {
+    if (paymentSuccessParam) {
+      console.log("Payment success parameter detected - forcing access");
+      forceAgentAccess();
+    }
+  }, [paymentSuccessParam]);
   
   // Use our type conversion function to ensure compatibility
   const dbSubscription = toDbSubscription(subscription);
@@ -34,6 +44,15 @@ export const useDashboardState = () => {
     hasAnySubscription
   } = useAgentAccess(subscription);
 
+  // Check local storage for access flags
+  const hasLocalStorageAccess = useCallback(() => {
+    return (
+      localStorage.getItem('trialCompleted') === 'true' ||
+      localStorage.getItem('paymentCompleted') === 'true' ||
+      localStorage.getItem('forceAgentAccess') === 'true'
+    );
+  }, []);
+
   // Stabilized direct DB check function
   const performDirectDbCheck = useCallback(async () => {
     if (!user?.id || directDbCheck) return;
@@ -41,17 +60,32 @@ export const useDashboardState = () => {
     try {
       const directSubscription = await fetchDirectSubscription(user.id);
       console.log("Direct DB subscription check:", directSubscription);
+      
+      // If subscription found in DB but not in context, refresh context
+      if (directSubscription && !subscription && checkSubscription) {
+        await checkSubscription();
+      }
+      
+      // If payment success param exists, force unlock
+      if (paymentSuccessParam || hasLocalStorageAccess()) {
+        forceAgentAccess();
+      }
     } catch (error) {
       console.error("Error checking direct subscription:", error);
+      
+      // Even on error, if payment success, unlock access
+      if (paymentSuccessParam || hasLocalStorageAccess()) {
+        forceAgentAccess();
+      }
     } finally {
       setDirectDbCheck(true);
       // Set a minimum loading time to prevent flashing
       if (loadingTimeoutRef.current) window.clearTimeout(loadingTimeoutRef.current);
       loadingTimeoutRef.current = window.setTimeout(() => {
         setIsLoading(false);
-      }, 800); // Ensure a minimum loading time
+      }, 1000); // Ensure a minimum loading time
     }
-  }, [user?.id, directDbCheck]);
+  }, [user?.id, directDbCheck, checkSubscription, subscription, paymentSuccessParam, hasLocalStorageAccess]);
 
   // Additional direct DB check for the dashboard
   useEffect(() => {
@@ -70,7 +104,7 @@ export const useDashboardState = () => {
       if (loadingTimeoutRef.current) window.clearTimeout(loadingTimeoutRef.current);
       loadingTimeoutRef.current = window.setTimeout(() => {
         setIsLoading(false);
-      }, 500); // Small delay to prevent UI flashing
+      }, 1000); // Longer delay to prevent UI flashing
     }
   }, [isRefreshing, directDbCheck]);
 
@@ -86,6 +120,7 @@ export const useDashboardState = () => {
     hasLutherAccess,
     hasAnySubscription,
     isLoading,
-    user
+    user,
+    paymentSuccessParam
   };
 };
