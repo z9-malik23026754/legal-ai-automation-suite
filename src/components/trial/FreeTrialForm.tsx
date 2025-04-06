@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -11,11 +10,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader } from "lucide-react";
 
-// Form validation schema
+// Form validation schema with stronger email validation
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters."),
   lastName: z.string().min(2, "Last name must be at least 2 characters."),
-  email: z.string().email("Please enter a valid email address."),
+  email: z.string()
+    .email("Please enter a valid email address.")
+    .refine(
+      (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email),
+      {
+        message: "Please enter a valid email address."
+      }
+    ),
   companyName: z.string().min(2, "Company name must be at least 2 characters."),
 });
 

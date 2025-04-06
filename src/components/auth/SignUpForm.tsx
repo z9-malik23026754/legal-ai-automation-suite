@@ -11,16 +11,35 @@ import { useToast } from "@/components/ui/use-toast";
 import { KeyRound, Lock, Briefcase } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Strong email validation regex
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 const SignUpForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signUp, isLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const validateEmail = (email: string) => {
+    if (!email) {
+      setEmailError("Email is required");
+      return false;
+    }
+    
+    if (!EMAIL_REGEX.test(email)) {
+      setEmailError("Please enter a valid email address");
+      return false;
+    }
+    
+    setEmailError("");
+    return true;
+  };
 
   const validatePasswords = () => {
     if (password !== confirmPassword) {
@@ -38,7 +57,11 @@ const SignUpForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validatePasswords()) {
+    // Validate email and password
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePasswords();
+    
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
 
@@ -113,13 +136,22 @@ const SignUpForm = () => {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) {
+                    validateEmail(e.target.value);
+                  }
+                }}
+                onBlur={() => validateEmail(email)}
                 required
-                className="pl-10"
+                className={`pl-10 ${emailError ? 'border-destructive' : ''}`}
                 disabled={isSubmitting || isLoading}
               />
               <KeyRound className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
             </div>
+            {emailError && (
+              <p className="text-sm text-destructive">{emailError}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>

@@ -15,16 +15,23 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   const { toast } = useToast();
   
   // Run force access to ensure all localStorage flags are set
+  // But only show toast if it's the first time we're accessing this agent in this session
   React.useEffect(() => {
     forceAgentAccess();
     
-    // Show success toast to confirm access
-    toast({
-      title: "AI Agent Ready",
-      description: `You have access to this AI agent.`,
-      variant: "default",
-    });
-  }, [toast]);
+    // Only show toast if we haven't shown it for this agent yet
+    const toastShownKey = `agent_toast_shown_${agentId}`;
+    if (!sessionStorage.getItem(toastShownKey)) {
+      toast({
+        title: "AI Agent Ready",
+        description: `You have access to this AI agent.`,
+        variant: "default",
+      });
+      
+      // Mark this toast as shown for this session
+      sessionStorage.setItem(toastShownKey, 'true');
+    }
+  }, [toast, agentId]);
   
   // If no user is logged in, redirect to login
   if (!user) {
