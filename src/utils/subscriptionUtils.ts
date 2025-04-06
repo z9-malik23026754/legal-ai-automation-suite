@@ -26,20 +26,22 @@ export const fetchDirectSubscription = async (userId: string | undefined): Promi
   }
 };
 
-// Determine if subscription grants access to any agents
+// Determine if subscription grants access to any agents - simplified and more robust
 export const hasAnyAgentAccess = (subscription: any): boolean => {
   if (!subscription) return false;
   
   // Convert to DatabaseSubscription if needed
   const dbSubscription = toDbSubscription(subscription);
   
-  // Check for trial or active status first
+  // First and foremost - if trial or active status, always grant access
+  // This is the primary check that should override all others
   if (dbSubscription?.status === 'trial' || dbSubscription?.status === 'active') {
+    console.log("Access granted based on subscription status:", dbSubscription.status);
     return true;
   }
   
-  // Then check for individual agent access
-  return !!(
+  // Secondary check for individual agent access
+  const hasIndividualAccess = !!(
     dbSubscription?.markus || 
     dbSubscription?.kara || 
     dbSubscription?.connor || 
@@ -48,4 +50,7 @@ export const hasAnyAgentAccess = (subscription: any): boolean => {
     dbSubscription?.all_in_one ||
     dbSubscription?.allInOne
   );
+  
+  console.log("Individual agent access check result:", hasIndividualAccess);
+  return hasIndividualAccess;
 };

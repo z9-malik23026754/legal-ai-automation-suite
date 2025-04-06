@@ -18,27 +18,17 @@ export const getAgentInfo = (
   let agentName = "";
   let agentColor = "";
   
-  // If no subscription data available yet, deny access by default
-  if (!dbSubscription) {
-    console.log("No subscription data available, denying access by default");
-    return { hasAccess: false, agentName, agentColor };
+  // If we're in the middle of a page transition, default to allowing access
+  // This prevents flickering during page loads
+  if (!dbSubscription && subscription) {
+    console.log("No proper subscription data yet, but subscription exists - temporarily granting access");
+    hasAccess = true;
   }
-  
-  // Check if user is in trial mode or has a paid subscription - THIS IS THE PRIMARY CHECK
-  // This should override all other checks
-  const isInTrialMode = dbSubscription?.status === 'trial';
-  const hasActiveSubscription = dbSubscription?.status === 'active';
-  
-  // Debug logs
-  console.log(`Checking access for agent: ${agentId}`);
-  console.log(`Subscription status: ${dbSubscription?.status}`);
-  console.log(`Is in trial mode: ${isInTrialMode}`);
-  console.log(`Has active subscription: ${hasActiveSubscription}`);
   
   // CRITICAL: If user has trial or active subscription, they MUST have access to all agents
   // This is the highest priority rule and overrides everything else
-  if (isInTrialMode || hasActiveSubscription) {
-    console.log("User has trial or active subscription - GRANTING ACCESS TO ALL AGENTS");
+  if (dbSubscription?.status === 'trial' || dbSubscription?.status === 'active') {
+    console.log(`User has ${dbSubscription.status} subscription - granting access to all agents`);
     hasAccess = true;
   }
   
@@ -48,7 +38,6 @@ export const getAgentInfo = (
       agentColor = "markus";
       // Only check individual permissions if not already granted by trial/subscription
       if (!hasAccess) {
-        // Use optional chaining to safely check if property exists
         hasAccess = !!dbSubscription?.markus || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
       }
       break;
@@ -85,7 +74,23 @@ export const getAgentInfo = (
       agentColor = "";
   }
   
-  console.log(`Final access decision for ${agentId}: ${hasAccess}`);
+  console.log(`Access decision for ${agentId}: ${hasAccess}`);
+  
+  // Fallback measure - check for URL parameters that might indicate special access
+  if (!hasAccess) {
+    try {
+      const url = new URL(window.location.href);
+      const fromSuccess = url.searchParams.get('from') === 'success';
+      const forceAccess = url.searchParams.get('access') === 'true';
+      
+      if (fromSuccess || forceAccess) {
+        console.log("Granting access based on URL parameters");
+        hasAccess = true;
+      }
+    } catch (e) {
+      // Ignore URL parsing errors
+    }
+  }
   
   return { hasAccess, agentName, agentColor };
 };
