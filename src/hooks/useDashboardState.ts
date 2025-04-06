@@ -10,12 +10,11 @@ interface DatabaseSubscription {
   user_id: string;
   status: string;
   plan_type: string;
-  stripe_customer_id: string;
-  stripe_subscription_id: string;
-  created_at: string;
-  updated_at: string;
-  // These fields might not exist in the actual database schema
-  // but we check for their existence in the code
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  // Add the agent-specific fields that may be present
   markus?: boolean;
   kara?: boolean;
   connor?: boolean;

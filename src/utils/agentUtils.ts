@@ -43,6 +43,7 @@ export const getAgentInfo = (
       agentColor = "markus";
       // Only check individual permissions if not already granted by trial/subscription
       if (!hasAccess) {
+        // Use optional chaining to safely check if property exists
         hasAccess = !!subscription?.markus || !!subscription?.allInOne || false;
       }
       break;
