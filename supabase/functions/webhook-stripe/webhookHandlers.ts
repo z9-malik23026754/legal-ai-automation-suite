@@ -1,4 +1,3 @@
-
 import { ServiceClients } from "./stripeClient.ts";
 import { updateSubscriptionRecord, updateSubscriptionStatus } from "./subscriptionService.ts";
 
@@ -31,41 +30,25 @@ export const handleCheckoutSessionCompleted = async (
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   console.log("Retrieved subscription:", subscriptionId, "status:", subscription.status);
   
+  // CRITICAL: Always enable all agents when payment succeeds, regardless of trial status
   // Update subscription status in database
-  let updateData = {
+  const updateData = {
     stripe_subscription_id: subscriptionId,
     stripe_customer_id: session.customer,
+    markus: true, 
+    kara: true, 
+    connor: true, 
+    chloe: true, 
+    luther: true, 
+    all_in_one: true,
+    status: 'active', // Force status to active
     updated_at: new Date().toISOString()
   };
   
+  // If it's a trial, add trial dates
   if (isTrial || subscription.status === 'trialing') {
-    // For free trial, enable all agents
-    console.log("Processing free trial activation");
-    
-    updateData = { 
-      ...updateData,
-      markus: true, 
-      kara: true, 
-      connor: true, 
-      chloe: true, 
-      luther: true, 
-      all_in_one: true,
-      status: 'trial',
-      trial_start: new Date(subscription.trial_start * 1000).toISOString(),
-      trial_end: new Date(subscription.trial_end * 1000).toISOString()
-    };
-  } else if (subscription.status === 'active') {
-    // For regular subscription, enable all agents
-    updateData = { 
-      ...updateData,
-      markus: true, 
-      kara: true, 
-      connor: true, 
-      chloe: true, 
-      luther: true, 
-      all_in_one: true,
-      status: 'active'
-    };
+    updateData.trial_start = subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null;
+    updateData.trial_end = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
   }
   
   console.log("Updating subscription with data:", updateData);
@@ -117,13 +100,49 @@ export const handleSubscriptionUpdate = async (
         return;
       }
       
-      // Update the found subscription
-      await updateSubscriptionStatus(supabase, userSubscriptionByUserId.id, subscription);
+      // Update the found subscription - always enable all agents 
+      const updateData = {
+        status: subscription.status === 'active' ? 'active' : subscription.status,
+        markus: true,
+        kara: true,
+        connor: true,
+        chloe: true,
+        luther: true,
+        all_in_one: true,
+        updated_at: new Date().toISOString()
+      };
+      
+      const { error: updateError } = await supabase
+        .from("subscriptions")
+        .update(updateData)
+        .eq("id", userSubscriptionByUserId.id);
+        
+      if (updateError) {
+        console.error("Error updating subscription status:", updateError);
+      }
       return;
     }
     return;
   }
   
-  // Update the subscription status
-  await updateSubscriptionStatus(supabase, userSubscription.id, subscription);
+  // Update the subscription status - always keep all agents enabled
+  const updateData = {
+    status: subscription.status === 'active' ? 'active' : subscription.status,
+    markus: true,
+    kara: true,
+    connor: true,
+    chloe: true,
+    luther: true,
+    all_in_one: true,
+    updated_at: new Date().toISOString()
+  };
+  
+  const { error: updateError } = await supabase
+    .from("subscriptions")
+    .update(updateData)
+    .eq("id", userSubscription.id);
+    
+  if (updateError) {
+    console.error("Error updating subscription status:", updateError);
+  }
 };

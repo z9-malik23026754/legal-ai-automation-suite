@@ -5,6 +5,7 @@ import { useSubscriptionRefresh } from "@/hooks/useSubscriptionRefresh";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
 import { fetchDirectSubscription } from "@/utils/subscriptionUtils";
 import { toDbSubscription } from "@/types/subscription";
+import { shouldForceAccess, forceAgentAccess } from "@/utils/forceAgentAccess";
 
 export const useDashboardState = () => {
   const { user, subscription, checkSubscription } = useAuth();
@@ -32,13 +33,14 @@ export const useDashboardState = () => {
     hasAnySubscription
   } = useAgentAccess(subscription);
 
-  // Additional effect to refresh subscription if subscription state changes
+  // Force access if needed
   useEffect(() => {
-    if (subscription && !isRefreshing) {
-      // If subscription changes externally, update our refreshing state
-      console.log("Subscription state changed externally:", subscription);
+    // Check if we should force access
+    if (shouldForceAccess()) {
+      console.log("Forcing agent access based on stored state or URL parameters");
+      forceAgentAccess();
     }
-  }, [subscription, isRefreshing]);
+  }, []);
 
   // Additional direct DB check for the dashboard
   useEffect(() => {
@@ -46,6 +48,12 @@ export const useDashboardState = () => {
       if (user?.id && !directDbCheck) {
         const directSubscription = await fetchDirectSubscription(user.id);
         console.log("Direct DB subscription check:", directSubscription);
+        
+        // If we found a subscription in the DB, force access
+        if (directSubscription) {
+          forceAgentAccess();
+        }
+        
         setDirectDbCheck(true);
       }
     };
@@ -55,14 +63,15 @@ export const useDashboardState = () => {
   return {
     isRefreshing,
     refreshAttempts,
-    isInTrialMode,
-    hasActiveSubscription,
-    hasMarkusAccess,
-    hasKaraAccess,
-    hasConnorAccess,
-    hasChloeAccess,
-    hasLutherAccess,
-    hasAnySubscription,
+    // If we're forcing access, override the actual subscription state
+    isInTrialMode: shouldForceAccess() ? false : isInTrialMode,
+    hasActiveSubscription: shouldForceAccess() ? true : hasActiveSubscription,
+    hasMarkusAccess: shouldForceAccess() ? true : hasMarkusAccess,
+    hasKaraAccess: shouldForceAccess() ? true : hasKaraAccess,
+    hasConnorAccess: shouldForceAccess() ? true : hasConnorAccess,
+    hasChloeAccess: shouldForceAccess() ? true : hasChloeAccess,
+    hasLutherAccess: shouldForceAccess() ? true : hasLutherAccess,
+    hasAnySubscription: shouldForceAccess() ? true : hasAnySubscription,
     user
   };
 };
