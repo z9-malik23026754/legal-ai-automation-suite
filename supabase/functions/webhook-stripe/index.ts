@@ -180,13 +180,41 @@ const handleSubscriptionUpdate = async (supabase: any, subscription: any) => {
   
   if (!userSubscription) {
     console.log("No subscription found for customer:", customerId);
+    // Try to find the user via metadata as a fallback
+    if (subscription.metadata && subscription.metadata.user_id) {
+      console.log("Found user_id in metadata, trying to find subscription by user_id");
+      const { data: userSubscriptionByUserId, error: userIdError } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", subscription.metadata.user_id)
+        .maybeSingle();
+      
+      if (userIdError) {
+        console.error("Error fetching subscription by user ID:", userIdError);
+        return;
+      }
+      
+      if (!userSubscriptionByUserId) {
+        console.log("No subscription found for user ID:", subscription.metadata.user_id);
+        return;
+      }
+      
+      // Update the found subscription
+      await updateSubscriptionStatus(supabase, userSubscriptionByUserId.id, subscription);
+      return;
+    }
     return;
   }
   
+  // Update the subscription status
+  await updateSubscriptionStatus(supabase, userSubscription.id, subscription);
+};
+
+const updateSubscriptionStatus = async (supabase: any, subscriptionId: string, stripeSubscription: any) => {
   // Update subscription status based on the event
   let updateData = {};
   
-  if (subscription.status === 'canceled') {
+  if (stripeSubscription.status === 'canceled') {
     // Subscription was canceled, disable all agents
     updateData = {
       status: 'canceled',
@@ -198,13 +226,19 @@ const handleSubscriptionUpdate = async (supabase: any, subscription: any) => {
       all_in_one: false,
       updated_at: new Date().toISOString()
     };
-  } else if (subscription.status === 'active') {
+  } else if (stripeSubscription.status === 'active') {
     // Subscription is active (possibly after trial)
     updateData = {
       status: 'active',
+      markus: true,
+      kara: true,
+      connor: true,
+      chloe: true,
+      luther: true,
+      all_in_one: true,
       updated_at: new Date().toISOString()
     };
-  } else if (subscription.status === 'trialing') {
+  } else if (stripeSubscription.status === 'trialing') {
     // Subscription is in trial mode, enable all agents
     updateData = {
       status: 'trial',
@@ -214,14 +248,14 @@ const handleSubscriptionUpdate = async (supabase: any, subscription: any) => {
       chloe: true,
       luther: true,
       all_in_one: true,
-      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+      trial_start: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000).toISOString() : null,
+      trial_end: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000).toISOString() : null,
       updated_at: new Date().toISOString()
     };
-  } else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+  } else if (stripeSubscription.status === 'past_due' || stripeSubscription.status === 'unpaid') {
     // Payment issues, mark subscription accordingly but don't disable access yet
     updateData = {
-      status: subscription.status,
+      status: stripeSubscription.status,
       updated_at: new Date().toISOString()
     };
   }
@@ -232,7 +266,7 @@ const handleSubscriptionUpdate = async (supabase: any, subscription: any) => {
   const { error } = await supabase
     .from("subscriptions")
     .update(updateData)
-    .eq("id", userSubscription.id);
+    .eq("id", subscriptionId);
     
   if (error) {
     console.error("Error updating subscription status:", error);

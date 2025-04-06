@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Lock, MessageSquare, Phone, Mail, ClipboardList, BarChart3, Loader } from "lucide-react";
+import { ArrowRight, Lock, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
 
 interface AgentCardProps {
   agentId: string;
