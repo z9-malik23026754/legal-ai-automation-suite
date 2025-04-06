@@ -23,7 +23,7 @@ type AuthContextType = {
   session: Session | null;
   isLoading: boolean;
   subscription: Subscription | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<any>; // Updated return type to allow returning data
   signUp: (email: string, password: string, options?: any) => Promise<{error?: any}>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
