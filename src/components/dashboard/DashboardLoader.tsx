@@ -1,7 +1,6 @@
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Loader, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from "react";
+import { Loader } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess } from "@/utils/forceAgentAccess";
 
@@ -10,38 +9,54 @@ interface DashboardLoaderProps {
 }
 
 const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) => {
-  const [showManualOption, setShowManualOption] = useState(true); // Always show manual option
-  const [message, setMessage] = useState("Please wait while we load your dashboard and activate your AI agents.");
-  const [loadingStage, setLoadingStage] = useState(3); // Start at higher stage
+  const [message, setMessage] = useState("Preparing your AI agents...");
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
   
   // Check for payment success in URL
   const isFromPayment = new URLSearchParams(window.location.search).get('from') === 'success';
   
-  // EMERGENCY FIX: Force access immediately on component mount
+  // Force access and auto-redirect without requiring manual interaction
   useEffect(() => {
-    console.log("EMERGENCY FIX: Forcing access on DashboardLoader mount");
+    console.log("DashboardLoader - Forcing access and initiating auto-redirect");
     forceAgentAccess();
     
-    // Show message about temporary fix
-    setMessage("We're preparing your AI agents. Click 'Unlock Access & Refresh' to continue.");
-    setLoadingStage(4);
-  }, []);
-  
-  const handleManualRefresh = useCallback(() => {
-    // Before refreshing, set local flags to ensure access on reload
-    forceAgentAccess();
+    // Show progress bar animation
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + 15;
+        
+        // Update messages based on progress
+        if (newProgress >= 30 && newProgress < 60) {
+          setMessage("Activating your AI agents...");
+        } else if (newProgress >= 60 && newProgress < 90) {
+          setMessage("Almost ready...");
+        } else if (newProgress >= 90) {
+          setMessage("Complete! Redirecting to dashboard...");
+        }
+        
+        return Math.min(newProgress, 100);
+      });
+    }, 600);
     
-    toast({
-      title: "Access granted",
-      description: "We've unlocked your AI agents. The page will refresh now.",
-      variant: "default"
-    });
-    
-    // Short delay to show the toast before refreshing
-    setTimeout(() => {
+    // Auto-redirect after showing the progress animation (3 seconds)
+    const redirectTimer = setTimeout(() => {
+      clearInterval(interval);
+      
+      toast({
+        title: "Access Granted",
+        description: "Your AI agents are ready to use.",
+        variant: "default"
+      });
+      
+      // Redirect to dashboard with access flag
       window.location.href = '/dashboard?access=true';
-    }, 1500);
+    }, 3000);
+    
+    return () => {
+      clearInterval(interval);
+      clearTimeout(redirectTimer);
+    };
   }, [toast]);
 
   return (
@@ -63,36 +78,16 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = ({ attemptCount = 0 }) =
         
         <div className="w-48 h-2 bg-muted rounded-full overflow-hidden mx-auto mb-4">
           <div 
-            className={`h-full rounded-full transition-all duration-1000 ease-in-out ${
+            className={`h-full rounded-full transition-all duration-500 ease-in-out ${
               isFromPayment ? 'bg-green-500' : 'bg-primary'
             }`}
-            style={{ 
-              width: `${Math.min(25 * (loadingStage + 1), 100)}%`,
-              animationDuration: '1.5s',
-              animationName: 'pulse',
-              animationIterationCount: 'infinite'
-            }}
+            style={{ width: `${progress}%` }}
           ></div>
         </div>
         
-        {showManualOption && (
-          <div className="mt-6">
-            <p className="text-sm text-muted-foreground mb-3">
-              {isFromPayment 
-                ? "Your payment has been confirmed! Click below to access your dashboard immediately."
-                : "If this takes too long, click the button below to unlock access immediately."}
-            </p>
-            <Button 
-              variant={isFromPayment ? "default" : "outline"}
-              size="sm" 
-              onClick={handleManualRefresh}
-              className={`mx-auto ${isFromPayment ? 'bg-green-600 hover:bg-green-700' : ''}`}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              {isFromPayment ? "Access Dashboard Now" : "Unlock Access & Refresh"}
-            </Button>
-          </div>
-        )}
+        <p className="text-sm text-muted-foreground animate-pulse mt-4">
+          Please wait while we finish setting up...
+        </p>
       </div>
     </div>
   );
