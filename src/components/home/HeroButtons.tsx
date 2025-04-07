@@ -41,7 +41,13 @@ const HeroButtons = () => {
               size="lg" 
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
-              onClick={startTrial}
+              onClick={() => {
+                try {
+                  startTrial();
+                } catch (e) {
+                  console.error("Error starting trial:", e);
+                }
+              }}
               disabled={isProcessing}
             >
               <Clock className="mr-2 h-4 w-4" />
@@ -60,7 +66,13 @@ const HeroButtons = () => {
             size="lg" 
             variant="default" 
             className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
-            onClick={startTrial}
+            onClick={() => {
+              try {
+                startTrial();
+              } catch (e) {
+                console.error("Error starting trial:", e);
+              }
+            }}
             disabled={isProcessing}
           >
             <Clock className="mr-2 h-4 w-4" />

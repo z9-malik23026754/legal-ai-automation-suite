@@ -29,104 +29,51 @@ export const useStartFreeTrial = () => {
   const initiateStripeCheckout = async () => {
     setIsProcessing(true);
     try {
-      // Ensure we have a valid user ID before proceeding
-      if (!user || !user.id) {
-        // Get the latest session data
-        const { data: sessionData } = await supabase.auth.getSession();
-        
-        // If still no valid session, show error and prompt to refresh
-        if (!sessionData.session || !sessionData.session.user) {
-          throw new Error("User ID not available. Please try refreshing the page and signing in again.");
-        }
-        
-        // Use the user from the fresh session
-        const currentUser = sessionData.session.user;
-        const currentSession = sessionData.session;
-        
-        console.log("Using refreshed session for user:", currentUser.id);
-        
-        // Make the API call with the refreshed session data
-        const { data, error } = await supabase.functions.invoke('create-free-trial', {
-          body: {
-            successUrl: `${window.location.origin}/trial-success`,
-            cancelUrl: `${window.location.origin}/?canceled=true`
-          },
-          headers: currentSession.access_token 
-            ? { Authorization: `Bearer ${currentSession.access_token}` } 
-            : undefined
-        });
-        
-        if (error) {
-          console.error("Supabase function error:", error);
-          throw error;
-        }
-        
-        handleSuccessfulCheckout(data);
-      } else {
-        // We have a valid user, proceed with normal flow
-        console.log("Starting free trial process for user:", user.id);
-        
-        if (!session || !session.access_token) {
-          // Refresh session if token is missing
-          const { data: refreshedSession } = await supabase.auth.getSession();
-          if (!refreshedSession.session || !refreshedSession.session.access_token) {
-            throw new Error("Authentication session error. Please try refreshing the page and signing in again.");
-          }
-          
-          // Use the refreshed session
-          const { data, error } = await supabase.functions.invoke('create-free-trial', {
-            body: {
-              successUrl: `${window.location.origin}/trial-success`,
-              cancelUrl: `${window.location.origin}/?canceled=true`
-            },
-            headers: refreshedSession.session.access_token 
-              ? { Authorization: `Bearer ${refreshedSession.session.access_token}` } 
-              : undefined
-          });
-          
-          if (error) {
-            console.error("Supabase function error:", error);
-            throw error;
-          }
-          
-          handleSuccessfulCheckout(data);
-        } else {
-          // We have both user and valid session, make the call
-          const { data, error } = await supabase.functions.invoke('create-free-trial', {
-            body: {
-              successUrl: `${window.location.origin}/trial-success`,
-              cancelUrl: `${window.location.origin}/?canceled=true`
-            },
-            headers: session.access_token 
-              ? { Authorization: `Bearer ${session.access_token}` } 
-              : undefined
-          });
-          
-          if (error) {
-            console.error("Supabase function error:", error);
-            throw error;
-          }
-          
-          handleSuccessfulCheckout(data);
-        }
+      console.log("Starting free trial process...");
+      
+      // Get a fresh session to ensure we have valid tokens
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        throw new Error("Authentication error. Please try signing in again.");
       }
-    } catch (error: any) {
-      console.error("Free trial error:", error);
-      toast({
-        title: "Couldn't start free trial",
-        description: error?.message || "An error occurred. Please try again.",
-        variant: "destructive",
+      
+      if (!sessionData?.session) {
+        console.error("No valid session found");
+        throw new Error("No valid session found. Please try signing in again.");
+      }
+      
+      const currentSession = sessionData.session;
+      const currentUser = currentSession.user;
+      
+      console.log("Using session for user:", currentUser?.id);
+      
+      if (!currentUser || !currentUser.id) {
+        throw new Error("User ID not available. Please try refreshing the page and signing in again.");
+      }
+      
+      // Make the API call with the fresh session data
+      const { data, error } = await supabase.functions.invoke('create-free-trial', {
+        body: {
+          successUrl: `${window.location.origin}/trial-success`,
+          cancelUrl: `${window.location.origin}/?canceled=true`
+        },
+        headers: currentSession.access_token 
+          ? { Authorization: `Bearer ${currentSession.access_token}` } 
+          : undefined
       });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-  
-  // Helper function to handle successful checkout response
-  const handleSuccessfulCheckout = async (data: any) => {
-    console.log("Free trial checkout response:", data);
-    
-    if (data?.url) {
+      
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw error;
+      }
+      
+      if (!data?.url) {
+        console.error("No checkout URL returned:", data);
+        throw new Error("No checkout URL returned from the server.");
+      }
+      
       // Force refresh the subscription status before redirecting
       try {
         await checkSubscription();
@@ -144,9 +91,15 @@ export const useStartFreeTrial = () => {
         // Redirect the user to the Stripe checkout page
         window.location.href = data.url;
       }, 1000);
-    } else {
-      console.error("No checkout URL returned:", data);
-      throw new Error("No checkout URL returned");
+    } catch (error) {
+      console.error("Free trial error:", error);
+      toast({
+        title: "Couldn't start free trial",
+        description: error?.message || "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
