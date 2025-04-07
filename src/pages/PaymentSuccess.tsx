@@ -41,10 +41,14 @@ const PaymentSuccess = () => {
         }
       }
       
-      toast({
-        title: "Payment successful!",
-        description: "Your subscription has been activated. You now have full access to all agents.",
-      });
+      // Only show toast if it hasn't been shown yet in this session
+      if (!sessionStorage.getItem('access_toast_shown')) {
+        toast({
+          title: "Payment successful!",
+          description: "Your subscription has been activated. You now have full access to all agents.",
+        });
+        sessionStorage.setItem('access_toast_shown', 'true');
+      }
       
       // Brief delay for toast visibility
       setTimeout(() => {

@@ -14,6 +14,7 @@ export const useTrialSubscriptionRefresh = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [isSubscriptionReady, setIsSubscriptionReady] = useState(false);
   const [manualRefreshAttempted, setManualRefreshAttempted] = useState(false);
+  const [accessToastShown, setAccessToastShown] = useState(false);
   
   // More reliable subscription refresh function with multiple fallbacks
   const refreshSubscriptionStatus = async () => {
@@ -76,10 +77,15 @@ export const useTrialSubscriptionRefresh = () => {
             // Also force context refresh one more time
             if (checkSubscription) await checkSubscription();
             
-            toast({
-              title: "All AI Agents Unlocked",
-              description: "You now have full access to all AI agents for your trial period.",
-            });
+            // Only show toast once
+            if (!accessToastShown && !sessionStorage.getItem('access_toast_shown')) {
+              toast({
+                title: "All AI Agents Unlocked",
+                description: "You now have full access to all AI agents for your trial period.",
+              });
+              setAccessToastShown(true);
+              sessionStorage.setItem('access_toast_shown', 'true');
+            }
             
             return true;
           }
@@ -117,11 +123,16 @@ export const useTrialSubscriptionRefresh = () => {
     forceAgentAccess();
     setIsSubscriptionReady(true);
     
-    toast({
-      title: "Access Granted",
-      description: "You now have access to all AI agents. Enjoy your trial!",
-      variant: "default"
-    });
+    // Only show toast if it hasn't been shown yet
+    if (!accessToastShown && !sessionStorage.getItem('access_toast_shown')) {
+      toast({
+        title: "Access Granted",
+        description: "You now have access to all AI agents. Enjoy your trial!",
+        variant: "default"
+      });
+      setAccessToastShown(true);
+      sessionStorage.setItem('access_toast_shown', 'true');
+    }
   };
   
   // Initialize subscription status
@@ -132,6 +143,12 @@ export const useTrialSubscriptionRefresh = () => {
           // Set all access flags immediately for best user experience
           console.log("Setting all localStorage access flags on page load");
           forceAgentAccess();
+          
+          // Check if we've already shown the toast in this session
+          if (sessionStorage.getItem('access_toast_shown')) {
+            console.log("Access toast already shown in this session, skipping");
+            setAccessToastShown(true);
+          }
           
           // Try up to 2 times to refresh subscription status
           for (let i = 0; i < 2; i++) {
@@ -149,11 +166,16 @@ export const useTrialSubscriptionRefresh = () => {
           forceAgentAccess();
           setIsSubscriptionReady(true);
           
-          toast({
-            title: "Access Granted",
-            description: "You now have access to all AI agents. Enjoy your subscription!",
-            variant: "default"
-          });
+          // Only show toast if it hasn't been shown yet in this session
+          if (!accessToastShown && !sessionStorage.getItem('access_toast_shown')) {
+            toast({
+              title: "Access Granted",
+              description: "You now have access to all AI agents. Enjoy your subscription!",
+              variant: "default"
+            });
+            setAccessToastShown(true);
+            sessionStorage.setItem('access_toast_shown', 'true');
+          }
         } catch (error) {
           console.error("Error updating subscription status:", error);
           
@@ -169,7 +191,7 @@ export const useTrialSubscriptionRefresh = () => {
     };
     
     initialRefresh();
-  }, [user, checkSubscription, toast]);
+  }, [user, checkSubscription, toast, accessToastShown]);
 
   return {
     isRefreshing,

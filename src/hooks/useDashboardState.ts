@@ -13,12 +13,23 @@ export const useDashboardState = () => {
   const [isLoading, setIsLoading] = useState(true);
   const loadingTimeoutRef = useRef<number | null>(null);
   const paymentSuccessParam = new URLSearchParams(window.location.search).get('from') === 'success';
+  const [accessToastShown, setAccessToastShown] = useState(false);
+  
+  // Check if toast has already been shown in this session
+  useEffect(() => {
+    if (sessionStorage.getItem('access_toast_shown')) {
+      setAccessToastShown(true);
+    }
+  }, []);
   
   // Check for payment success URL parameter - immediate unlock
   useEffect(() => {
     if (paymentSuccessParam) {
       console.log("Payment success parameter detected - forcing access");
       forceAgentAccess();
+      
+      // Mark that we've seen this success parameter
+      sessionStorage.setItem('payment_success_seen', 'true');
     }
   }, [paymentSuccessParam]);
   

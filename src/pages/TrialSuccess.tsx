@@ -28,11 +28,14 @@ const TrialSuccess = () => {
     localStorage.setItem('paymentCompleted', 'true');
     localStorage.setItem('forceAgentAccess', 'true');
     
-    // Show success toast
-    toast({
-      title: "Trial Activated",
-      description: "Your 7-day free trial has been activated. You now have access to all AI agents.",
-    });
+    // Show success toast only if it hasn't been shown yet in this session
+    if (!sessionStorage.getItem('access_toast_shown')) {
+      toast({
+        title: "Trial Activated",
+        description: "Your 7-day free trial has been activated. You now have access to all AI agents.",
+      });
+      sessionStorage.setItem('access_toast_shown', 'true');
+    }
   }, [toast]);
 
   // Attempt an immediate subscription refresh when the page loads
