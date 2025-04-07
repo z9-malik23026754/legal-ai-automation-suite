@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import SignUpForm from "@/components/auth/SignUpForm";
+import { removeForceAgentAccess } from "@/utils/forceAgentAccess";
 
 const SignUp = () => {
   const { user } = useAuth();
@@ -14,6 +15,9 @@ const SignUp = () => {
     if (user) {
       navigate("/dashboard");
     }
+    
+    // Ensure no access flags are accidentally set during signup
+    removeForceAgentAccess();
   }, [user, navigate]);
 
   return (

@@ -8,6 +8,9 @@ import QuickAccessCard from "@/components/dashboard/QuickAccessCard";
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { SubscriptionWithTrial } from "@/hooks/useSubscription";
+import { Button } from "@/components/ui/button";
+import { Clock } from "lucide-react";
+import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 
 // Sample data
 const recentNotifications = [
@@ -52,6 +55,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   hasAnySubscription,
   isRefreshing
 }) => {
+  const { startTrial, isProcessing } = useStartFreeTrial();
+  
   // Debug logs to verify subscription status is correctly passed
   console.log("DashboardView - User subscription status:", {
     isInTrialMode,
@@ -83,7 +88,34 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       )}
 
       {!hasAnySubscription ? (
-        <WelcomeCard />
+        <div className="mb-6">
+          <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Unlock All AI Agents</h2>
+            <p className="mb-6">
+              Get instant access to all AI agents with a 7-day free trial or choose a subscription plan.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                onClick={startTrial} 
+                size="lg"
+                disabled={isProcessing}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
+              >
+                <Clock className="mr-2 h-4 w-4" />
+                {isProcessing ? "Processing..." : "Start 7-Day Free Trial"}
+              </Button>
+              
+              <Button 
+                asChild
+                size="lg"
+                variant="outline"
+              >
+                <Link to="/pricing">View Subscription Plans</Link>
+              </Button>
+            </div>
+          </div>
+          <WelcomeCard />
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {quickStats.map((stat, index) => (
@@ -100,7 +132,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Your AI Agents</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AgentCard 
               agentId="markus"
               title="Markus"

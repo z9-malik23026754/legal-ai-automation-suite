@@ -1,15 +1,22 @@
 
 /**
- * Utility to force agent access regardless of subscription status
- * This ensures the best user experience even if the backend has issues
+ * Utility to manage agent access based on subscription status
  */
 
 // Check for all possible access flags in localStorage and URL parameters
 export const shouldForceAccess = (): boolean => {
-  // IMMEDIATE ACCESS FOR ALL USERS - Resolves the persistent loading issue
-  // This ensures everyone has access to agents once they're logged in
-  console.log("CRITICAL: Granting immediate access to all agents");
-  return true;
+  // Check if any of our local storage flags are set
+  const hasLocalAccess = 
+    localStorage.getItem('forceAgentAccess') === 'true' ||
+    localStorage.getItem('trialCompleted') === 'true' ||
+    localStorage.getItem('paymentCompleted') === 'true';
+    
+  // Check URL parameters (for payments and trial redirects)
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessParam = urlParams.get('access') === 'true';
+  const fromSuccess = urlParams.get('from') === 'success';
+  
+  return hasLocalAccess || accessParam || fromSuccess;
 };
 
 // Set all access flags for maximum compatibility
@@ -25,6 +32,7 @@ export const forceAgentAccess = (): void => {
 
 // Remove forced access
 export const removeForceAgentAccess = (): void => {
+  console.log("Removing agent access - clearing ALL localStorage flags");
   localStorage.removeItem('forceAgentAccess');
   localStorage.removeItem('paymentCompleted');
   localStorage.removeItem('trialCompleted');
