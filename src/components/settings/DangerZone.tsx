@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { removeForceAgentAccess } from "@/utils/forceAgentAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +61,9 @@ const DangerZone = () => {
       
       // Close the dialog if it's open
       setIsDialogOpen(false);
+      
+      // Clear agent access
+      removeForceAgentAccess();
       
       toast({
         title: "Account deleted",

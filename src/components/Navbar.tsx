@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
+import { removeForceAgentAccess } from "@/utils/forceAgentAccess";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -27,9 +28,17 @@ const Navbar = () => {
   
   const handleSignOut = async () => {
     try {
+      // Clear agent access before signing out
+      removeForceAgentAccess();
+      
       await signOut();
       setMenuOpen(false);
       navigate("/");
+      
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
     } catch (error) {
       console.error("Error signing out:", error);
       toast({

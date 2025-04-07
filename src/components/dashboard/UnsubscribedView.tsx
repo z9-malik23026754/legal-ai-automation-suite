@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
+import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 
 interface UnsubscribedViewProps {
   userName: string;
@@ -12,6 +13,7 @@ interface UnsubscribedViewProps {
 
 const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
   const { startTrial, isProcessing } = useStartFreeTrial();
+  const hasCompleted = hasCompletedTrialOrPayment();
 
   return (
     <div className="container px-4 py-6 mx-auto max-w-7xl">
@@ -28,36 +30,40 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
             <Link to="/pricing">View Plans</Link>
           </Button>
           
-          <Button 
-            variant="default" 
-            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
-            onClick={startTrial}
-            disabled={isProcessing}
-          >
-            <Clock className="mr-2 h-4 w-4" />
-            Start 7-Day Free Trial
-          </Button>
+          {!hasCompleted && (
+            <Button 
+              variant="default" 
+              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
+              onClick={startTrial}
+              disabled={isProcessing}
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              Start 7-Day Free Trial
+            </Button>
+          )}
         </div>
       </div>
       
-      <div className="mb-10">
-        <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
-          <h2 className="text-2xl font-semibold mb-4">Start Your Free Trial Today</h2>
-          <p className="mb-6">
-            Get instant access to all AI agents for 7 days with no obligations. Simply start your free trial to unlock
-            all premium features immediately.
-          </p>
-          <Button 
-            onClick={startTrial} 
-            size="lg"
-            disabled={isProcessing}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
-          >
-            <Clock className="mr-2 h-4 w-4" />
-            {isProcessing ? "Processing..." : "Start 7-Day Free Trial"}
-          </Button>
+      {!hasCompleted && (
+        <div className="mb-10">
+          <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
+            <h2 className="text-2xl font-semibold mb-4">Start Your Free Trial Today</h2>
+            <p className="mb-6">
+              Get instant access to all AI agents for 7 days with no obligations. Simply start your free trial to unlock
+              all premium features immediately.
+            </p>
+            <Button 
+              onClick={startTrial} 
+              size="lg"
+              disabled={isProcessing}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              {isProcessing ? "Processing..." : "Start 7-Day Free Trial"}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
       
       <div className="mb-10">
         <WelcomeCard />
@@ -71,16 +77,27 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
             <div className="glass-card border-white/10 shadow-glass relative p-6 rounded-lg">
               <h3 className="text-lg font-semibold mb-2">Unlock AI Agents</h3>
               <p className="text-muted-foreground mb-4">
-                Start your free trial to access all AI agents or subscribe to individual agents.
+                {hasCompleted 
+                  ? "Subscribe to individual agents or choose a plan for continued access."
+                  : "Start your free trial to access all AI agents or subscribe to individual agents."}
               </p>
-              <Button 
-                onClick={startTrial} 
-                disabled={isProcessing}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90"
-              >
-                <Clock className="mr-2 h-4 w-4" />
-                Start Free Trial
-              </Button>
+              {!hasCompleted ? (
+                <Button 
+                  onClick={startTrial} 
+                  disabled={isProcessing}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90"
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Start Free Trial
+                </Button>
+              ) : (
+                <Button 
+                  asChild
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90"
+                >
+                  <Link to="/pricing">Subscribe Now</Link>
+                </Button>
+              )}
             </div>
             
             <div className="glass-card border-white/10 shadow-glass relative p-6 rounded-lg">

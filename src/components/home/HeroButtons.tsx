@@ -5,10 +5,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
+import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 
 const HeroButtons = () => {
   const { user, subscription } = useAuth();
   const { startTrial, isProcessing } = useStartFreeTrial();
+  
+  // Check if user has completed a trial or has a subscription
+  const hasCompleted = hasCompletedTrialOrPayment();
   
   // Check if user already has a trial or subscription
   const hasSubscription = subscription && (
@@ -32,7 +36,7 @@ const HeroButtons = () => {
             </Button>
           </Link>
           
-          {!hasSubscription && (
+          {!hasSubscription && !hasCompleted && (
             <Button 
               size="lg" 
               variant="default" 
