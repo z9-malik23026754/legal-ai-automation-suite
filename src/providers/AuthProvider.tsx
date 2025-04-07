@@ -103,11 +103,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Sign out method
   const signOut = async () => {
     try {
+      console.log("Attempting to sign out...");
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Sign out error:", error);
+        throw error;
+      }
+      
+      console.log("Sign out successful");
+      // Explicitly clear user and session state
+      setUser(null);
+      setSession(null);
       setSubscription(null);
+      
+      // Show toast for successful sign out
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
+      
     } catch (error: any) {
       console.error("Error signing out:", error.message);
+      
+      toast({
+        title: "Error signing out",
+        description: "There was an error signing out. Please try again.",
+        variant: "destructive",
+      });
+      
       throw error;
     }
   };

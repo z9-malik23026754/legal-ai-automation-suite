@@ -1,10 +1,10 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDeveloper } from "@/contexts/DeveloperContext";
-import { Briefcase, Menu, X, Terminal, User } from "lucide-react";
+import { Briefcase, Menu, X, Terminal, User, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,14 +13,32 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
   const { isDeveloper } = useDeveloper();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   const isHomePage = location.pathname === "/";
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setMenuOpen(false);
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <header className={`w-full z-50 ${isHomePage ? 'absolute' : ''}`}>
@@ -89,7 +107,8 @@ const Navbar = () => {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -180,11 +199,10 @@ const Navbar = () => {
                 </Link>
                 <Button
                   variant="destructive"
-                  onClick={() => {
-                    signOut();
-                    setMenuOpen(false);
-                  }}
+                  onClick={handleSignOut}
+                  className="flex items-center justify-center gap-2"
                 >
+                  <LogOut className="h-5 w-5" />
                   Sign out
                 </Button>
               </>
