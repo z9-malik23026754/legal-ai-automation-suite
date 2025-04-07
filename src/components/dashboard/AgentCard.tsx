@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MessageSquare, Phone, Mail, ClipboardList, BarChart3, Lock } from "lucide-react";
-import { shouldForceAccess } from "@/utils/forceAgentAccess";
+import { shouldForceAccess, hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 
 interface AgentCardProps {
   agentId: string;
@@ -27,22 +27,22 @@ const AgentCard: React.FC<AgentCardProps> = ({
   // Check for all possible access flags on component mount and URL changes
   useEffect(() => {
     const checkAccess = () => {
+      // Check for completed trial or payment
+      const completedTrialOrPayment = hasCompletedTrialOrPayment();
+      
       // Check URL parameters
       const params = new URLSearchParams(location.search);
       const fromPayment = params.get('from') === 'success';
       const accessGranted = params.get('access') === 'true';
       
-      // Check local storage flags
-      const forceAccess = shouldForceAccess();
-      
       // Final access determination
-      const finalAccess = hasAccess || forceAccess || fromPayment || accessGranted;
+      const finalAccess = hasAccess || completedTrialOrPayment || fromPayment || accessGranted;
       
       if (finalAccess !== userHasAccess) {
         console.log(`AgentCard ${agentId} - Access updated:`, { 
           fromProps: hasAccess,
+          completedTrialOrPayment,
           fromURL: fromPayment || accessGranted,
-          fromStorage: forceAccess,
           finalAccess
         });
         setUserHasAccess(finalAccess);

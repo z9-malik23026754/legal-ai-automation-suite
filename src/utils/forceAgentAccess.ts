@@ -48,9 +48,18 @@ export const markPaymentCompleted = (): void => {
   localStorage.setItem('accessGrantedAt', new Date().toISOString());
 };
 
+// Check if the user has completed a trial or payment (for agent access)
+export const hasCompletedTrialOrPayment = (): boolean => {
+  return (
+    localStorage.getItem('trialCompleted') === 'true' ||
+    localStorage.getItem('paymentCompleted') === 'true'
+  );
+};
+
 export default {
   shouldForceAccess,
   forceAgentAccess,
   removeForceAgentAccess,
-  markPaymentCompleted
+  markPaymentCompleted,
+  hasCompletedTrialOrPayment
 };

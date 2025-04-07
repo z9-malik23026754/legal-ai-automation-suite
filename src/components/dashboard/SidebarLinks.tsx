@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { PieChart, Calendar, Bell, Settings, FileText, MessageSquare, Phone, Mail, ClipboardList, BarChart3 } from "lucide-react";
+import { PieChart, Calendar, Bell, Settings, FileText, MessageSquare, Phone, Mail, ClipboardList, BarChart3, Lock } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
+import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 
 interface SidebarLinksProps {
   hasMarkusAccess: boolean;
@@ -25,13 +26,31 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
   hasChloeAccess = false,
   hasLutherAccess = false
 }) => {
+  // Check if trial or payment completed
+  const completedTrialOrPayment = hasCompletedTrialOrPayment();
+  
+  // Calculate final access state
+  const finalMarkusAccess = hasMarkusAccess || completedTrialOrPayment;
+  const finalKaraAccess = hasKaraAccess || completedTrialOrPayment;
+  const finalConnorAccess = hasConnorAccess || completedTrialOrPayment;
+  const finalChloeAccess = hasChloeAccess || completedTrialOrPayment;
+  const finalLutherAccess = hasLutherAccess || completedTrialOrPayment;
+  
   // Log access status for each agent to help debug
   console.log("SidebarLinks - Agent access:", {
     hasMarkusAccess,
     hasKaraAccess,
     hasConnorAccess,
     hasChloeAccess,
-    hasLutherAccess
+    hasLutherAccess,
+    completedTrialOrPayment,
+    finalAccess: {
+      markus: finalMarkusAccess,
+      kara: finalKaraAccess,
+      connor: finalConnorAccess,
+      chloe: finalChloeAccess,
+      luther: finalLutherAccess
+    }
   });
   
   return (
@@ -76,52 +95,52 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
         <SidebarGroupLabel className="text-xs font-medium text-muted-foreground">AI Agents</SidebarGroupLabel>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Markus" disabled={!hasMarkusAccess}>
-              <Link to="/agents/markus">
+            <SidebarMenuButton asChild tooltip="Markus" disabled={!finalMarkusAccess}>
+              <Link to={finalMarkusAccess ? "/agents/markus" : "/pricing"}>
                 <div className="agent-label-markus inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
                   <MessageSquare className="h-3 w-3 text-markus" />
                 </div>
-                <span>{!hasMarkusAccess && "🔒 "}Markus</span>
+                <span>{!finalMarkusAccess && "🔒 "}Markus</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Kara" disabled={!hasKaraAccess}>
-              <Link to="/agents/kara">
+            <SidebarMenuButton asChild tooltip="Kara" disabled={!finalKaraAccess}>
+              <Link to={finalKaraAccess ? "/agents/kara" : "/pricing"}>
                 <div className="agent-label-kara inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
                   <Phone className="h-3 w-3 text-kara" />
                 </div>
-                <span>{!hasKaraAccess && "🔒 "}Kara</span>
+                <span>{!finalKaraAccess && "🔒 "}Kara</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Connor" disabled={!hasConnorAccess}>
-              <Link to="/agents/connor">
+            <SidebarMenuButton asChild tooltip="Connor" disabled={!finalConnorAccess}>
+              <Link to={finalConnorAccess ? "/agents/connor" : "/pricing"}>
                 <div className="agent-label-connor inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
                   <Mail className="h-3 w-3 text-connor" />
                 </div>
-                <span>{!hasConnorAccess && "🔒 "}Connor</span>
+                <span>{!finalConnorAccess && "🔒 "}Connor</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Chloe" disabled={!hasChloeAccess}>
-              <Link to="/agents/chloe">
+            <SidebarMenuButton asChild tooltip="Chloe" disabled={!finalChloeAccess}>
+              <Link to={finalChloeAccess ? "/agents/chloe" : "/pricing"}>
                 <div className="agent-label-chloe inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
                   <ClipboardList className="h-3 w-3 text-chloe" />
                 </div>
-                <span>{!hasChloeAccess && "🔒 "}Chloe</span>
+                <span>{!finalChloeAccess && "🔒 "}Chloe</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Luther" disabled={!hasLutherAccess}>
-              <Link to="/agents/luther">
+            <SidebarMenuButton asChild tooltip="Luther" disabled={!finalLutherAccess}>
+              <Link to={finalLutherAccess ? "/agents/luther" : "/pricing"}>
                 <div className="agent-label-luther inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
                   <BarChart3 className="h-3 w-3 text-luther" />
                 </div>
-                <span>{!hasLutherAccess && "🔒 "}Luther</span>
+                <span>{!finalLutherAccess && "🔒 "}Luther</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -5,49 +5,64 @@ import DashboardView from "@/components/dashboard/DashboardView";
 import AuthGuard from "@/components/dashboard/AuthGuard";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/components/ui/use-toast";
-import { forceAgentAccess } from "@/utils/forceAgentAccess";
+import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
+import { useAgentAccess } from "@/hooks/useAgentAccess";
 
 const Dashboard = () => {
   const { user, subscription } = useAuth();
   const { toast } = useToast();
   
-  // CRITICAL FIX: Force access and skip loader on every dashboard load
-  useEffect(() => {
-    console.log("Dashboard - forcing access for all users");
-    forceAgentAccess();
-    
-    // Show success toast
-    toast({
-      title: "AI Agents Unlocked",
-      description: "You now have access to all AI agents.",
-      variant: "default",
-    });
-  }, [toast]);
+  // Calculate access flags based on subscription
+  const {
+    isInTrialMode,
+    hasActiveSubscription,
+    hasMarkusAccess,
+    hasKaraAccess,
+    hasConnorAccess,
+    hasChloeAccess,
+    hasLutherAccess,
+    hasAnySubscription
+  } = useAgentAccess(subscription);
   
-  // Always show dashboard immediately without loader
+  // Check if completed trial or payment flag is set
+  const completedTrialOrPayment = hasCompletedTrialOrPayment();
+  
+  // Show success toast only once per session when user has access
+  useEffect(() => {
+    if ((hasAnySubscription || completedTrialOrPayment) && !sessionStorage.getItem('dashboard_toast_shown')) {
+      toast({
+        title: "AI Agents Available",
+        description: "You now have access to your subscribed AI agents.",
+        variant: "default",
+      });
+      
+      sessionStorage.setItem('dashboard_toast_shown', 'true');
+    }
+  }, [toast, hasAnySubscription, completedTrialOrPayment]);
+  
   return (
     <AuthGuard user={user}>
       <DashboardLayout
         user={user}
-        isInTrialMode={true}
-        hasActiveSubscription={true}
-        hasMarkusAccess={true}
-        hasKaraAccess={true}
-        hasConnorAccess={true}
-        hasChloeAccess={true}
-        hasLutherAccess={true}
+        isInTrialMode={isInTrialMode || completedTrialOrPayment}
+        hasActiveSubscription={hasActiveSubscription || completedTrialOrPayment}
+        hasMarkusAccess={hasMarkusAccess || completedTrialOrPayment}
+        hasKaraAccess={hasKaraAccess || completedTrialOrPayment}
+        hasConnorAccess={hasConnorAccess || completedTrialOrPayment}
+        hasChloeAccess={hasChloeAccess || completedTrialOrPayment}
+        hasLutherAccess={hasLutherAccess || completedTrialOrPayment}
       >
         <DashboardView 
           userName={user?.email?.split('@')[0] || 'User'}
-          subscription={null}
-          isInTrialMode={true}
-          hasActiveSubscription={true}
-          hasMarkusAccess={true}
-          hasKaraAccess={true}
-          hasConnorAccess={true}
-          hasChloeAccess={true}
-          hasLutherAccess={true}
-          hasAnySubscription={true}
+          subscription={subscription}
+          isInTrialMode={isInTrialMode || completedTrialOrPayment}
+          hasActiveSubscription={hasActiveSubscription || completedTrialOrPayment}
+          hasMarkusAccess={hasMarkusAccess || completedTrialOrPayment}
+          hasKaraAccess={hasKaraAccess || completedTrialOrPayment}
+          hasConnorAccess={hasConnorAccess || completedTrialOrPayment}
+          hasChloeAccess={hasChloeAccess || completedTrialOrPayment}
+          hasLutherAccess={hasLutherAccess || completedTrialOrPayment}
+          hasAnySubscription={hasAnySubscription || completedTrialOrPayment}
           isRefreshing={false}
         />
       </DashboardLayout>

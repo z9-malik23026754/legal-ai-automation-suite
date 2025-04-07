@@ -3,9 +3,8 @@ import React from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { forceAgentAccess } from "@/utils/forceAgentAccess";
+import { forceAgentAccess, shouldForceAccess, hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { Button } from "@/components/ui/button";
-import { shouldForceAccess } from "@/utils/forceAgentAccess";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 
 interface AgentAccessGuardProps {
@@ -21,28 +20,39 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   
   // Check if user has any kind of access
   const hasAccess = React.useMemo(() => {
-    // Check localStorage flags first
-    if (localStorage.getItem('trialCompleted') === 'true' || 
-        localStorage.getItem('paymentCompleted') === 'true' ||
-        localStorage.getItem('forceAgentAccess') === 'true') {
+    // First check if the user has explicitly completed a trial or payment
+    if (hasCompletedTrialOrPayment()) {
+      console.log(`AgentAccessGuard: User has completed trial or payment for ${agentId}`);
       return true;
     }
     
-    // Check subscription status
+    // Check subscription status from database
     if (subscription && 
         (subscription.status === 'trial' || 
-         subscription.status === 'active' ||
-         subscription.markus ||
-         subscription.kara ||
-         subscription.connor ||
-         subscription.chloe ||
-         subscription.luther ||
-         subscription.allInOne)) {
+         subscription.status === 'active')) {
+      console.log(`AgentAccessGuard: User has valid subscription status (${subscription.status}) for ${agentId}`);
       return true;
     }
     
+    // Check if the agent is specifically purchased
+    if (subscription) {
+      const hasSpecificAccess = 
+        (agentId === 'markus' && subscription.markus) ||
+        (agentId === 'kara' && subscription.kara) ||
+        (agentId === 'connor' && subscription.connor) ||
+        (agentId === 'chloe' && subscription.chloe) ||
+        (agentId === 'luther' && subscription.luther) ||
+        (subscription.allInOne);
+        
+      if (hasSpecificAccess) {
+        console.log(`AgentAccessGuard: User has specific access to ${agentId}`);
+        return true;
+      }
+    }
+    
+    console.log(`AgentAccessGuard: User does NOT have access to ${agentId}`);
     return false;
-  }, [subscription]);
+  }, [subscription, agentId]);
   
   // Run force access only if user has legitimate access
   React.useEffect(() => {
