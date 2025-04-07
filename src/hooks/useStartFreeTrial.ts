@@ -31,47 +31,56 @@ export const useStartFreeTrial = () => {
     try {
       console.log("Starting free trial process...");
       
-      // Get a fresh session to ensure we have valid tokens
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      // Check if we have a valid session first
+      let currentSession = session;
+      let accessToken = currentSession?.access_token;
       
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        throw new Error("Authentication error. Please try signing in again.");
+      // If no valid session is found, try to get a fresh session
+      if (!accessToken) {
+        console.log("No valid session found, refreshing session...");
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session refresh error:", sessionError);
+          throw new Error("Authentication error. Please try signing in again.");
+        }
+        
+        currentSession = sessionData.session;
+        accessToken = currentSession?.access_token;
+        
+        if (!accessToken) {
+          console.error("Still no valid session after refresh");
+          throw new Error("Unable to authenticate. Please try signing out and signing in again.");
+        }
       }
       
-      if (!sessionData?.session) {
-        console.error("No valid session found");
-        throw new Error("No valid session found. Please try signing in again.");
+      console.log("Using session for user:", user?.id);
+      
+      // Make sure we have user data
+      if (!user || !user.id) {
+        throw new Error("User information not available. Please try refreshing the page and signing in again.");
       }
       
-      const currentSession = sessionData.session;
-      const currentUser = currentSession.user;
-      
-      console.log("Using session for user:", currentUser?.id);
-      
-      if (!currentUser || !currentUser.id) {
-        throw new Error("User ID not available. Please try refreshing the page and signing in again.");
-      }
-      
-      // Make the API call with the fresh session data
+      // Make the API call with authorization header
       const { data, error } = await supabase.functions.invoke('create-free-trial', {
         body: {
           successUrl: `${window.location.origin}/trial-success`,
           cancelUrl: `${window.location.origin}/?canceled=true`
         },
-        headers: currentSession.access_token 
-          ? { Authorization: `Bearer ${currentSession.access_token}` } 
-          : undefined
+        headers: { 
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
       });
       
       if (error) {
         console.error("Supabase function error:", error);
-        throw error;
+        throw new Error(`Failed to start free trial: ${error.message || "Unknown error"}`);
       }
       
       if (!data?.url) {
         console.error("No checkout URL returned:", data);
-        throw new Error("No checkout URL returned from the server.");
+        throw new Error("No checkout URL returned from the server. Please try again later.");
       }
       
       // Force refresh the subscription status before redirecting

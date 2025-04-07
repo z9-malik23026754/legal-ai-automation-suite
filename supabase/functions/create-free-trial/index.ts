@@ -174,7 +174,7 @@ async function createCheckoutSession(
 
 // Main function handler
 serve(async (req) => {
-  console.log("Create free trial function called");
+  console.log("Create free trial function called, method:", req.method);
   
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -186,8 +186,15 @@ serve(async (req) => {
     const { stripe, supabase } = initializeServices();
     
     // Parse request body
-    const body = await req.json();
-    const { successUrl, cancelUrl } = body;
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error("Failed to parse request body:", e);
+      body = {};
+    }
+    
+    const { successUrl, cancelUrl } = body || {};
     console.log("Request body:", { successUrl, cancelUrl });
     
     // Get authenticated user

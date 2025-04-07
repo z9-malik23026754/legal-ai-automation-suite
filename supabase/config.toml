@@ -4,6 +4,9 @@ project_id = "qjjcfxskjdrjsiydzojs"
 [functions.check-subscription]
 verify_jwt = true
 
+[functions.create-free-trial]
+verify_jwt = true
+
 [functions.delete-account]
 verify_jwt = true
 
