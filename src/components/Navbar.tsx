@@ -1,10 +1,10 @@
-
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDeveloper } from "@/contexts/DeveloperContext";
 import { Briefcase, Menu, X, Terminal, User, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
