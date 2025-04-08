@@ -1,4 +1,3 @@
-
 /**
  * Utilities for managing the free trial usage timer
  */
@@ -67,4 +66,21 @@ export const getRemainingTrialTime = (): number => {
   // Calculate remaining time (don't go below zero)
   const remainingTime = Math.max(0, TRIAL_TIME_LIMIT_MS - elapsedTime);
   return remainingTime;
+};
+
+/**
+ * Clear all trial access flags upon expiration
+ * This ensures the user completely loses access to all AI agents
+ */
+export const clearTrialAccess = (): void => {
+  // Remove all trial-related access flags
+  localStorage.removeItem('trialCompleted');
+  localStorage.removeItem('forceAgentAccess');
+  
+  // Keep paymentCompleted if it exists (don't affect paid users)
+  if (!localStorage.getItem('paymentCompleted')) {
+    console.log('Trial expired - clearing all access flags');
+  } else {
+    console.log('Trial expired but user has payment - keeping payment flags');
+  }
 };

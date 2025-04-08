@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess, shouldForceAccess, hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { Button } from "@/components/ui/button";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
-import { hasTrialTimeExpired } from "@/utils/trialTimerUtils";
+import { hasTrialTimeExpired, clearTrialAccess } from "@/utils/trialTimerUtils";
 
 interface AgentAccessGuardProps {
   agentId: string;
@@ -22,6 +22,15 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   
   // Check if user has any kind of access
   const hasAccess = React.useMemo(() => {
+    // Check for trial expiration first
+    const isInTrialMode = subscription?.status === 'trial' || 
+                          localStorage.getItem('trialCompleted') === 'true';
+    
+    if (isInTrialMode && hasTrialTimeExpired()) {
+      console.log(`AgentAccessGuard: Trial expired for ${agentId}`);
+      return false;
+    }
+    
     // First check if the user has explicitly completed a trial or payment
     if (hasCompletedTrialOrPayment()) {
       console.log(`AgentAccessGuard: User has completed trial or payment for ${agentId}`);
@@ -59,12 +68,15 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   // Check for trial time expiration
   useEffect(() => {
     // If user is in trial mode, check if trial time has expired
-    const isInTrialMode = subscription?.status === 'trial';
+    const isInTrialMode = subscription?.status === 'trial' || 
+                          localStorage.getItem('trialCompleted') === 'true';
     
-    if (isInTrialMode) {
+    if (isInTrialMode && !localStorage.getItem('paymentCompleted')) {
       const checkTrialTime = () => {
         const expired = hasTrialTimeExpired();
         if (expired) {
+          // Clear all trial access flags to ensure complete lockout
+          clearTrialAccess();
           setIsTrialExpired(true);
           
           // Show toast about expiration
@@ -74,10 +86,8 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
             variant: "destructive",
           });
           
-          // Redirect to pricing page after a short delay
-          setTimeout(() => {
-            navigate('/pricing');
-          }, 1500);
+          // Immediately redirect to pricing page
+          navigate('/pricing');
         }
       };
       
@@ -85,7 +95,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
       checkTrialTime();
       
       // Set up periodic checks
-      const intervalId = setInterval(checkTrialTime, 5000); // Check every 5 seconds
+      const intervalId = setInterval(checkTrialTime, 3000); // Check every 3 seconds
       
       return () => {
         clearInterval(intervalId);

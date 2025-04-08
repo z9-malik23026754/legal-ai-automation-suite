@@ -8,7 +8,7 @@ import { TrialActionButtons } from "@/components/trial/TrialActionButtons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess } from "@/utils/forceAgentAccess";
-import { resetTrialTimer, startTrialTimer, hasTrialTimeExpired, getRemainingTrialTime } from "@/utils/trialTimerUtils";
+import { resetTrialTimer, startTrialTimer, hasTrialTimeExpired, getRemainingTrialTime, clearTrialAccess } from "@/utils/trialTimerUtils";
 import { Clock } from "lucide-react";
 
 const TrialSuccess = () => {
@@ -52,12 +52,17 @@ const TrialSuccess = () => {
     const checkTrialStatus = () => {
       // Check if trial has expired
       if (hasTrialTimeExpired()) {
-        // Redirect to pricing page
+        // Clear all trial access flags
+        clearTrialAccess();
+        
+        // Show toast notification
         toast({
           title: "Trial Time Expired",
           description: "Your 1-minute free trial has ended. Please upgrade to continue using the AI agents.",
           variant: "destructive",
         });
+        
+        // Redirect to pricing page
         navigate('/pricing');
         return;
       }
