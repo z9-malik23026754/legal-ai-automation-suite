@@ -11,14 +11,6 @@ const TRIAL_TIME_LIMIT_MS = 60 * 1000; // 1 minute in milliseconds
  * Start the trial timer immediately
  */
 export const startTrialTimer = (): void => {
-  const isInTrialMode = localStorage.getItem('trialCompleted') === 'true' && 
-                        !localStorage.getItem('paymentCompleted');
-  
-  if (!isInTrialMode) {
-    // Not a trial user, no need to start timer
-    return;
-  }
-  
   // Only set the start time if it doesn't exist yet
   if (!localStorage.getItem(TRIAL_START_TIME_KEY)) {
     // Store the current timestamp as the start time
@@ -31,14 +23,6 @@ export const startTrialTimer = (): void => {
  * Check if the trial time limit has been reached
  */
 export const hasTrialTimeExpired = (): boolean => {
-  const isInTrialMode = localStorage.getItem('trialCompleted') === 'true' && 
-                        !localStorage.getItem('paymentCompleted');
-  
-  if (!isInTrialMode) {
-    // Not a trial user, so no expiration
-    return false;
-  }
-  
   // Get the trial start time
   const startTimeStr = localStorage.getItem(TRIAL_START_TIME_KEY);
   if (!startTimeStr) {
@@ -69,14 +53,6 @@ export const resetTrialTimer = (): void => {
  * Get the remaining trial time in milliseconds
  */
 export const getRemainingTrialTime = (): number => {
-  const isInTrialMode = localStorage.getItem('trialCompleted') === 'true' && 
-                        !localStorage.getItem('paymentCompleted');
-  
-  if (!isInTrialMode) {
-    // Not a trial user, so return max time
-    return TRIAL_TIME_LIMIT_MS;
-  }
-  
   // Get the trial start time
   const startTimeStr = localStorage.getItem(TRIAL_START_TIME_KEY);
   if (!startTimeStr) {
