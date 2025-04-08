@@ -47,18 +47,16 @@ const Dashboard = () => {
             variant: "destructive",
           });
           
-          // Force a page refresh to update UI components
-          setTimeout(() => {
-            navigate('/pricing');
-          }, 500);
+          // Force redirect to pricing page immediately
+          navigate('/pricing');
         }
       };
       
       // Run trial check immediately
       checkTrialStatus();
       
-      // Set up periodic checks
-      const intervalId = setInterval(checkTrialStatus, 3000);
+      // Set up periodic checks more frequently (every 1 second)
+      const intervalId = setInterval(checkTrialStatus, 1000);
       
       return () => clearInterval(intervalId);
     }
@@ -84,6 +82,8 @@ const Dashboard = () => {
   // Remove trial access if expired
   if (isTrial && isTrialExpired) {
     clearTrialAccess();
+    // Force redirect to pricing page
+    navigate('/pricing');
   }
   
   // Final access flags that consider trial expiration

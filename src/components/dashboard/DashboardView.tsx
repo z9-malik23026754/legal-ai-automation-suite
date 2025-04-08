@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -9,9 +8,10 @@ import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { SubscriptionWithTrial } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
-import { Clock } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { getRemainingTrialTime, hasTrialTimeExpired } from "@/utils/trialTimerUtils";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 // Sample data
 const recentNotifications = [
@@ -105,6 +105,22 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         userName={userName} 
         hasAnySubscription={hasAnySubscription} 
       />
+
+      {/* Show trial warning message for active trial users */}
+      {isInTrialMode && !isTrialExpired && (
+        <Alert variant="default" className="mb-6 bg-amber-50 border-amber-200 text-amber-800">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTitle>Free Trial Active - Limited Time!</AlertTitle>
+          <AlertDescription>
+            ⚠️ Your free trial will expire soon! You have limited time to explore the AI agents.
+            {remainingTimeMs !== null && (
+              <span className="font-semibold ml-2">
+                Time remaining: {formatRemainingTime(remainingTimeMs)}
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Show trial notification if in trial mode */}
       {isInTrialMode && (

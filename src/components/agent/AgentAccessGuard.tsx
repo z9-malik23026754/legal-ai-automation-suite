@@ -7,6 +7,8 @@ import { forceAgentAccess, shouldForceAccess, hasCompletedTrialOrPayment } from 
 import { Button } from "@/components/ui/button";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { hasTrialTimeExpired, clearTrialAccess } from "@/utils/trialTimerUtils";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface AgentAccessGuardProps {
   agentId: string;
@@ -94,8 +96,8 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
       // Initial check
       checkTrialTime();
       
-      // Set up periodic checks
-      const intervalId = setInterval(checkTrialTime, 3000); // Check every 3 seconds
+      // Set up periodic checks more frequently (every 1 second)
+      const intervalId = setInterval(checkTrialTime, 1000);
       
       return () => {
         clearInterval(intervalId);
@@ -128,7 +130,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     return <Navigate to="/signin" replace />;
   }
   
-  // If user's trial time has expired, show upgrade message
+  // If user's trial time has expired, show upgrade message and redirect
   if (isTrialExpired) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background p-4">
@@ -184,8 +186,26 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     );
   }
   
-  // If user has access, render children
-  return <>{children}</>;
+  // If trial is active, display warning alert
+  const isInTrialMode = subscription?.status === 'trial' || localStorage.getItem('trialCompleted') === 'true';
+  const isPaymentCompleted = localStorage.getItem('paymentCompleted') === 'true';
+  const shouldShowWarning = isInTrialMode && !isPaymentCompleted && !isTrialExpired;
+  
+  // If user has access, render children with optional warning
+  return (
+    <>
+      {shouldShowWarning && (
+        <Alert variant="default" className="mb-6 mt-2 mx-4 bg-amber-50 border-amber-200 text-amber-800">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTitle>Free Trial Active - Limited Time!</AlertTitle>
+          <AlertDescription>
+            ⚠️ Your free trial will expire soon! You have limited time to explore this AI agent.
+          </AlertDescription>
+        </Alert>
+      )}
+      {children}
+    </>
+  );
 };
 
 export default AgentAccessGuard;

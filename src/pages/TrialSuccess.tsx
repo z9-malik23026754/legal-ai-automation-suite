@@ -9,7 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess } from "@/utils/forceAgentAccess";
 import { resetTrialTimer, startTrialTimer, hasTrialTimeExpired, getRemainingTrialTime, clearTrialAccess } from "@/utils/trialTimerUtils";
-import { Clock } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const TrialSuccess = () => {
   const { checkSubscription } = useAuth();
@@ -142,6 +143,17 @@ const TrialSuccess = () => {
             <p className="text-muted-foreground mb-6">
               Your 7-day free trial has been successfully activated. You now have full access to all AI agents.
             </p>
+            
+            {/* Trial warning message */}
+            {!isTrialExpired && (
+              <Alert variant="default" className="mb-6 bg-amber-50 border-amber-200 text-amber-800">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                <AlertTitle>Important: Limited Time Access</AlertTitle>
+                <AlertDescription>
+                  ⚠️ Your free trial provides only 1 minute of AI agent access! Please explore quickly.
+                </AlertDescription>
+              </Alert>
+            )}
             
             {/* Trial countdown timer */}
             {remainingTime !== null && (
