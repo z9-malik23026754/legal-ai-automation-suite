@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useTrialSubscriptionRefresh } from "@/hooks/useTrialSubscriptionRefresh";
 import { TrialStatusIndicator } from "@/components/trial/TrialStatusIndicator";
@@ -8,13 +8,14 @@ import { TrialActionButtons } from "@/components/trial/TrialActionButtons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess } from "@/utils/forceAgentAccess";
-import { resetTrialTimer } from "@/utils/trialTimerUtils";
+import { resetTrialTimer, startTrialTimer, hasTrialTimeExpired, getRemainingTrialTime } from "@/utils/trialTimerUtils";
 import { Clock } from "lucide-react";
 
 const TrialSuccess = () => {
   const { checkSubscription } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
   
   const {
     isRefreshing,
@@ -23,7 +24,7 @@ const TrialSuccess = () => {
     handleManualRefresh
   } = useTrialSubscriptionRefresh();
 
-  // Immediately set all access flags when page loads
+  // Immediately set all access flags when page loads and start the trial timer
   useEffect(() => {
     console.log("TrialSuccess - Setting all access flags on page load");
     localStorage.setItem('trialCompleted', 'true');
@@ -33,15 +34,47 @@ const TrialSuccess = () => {
     // Reset the trial timer to ensure it starts fresh
     resetTrialTimer();
     
+    // Start the trial timer immediately
+    startTrialTimer();
+    
     // Show success toast only if it hasn't been shown yet in this session
     if (!sessionStorage.getItem('access_toast_shown')) {
       toast({
         title: "Trial Activated",
-        description: "Your 7-day free trial has been activated. You now have access to all AI agents for 1 minute of usage.",
+        description: "Your 7-day free trial has been activated. You now have access to all AI agents for 1 minute.",
       });
       sessionStorage.setItem('access_toast_shown', 'true');
     }
   }, [toast]);
+
+  // Set up a timer to check for trial expiration and update remaining time
+  useEffect(() => {
+    const checkTrialStatus = () => {
+      // Check if trial has expired
+      if (hasTrialTimeExpired()) {
+        // Redirect to pricing page
+        toast({
+          title: "Trial Time Expired",
+          description: "Your 1-minute free trial has ended. Please upgrade to continue using the AI agents.",
+          variant: "destructive",
+        });
+        navigate('/pricing');
+        return;
+      }
+      
+      // Update remaining time
+      const timeLeft = getRemainingTrialTime();
+      setRemainingTime(timeLeft);
+    };
+    
+    // Run immediately
+    checkTrialStatus();
+    
+    // Then check every second
+    const timerId = setInterval(checkTrialStatus, 1000);
+    
+    return () => clearInterval(timerId);
+  }, [navigate, toast]);
 
   // Attempt an immediate subscription refresh when the page loads
   useEffect(() => {
@@ -65,22 +98,30 @@ const TrialSuccess = () => {
     
     refreshSubscription();
     
-    // Set a timeout to auto-redirect after 5 seconds
+    // Set a timeout to auto-redirect after 5 seconds if not already redirected due to trial expiration
     const redirectTimer = setTimeout(() => {
-      if (!isRefreshing) {
+      if (!isRefreshing && !hasTrialTimeExpired()) {
         console.log("Auto-redirecting to dashboard with access flag");
         navigate("/dashboard?access=true");
       }
     }, 5000);
     
     return () => clearTimeout(redirectTimer);
-  }, [checkSubscription, toast, navigate, isRefreshing]);
+  }, [checkSubscription, navigate, isRefreshing]);
 
   // If subscription is ready or manually passed, redirect to dashboard
   if (isSubscriptionReady && !isRefreshing) {
     console.log("Subscription ready - redirecting to dashboard with access flag");
     return <Navigate to="/dashboard?access=true" />;
   }
+
+  // Format remaining time for display
+  const formatRemainingTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -97,13 +138,18 @@ const TrialSuccess = () => {
               Your 7-day free trial has been successfully activated. You now have full access to all AI agents.
             </p>
             
-            {/* Usage limit information */}
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex items-center">
-              <Clock className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
-              <p className="text-amber-800 text-sm text-left">
-                <span className="font-semibold">1-Minute Usage Limit:</span> Your free trial includes 1 minute of AI agent interaction time. After this limit is reached, you'll need to upgrade to continue using the agents.
-              </p>
-            </div>
+            {/* Trial countdown timer */}
+            {remainingTime !== null && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex items-center">
+                <Clock className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
+                <div className="text-amber-800 text-sm text-left">
+                  <span className="font-semibold">Trial Time Remaining:</span> {formatRemainingTime(remainingTime)}
+                  <p className="mt-1 text-xs">
+                    You have 1 minute of access to all AI agents. After this limit is reached, you'll need to upgrade to continue.
+                  </p>
+                </div>
+              </div>
+            )}
             
             <TrialInfoCards 
               isSubscriptionReady={isSubscriptionReady}

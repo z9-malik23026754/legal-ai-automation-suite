@@ -60,7 +60,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         if (timeLeft <= 0 || hasTrialTimeExpired()) {
           toast({
             title: "Trial Time Expired",
-            description: "Your 1-minute free trial usage has ended. Please upgrade to continue.",
+            description: "Your 1-minute free trial has ended. Please upgrade to continue.",
             variant: "destructive",
           });
           
@@ -75,7 +75,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       updateRemainingTime();
       
       // Set up interval
-      const intervalId = setInterval(updateRemainingTime, 1000);
+      const intervalId = setInterval(updateRemainingTime, 1000); // Check every second
       
       return () => {
         clearInterval(intervalId);
@@ -126,7 +126,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (isInTrialMode && hasTrialTimeExpired()) {
       toast({
         title: "Trial Time Expired",
-        description: "Your 1-minute free trial usage has ended. Please upgrade to continue.",
+        description: "Your 1-minute free trial has ended. Please upgrade to continue.",
         variant: "destructive",
       });
       

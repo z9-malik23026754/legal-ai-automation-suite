@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess, shouldForceAccess, hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { Button } from "@/components/ui/button";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
-import { hasTrialTimeExpired, startTrialTimer, pauseTrialTimer } from "@/utils/trialTimerUtils";
+import { hasTrialTimeExpired } from "@/utils/trialTimerUtils";
 
 interface AgentAccessGuardProps {
   agentId: string;
@@ -65,15 +65,19 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
       const checkTrialTime = () => {
         const expired = hasTrialTimeExpired();
         if (expired) {
-          pauseTrialTimer(); // Stop the timer when expired
           setIsTrialExpired(true);
           
           // Show toast about expiration
           toast({
             title: "Trial Time Expired",
-            description: "Your 1-minute free trial usage has ended. Please upgrade to continue using the AI agents.",
+            description: "Your 1-minute free trial has ended. Please upgrade to continue using the AI agents.",
             variant: "destructive",
           });
+          
+          // Redirect to pricing page after a short delay
+          setTimeout(() => {
+            navigate('/pricing');
+          }, 1500);
         }
       };
       
@@ -87,23 +91,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
         clearInterval(intervalId);
       };
     }
-  }, [subscription, toast]);
-  
-  // Start the trial timer when a trial user accesses an agent
-  useEffect(() => {
-    const isInTrialMode = subscription?.status === 'trial';
-    
-    if (isInTrialMode && hasAccess && !isTrialExpired) {
-      console.log(`Starting trial timer for ${agentId}`);
-      startTrialTimer();
-      
-      // Make sure to pause timer when component unmounts
-      return () => {
-        console.log(`Pausing trial timer for ${agentId}`);
-        pauseTrialTimer();
-      };
-    }
-  }, [subscription, hasAccess, agentId, isTrialExpired]);
+  }, [subscription, toast, navigate]);
   
   // Run force access only if user has legitimate access and trial hasn't expired
   useEffect(() => {
@@ -137,7 +125,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
         <div className="bg-card border rounded-lg p-8 shadow-lg max-w-md w-full text-center">
           <h2 className="text-2xl font-bold mb-4">Trial Time Expired</h2>
           <p className="mb-6 text-muted-foreground">
-            Your 1-minute free trial usage has ended. Please upgrade to a full subscription to continue using our AI agents.
+            Your 1-minute free trial has ended. Please upgrade to a full subscription to continue using our AI agents.
           </p>
           
           <div className="space-y-4">
