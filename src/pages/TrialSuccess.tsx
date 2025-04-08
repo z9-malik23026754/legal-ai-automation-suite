@@ -17,6 +17,7 @@ const TrialSuccess = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const [isTrialExpired, setIsTrialExpired] = useState<boolean>(false);
   
   const {
     isRefreshing,
@@ -55,6 +56,9 @@ const TrialSuccess = () => {
       if (hasTrialTimeExpired()) {
         // Clear all trial access flags
         clearTrialAccess();
+        
+        // Update state to reflect trial expiration
+        setIsTrialExpired(true);
         
         // Show toast notification
         toast({
