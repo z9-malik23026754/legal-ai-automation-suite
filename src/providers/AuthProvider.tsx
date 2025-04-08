@@ -100,11 +100,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign out method
+  // Sign out method - enhanced with global scope and error handling
   const signOut = async () => {
     try {
       console.log("Attempting to sign out...");
-      const { error } = await supabase.auth.signOut();
+      
+      // Clear local state first
+      setUser(null);
+      setSession(null);
+      setSubscription(null);
+      
+      // Use global scope to ensure all sessions across devices are invalidated
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
         console.error("Sign out error:", error);
@@ -112,10 +119,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log("Sign out successful");
-      // Explicitly clear user and session state
-      setUser(null);
-      setSession(null);
-      setSubscription(null);
+      
+      // Clear any persisted data
+      localStorage.removeItem('forceAgentAccess');
+      localStorage.removeItem('trialCompleted');
+      localStorage.removeItem('paymentCompleted');
+      sessionStorage.clear();
       
       // Show toast for successful sign out
       toast({

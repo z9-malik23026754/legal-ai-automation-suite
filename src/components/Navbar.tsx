@@ -31,14 +31,29 @@ const Navbar = () => {
       // Clear agent access before signing out
       removeForceAgentAccess();
       
+      // Clear any session storage items
+      sessionStorage.clear();
+      
+      // First attempt signOut using the regular method
       await signOut();
+      
+      // Additionally force a sign out using a direct call to ensure session is cleared
+      await supabase.auth.signOut({ scope: 'global' });
+      
+      // Reset UI state
       setMenuOpen(false);
-      navigate("/");
       
       toast({
         title: "Signed out successfully",
         description: "You have been signed out of your account.",
       });
+      
+      // Navigate after successful signout
+      setTimeout(() => {
+        navigate("/");
+        // Force a page reload to ensure all app state is reset
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
@@ -46,6 +61,15 @@ const Navbar = () => {
         description: "There was a problem signing you out. Please try again.",
         variant: "destructive",
       });
+      
+      // Attempt a fallback sign out with direct API call
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+        navigate("/");
+        window.location.reload();
+      } catch (fallbackError) {
+        console.error("Fallback signout also failed:", fallbackError);
+      }
     }
   };
 

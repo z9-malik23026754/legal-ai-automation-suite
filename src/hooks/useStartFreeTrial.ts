@@ -61,8 +61,9 @@ export const useStartFreeTrial = () => {
         throw new Error("User information not available. Please try refreshing the page and signing in again.");
       }
       
-      // Make the API call with authorization header
-      const { data, error } = await supabase.functions.invoke('create-free-trial', {
+      // Make the API call with authorization header and proper content type
+      console.log("Sending request to create-free-trial function...");
+      const response = await supabase.functions.invoke('create-free-trial', {
         body: {
           successUrl: `${window.location.origin}/trial-success`,
           cancelUrl: `${window.location.origin}/?canceled=true`
@@ -72,6 +73,10 @@ export const useStartFreeTrial = () => {
           'Content-Type': 'application/json'
         }
       });
+      
+      console.log("Response from free trial function:", response);
+      
+      const { data, error } = response;
       
       if (error) {
         console.error("Supabase function error:", error);
