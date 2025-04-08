@@ -8,6 +8,8 @@ import { TrialActionButtons } from "@/components/trial/TrialActionButtons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess } from "@/utils/forceAgentAccess";
+import { resetTrialTimer } from "@/utils/trialTimerUtils";
+import { Clock } from "lucide-react";
 
 const TrialSuccess = () => {
   const { checkSubscription } = useAuth();
@@ -25,14 +27,17 @@ const TrialSuccess = () => {
   useEffect(() => {
     console.log("TrialSuccess - Setting all access flags on page load");
     localStorage.setItem('trialCompleted', 'true');
-    localStorage.setItem('paymentCompleted', 'true');
+    localStorage.setItem('paymentCompleted', 'false'); // Set to false for trial
     localStorage.setItem('forceAgentAccess', 'true');
+    
+    // Reset the trial timer to ensure it starts fresh
+    resetTrialTimer();
     
     // Show success toast only if it hasn't been shown yet in this session
     if (!sessionStorage.getItem('access_toast_shown')) {
       toast({
         title: "Trial Activated",
-        description: "Your 7-day free trial has been activated. You now have access to all AI agents.",
+        description: "Your 7-day free trial has been activated. You now have access to all AI agents for 1 minute of usage.",
       });
       sessionStorage.setItem('access_toast_shown', 'true');
     }
@@ -89,8 +94,16 @@ const TrialSuccess = () => {
             
             <h1 className="text-3xl font-bold mb-2">Free Trial Activated!</h1>
             <p className="text-muted-foreground mb-6">
-              Your 7-day free trial has been successfully activated. You now have full access to all AI agents and premium features.
+              Your 7-day free trial has been successfully activated. You now have full access to all AI agents.
             </p>
+            
+            {/* Usage limit information */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex items-center">
+              <Clock className="h-5 w-5 text-amber-600 mr-2 flex-shrink-0" />
+              <p className="text-amber-800 text-sm text-left">
+                <span className="font-semibold">1-Minute Usage Limit:</span> Your free trial includes 1 minute of AI agent interaction time. After this limit is reached, you'll need to upgrade to continue using the agents.
+              </p>
+            </div>
             
             <TrialInfoCards 
               isSubscriptionReady={isSubscriptionReady}

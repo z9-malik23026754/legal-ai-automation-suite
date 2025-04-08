@@ -11,6 +11,7 @@ import { SubscriptionWithTrial } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
+import { getRemainingTrialTime, hasTrialTimeExpired } from "@/utils/trialTimerUtils";
 
 // Sample data
 const recentNotifications = [
@@ -56,6 +57,35 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   isRefreshing
 }) => {
   const { startTrial, isProcessing } = useStartFreeTrial();
+  const [remainingTimeMs, setRemainingTimeMs] = React.useState<number | null>(null);
+  const isTrialExpired = React.useMemo(() => hasTrialTimeExpired(), []);
+  
+  // Format remaining time as MM:SS
+  const formatRemainingTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  // Update remaining time for trial users
+  React.useEffect(() => {
+    if (isInTrialMode && !isTrialExpired) {
+      const updateRemainingTime = () => {
+        setRemainingTimeMs(getRemainingTrialTime());
+      };
+      
+      // Initial update
+      updateRemainingTime();
+      
+      // Update every second
+      const intervalId = setInterval(updateRemainingTime, 1000);
+      
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+  }, [isInTrialMode, isTrialExpired]);
   
   // Debug logs to verify subscription status is correctly passed
   console.log("DashboardView - User subscription status:", {
@@ -84,6 +114,28 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             You have full access to all AI agents during your 7-day free trial period. 
             Trial ends on {new Date(subscription?.trialEnd || "").toLocaleDateString()}.
           </p>
+          
+          {/* Usage limit information */}
+          {remainingTimeMs !== null && !isTrialExpired && (
+            <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded flex items-center text-sm">
+              <Clock className="h-4 w-4 text-amber-600 mr-2" />
+              <span className="text-amber-800">
+                <span className="font-medium">1-Minute Usage Limit:</span> {formatRemainingTime(remainingTimeMs)} remaining
+              </span>
+            </div>
+          )}
+          
+          {isTrialExpired && (
+            <div className="mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded flex items-center text-sm">
+              <Clock className="h-4 w-4 text-red-600 mr-2" />
+              <span className="text-red-800">
+                <span className="font-medium">Usage Limit Reached:</span> Your 1-minute trial usage has expired.
+                <Link to="/pricing" className="ml-2 text-blue-600 hover:underline">
+                  Upgrade now
+                </Link>
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -92,7 +144,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass mb-8">
             <h2 className="text-2xl font-semibold mb-4">Unlock All AI Agents</h2>
             <p className="mb-6">
-              Get instant access to all AI agents with a 7-day free trial or choose a subscription plan.
+              Get instant access to all AI agents with a 7-day free trial (with 1 minute of usage) or choose a subscription plan.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
@@ -102,7 +154,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                 className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
               >
                 <Clock className="mr-2 h-4 w-4" />
-                {isProcessing ? "Processing..." : "Start 7-Day Free Trial"}
+                {isProcessing ? "Processing..." : "Start 7-Day Free Trial (1 Min Usage)"}
               </Button>
               
               <Button 

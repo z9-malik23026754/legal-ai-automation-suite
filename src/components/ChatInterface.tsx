@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Code } from "lucide-react";
+import { Code, Clock } from "lucide-react";
 import { useDeveloper } from "@/contexts/DeveloperContext";
 import MessageBubble from "@/components/chat/MessageBubble";
 import LoadingIndicator from "@/components/chat/LoadingIndicator";
@@ -9,6 +9,9 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import ChatFooter from "@/components/chat/ChatFooter";
 import { Message } from "@/types/chat";
 import { getSimulatedResponse } from "@/utils/chatResponseUtils";
+import { useAuth } from "@/contexts/AuthContext";
+import { getRemainingTrialTime, hasTrialTimeExpired } from "@/utils/trialTimerUtils";
+import { useNavigate } from "react-router-dom";
 
 interface ChatInterfaceProps {
   agentName: string;
@@ -38,7 +41,50 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { isDeveloper } = useDeveloper();
   const [webhookUrls, setWebhookUrls] = useState<string[]>([]);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const { subscription } = useAuth();
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const navigate = useNavigate();
 
+  // Check if user is in trial mode
+  const isInTrialMode = subscription?.status === 'trial';
+  
+  // Timer for trial users
+  useEffect(() => {
+    if (isInTrialMode) {
+      // Update remaining time every second
+      const updateRemainingTime = () => {
+        const timeLeft = getRemainingTrialTime();
+        setRemainingTime(timeLeft);
+        
+        // If time expired, redirect to pricing page
+        if (timeLeft <= 0 || hasTrialTimeExpired()) {
+          toast({
+            title: "Trial Time Expired",
+            description: "Your 1-minute free trial usage has ended. Please upgrade to continue.",
+            variant: "destructive",
+          });
+          
+          // Redirect to pricing page after a short delay
+          setTimeout(() => {
+            navigate('/pricing');
+          }, 1500);
+        }
+      };
+      
+      // Initial update
+      updateRemainingTime();
+      
+      // Set up interval
+      const intervalId = setInterval(updateRemainingTime, 1000);
+      
+      return () => {
+        clearInterval(intervalId);
+      };
+    } else {
+      setRemainingTime(null);
+    }
+  }, [isInTrialMode, toast, navigate]);
+  
   // Load all configured webhooks for this agent
   useEffect(() => {
     const agentId = agentName.toLowerCase();
@@ -76,6 +122,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const handleSendMessage = async (input: string) => {
+    // Check if trial has expired before processing
+    if (isInTrialMode && hasTrialTimeExpired()) {
+      toast({
+        title: "Trial Time Expired",
+        description: "Your 1-minute free trial usage has ended. Please upgrade to continue.",
+        variant: "destructive",
+      });
+      
+      // Redirect to pricing page
+      navigate('/pricing');
+      return;
+    }
+    
     if (webhookUrls.length === 0) {
       toast({
         title: "Webhook Configuration Required",
@@ -146,6 +205,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  // Format remaining time as MM:SS
+  const formatRemainingTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader 
@@ -158,6 +225,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         isConfigOpen={isConfigOpen}
         setIsConfigOpen={setIsConfigOpen}
       />
+      
+      {/* Trial timer countdown */}
+      {isInTrialMode && remainingTime !== null && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-center">
+          <Clock className="h-4 w-4 text-amber-600 mr-2" />
+          <span className="text-amber-800 text-sm font-medium">
+            Free trial time remaining: {formatRemainingTime(remainingTime)}
+          </span>
+        </div>
+      )}
       
       <div 
         ref={messageContainerRef}
