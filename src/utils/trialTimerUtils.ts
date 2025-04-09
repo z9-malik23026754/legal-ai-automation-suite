@@ -36,6 +36,11 @@ export const getTrialStartTime = (): Date | null => {
  * Check if the trial time has expired (1 minute duration)
  */
 export const hasTrialTimeExpired = (): boolean => {
+  // Always return true if user has previously used a trial
+  if (hasUsedTrialBefore() && !localStorage.getItem('accessGrantedAt')) {
+    return true;
+  }
+
   const startTime = getTrialStartTime();
   if (!startTime) return false; // If no start time, consider not expired
 

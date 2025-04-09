@@ -72,6 +72,36 @@ async function checkExistingSubscription(userId: string, supabase: any) {
   return existingSubscription;
 }
 
+// Check if user has used a trial before
+async function hasUsedTrialBefore(userId: string, supabase: any) {
+  const { data: trialData, error: trialError } = await supabase
+    .from("user_trials")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+    
+  if (trialError) {
+    console.error("Error checking trial usage:", trialError);
+  }
+  
+  return !!trialData;
+}
+
+// Record that user has started a trial
+async function recordTrialUsage(userId: string, supabase: any) {
+  const { error: insertError } = await supabase
+    .from("user_trials")
+    .insert({
+      user_id: userId,
+      trial_started_at: new Date().toISOString()
+    });
+    
+  if (insertError) {
+    console.error("Error recording trial usage:", insertError);
+    throw new Error("Failed to record trial usage");
+  }
+}
+
 // Get or create Stripe customer
 async function getOrCreateStripeCustomer(userEmail: string, userId: string, existingSubscription: any, stripe: Stripe) {
   let customerId;
@@ -100,11 +130,11 @@ async function getOrCreateStripeCustomer(userEmail: string, userId: string, exis
 // Get or create trial price
 async function getOrCreateTrialPrice(stripe: Stripe) {
   let trialPriceId;
-  const trialProductName = "7-Day Free Trial - All AI Agents";
+  const trialProductName = "1-Minute Free Trial - All AI Agents";
   
   // Look for an existing price with this description
   const existingPrices = await stripe.prices.list({
-    lookup_keys: ["7-day-free-trial-all-agents"],
+    lookup_keys: ["1-minute-free-trial-all-agents"],
     limit: 1,
   });
   
@@ -115,18 +145,15 @@ async function getOrCreateTrialPrice(stripe: Stripe) {
     // Create a new product for the trial
     const product = await stripe.products.create({
       name: trialProductName,
-      description: "Full access to all AI agents for 7 days",
+      description: "Full access to all AI agents for 1 minute",
     });
     
-    // Create a price for the product
+    // Create a price for the product (using a nominal amount)
     const price = await stripe.prices.create({
       product: product.id,
-      unit_amount: 1000, // £10.00, will be charged after trial
+      unit_amount: 0, // Free trial, but require payment method for verification
       currency: "gbp",
-      recurring: {
-        interval: "month",
-      },
-      lookup_key: "7-day-free-trial-all-agents",
+      lookup_key: "1-minute-free-trial-all-agents",
     });
     
     trialPriceId = price.id;
@@ -136,7 +163,7 @@ async function getOrCreateTrialPrice(stripe: Stripe) {
   return trialPriceId;
 }
 
-// Create checkout session for subscription with trial
+// Create checkout session for verifying payment information
 async function createCheckoutSession(
   customerId: string, 
   trialPriceId: string, 
@@ -155,11 +182,7 @@ async function createCheckoutSession(
         quantity: 1,
       },
     ],
-    mode: "subscription",
-    subscription_data: {
-      trial_period_days: 7,
-    },
-    payment_method_collection: "always", // Always require payment method
+    mode: "payment", // One-time payment to verify card
     success_url: successUrl || `${origin}/trial-success`,
     cancel_url: cancelUrl || `${origin}/?canceled=true`,
     metadata: {
@@ -220,14 +243,26 @@ serve(async (req) => {
       });
     }
     
+    // Check if user has used a trial before
+    const userHasUsedTrial = await hasUsedTrialBefore(userId, supabase);
+    if (userHasUsedTrial) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: "You have already used your free trial" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+    
     // Get or create Stripe customer
     const customerId = await getOrCreateStripeCustomer(userEmail, userId, existingSubscription, stripe);
     
     // Get or create trial price
-    console.log("Creating Stripe checkout session with trial period...");
+    console.log("Creating Stripe checkout session for 1-minute trial...");
     const trialPriceId = await getOrCreateTrialPrice(stripe);
     
-    // Create the checkout session for subscription with trial
+    // Create the checkout session for payment verification
     const session = await createCheckoutSession(
       customerId, 
       trialPriceId, 
@@ -237,6 +272,9 @@ serve(async (req) => {
       req.headers.get("origin"),
       stripe
     );
+    
+    // Record trial usage
+    await recordTrialUsage(userId, supabase);
     
     // Pre-create a subscription record to ensure the user gets instant access
     const { error: subCreationError } = await supabase

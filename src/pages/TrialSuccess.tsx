@@ -32,6 +32,7 @@ const TrialSuccess = () => {
     localStorage.setItem('trialCompleted', 'true');
     localStorage.setItem('paymentCompleted', 'false'); // Set to false for trial
     localStorage.setItem('forceAgentAccess', 'true');
+    localStorage.setItem('has_used_trial_ever', 'true'); // Ensure trial is marked as used
     
     // Reset the trial timer to ensure it starts fresh
     resetTrialTimer();
