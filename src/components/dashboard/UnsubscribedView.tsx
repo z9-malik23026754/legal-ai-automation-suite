@@ -6,6 +6,7 @@ import { Clock } from "lucide-react";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
+import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 interface UnsubscribedViewProps {
   userName: string;
@@ -14,6 +15,7 @@ interface UnsubscribedViewProps {
 const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
   const { startTrial, isProcessing } = useStartFreeTrial();
   const hasCompleted = hasCompletedTrialOrPayment();
+  const hasUsedTrial = hasUsedTrialBefore();
 
   return (
     <div className="container px-4 py-6 mx-auto max-w-7xl">
@@ -30,7 +32,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
             <Link to="/pricing">View Plans</Link>
           </Button>
           
-          {!hasCompleted && (
+          {!hasCompleted && !hasUsedTrial && (
             <Button 
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
@@ -44,7 +46,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
         </div>
       </div>
       
-      {!hasCompleted && (
+      {!hasCompleted && !hasUsedTrial && (
         <div className="mb-10">
           <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
             <h2 className="text-2xl font-semibold mb-4">Start Your Free Trial Today</h2>
@@ -65,6 +67,26 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
         </div>
       )}
       
+      {hasUsedTrial && !hasCompleted && (
+        <div className="mb-10">
+          <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass bg-amber-50">
+            <h2 className="text-2xl font-semibold mb-4 text-amber-800">Free Trial Already Used</h2>
+            <p className="mb-6 text-amber-700">
+              You have already used your free trial. Please subscribe to one of our plans to continue using our AI agents.
+            </p>
+            <Button 
+              asChild
+              size="lg"
+              className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg"
+            >
+              <Link to="/pricing">
+                View Subscription Plans
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
+      
       <div className="mb-10">
         <WelcomeCard />
       </div>
@@ -79,9 +101,11 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
               <p className="text-muted-foreground mb-4">
                 {hasCompleted 
                   ? "Subscribe to individual agents or choose a plan for continued access."
-                  : "Start your free trial to access all AI agents or subscribe to individual agents."}
+                  : hasUsedTrial 
+                    ? "Subscribe to individual agents or choose a plan for access."
+                    : "Start your free trial to access all AI agents or subscribe to individual agents."}
               </p>
-              {!hasCompleted ? (
+              {!hasCompleted && !hasUsedTrial ? (
                 <Button 
                   onClick={startTrial} 
                   disabled={isProcessing}
@@ -116,9 +140,9 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
             </div>
             
             <div className="glass-card border-white/10 shadow-glass relative p-6 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">All-In-One Bundle</h3>
+              <h3 className="text-lg font-semibold mb-2">Connor - All-In-One Agent</h3>
               <p className="text-muted-foreground mb-4">
-                Get access to all agents for the best value.
+                Get access to our all-in-one AI assistant for the best value.
               </p>
               <Button 
                 asChild

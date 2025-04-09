@@ -7,7 +7,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/components/ui/use-toast";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
-import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime } from "@/utils/trialTimerUtils";
+import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Clock } from "lucide-react";
@@ -23,9 +23,10 @@ const Dashboard = () => {
     hasActiveSubscription,
     hasMarkusAccess,
     hasKaraAccess,
-    hasConnorAccess,
+    hasJerryAccess,
     hasChloeAccess,
     hasLutherAccess,
+    hasConnorAccess,
     hasAnySubscription
   } = useAgentAccess(subscription);
   
@@ -103,9 +104,10 @@ const Dashboard = () => {
   const finalHasAccess = isTrialExpired ? false : (completedTrialOrPayment || hasAnySubscription);
   const finalHasMarkusAccess = isTrialExpired ? false : (hasMarkusAccess || completedTrialOrPayment);
   const finalHasKaraAccess = isTrialExpired ? false : (hasKaraAccess || completedTrialOrPayment);
-  const finalHasConnorAccess = isTrialExpired ? false : (hasConnorAccess || completedTrialOrPayment);
+  const finalHasJerryAccess = isTrialExpired ? false : (hasJerryAccess || completedTrialOrPayment);
   const finalHasChloeAccess = isTrialExpired ? false : (hasChloeAccess || completedTrialOrPayment);
   const finalHasLutherAccess = isTrialExpired ? false : (hasLutherAccess || completedTrialOrPayment);
+  const finalHasConnorAccess = isTrialExpired ? false : (hasConnorAccess || completedTrialOrPayment);
   
   // Render trial warning for users in trial mode
   const renderTrialWarning = () => {
@@ -133,9 +135,10 @@ const Dashboard = () => {
         hasActiveSubscription={finalHasAccess && hasActiveSubscription}
         hasMarkusAccess={finalHasMarkusAccess}
         hasKaraAccess={finalHasKaraAccess}
-        hasConnorAccess={finalHasConnorAccess}
+        hasJerryAccess={finalHasJerryAccess}
         hasChloeAccess={finalHasChloeAccess}
         hasLutherAccess={finalHasLutherAccess}
+        hasConnorAccess={finalHasConnorAccess}
       >
         {renderTrialWarning()}
         <DashboardView 
@@ -145,9 +148,10 @@ const Dashboard = () => {
           hasActiveSubscription={finalHasAccess && hasActiveSubscription}
           hasMarkusAccess={finalHasMarkusAccess}
           hasKaraAccess={finalHasKaraAccess}
-          hasConnorAccess={finalHasConnorAccess}
+          hasJerryAccess={finalHasJerryAccess}
           hasChloeAccess={finalHasChloeAccess}
           hasLutherAccess={finalHasLutherAccess}
+          hasConnorAccess={finalHasConnorAccess}
           hasAnySubscription={finalHasAccess}
           isRefreshing={false}
         />

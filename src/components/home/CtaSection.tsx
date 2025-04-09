@@ -6,6 +6,7 @@ import { Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
+import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 const CtaSection = () => {
   const { user, subscription } = useAuth();
@@ -13,6 +14,7 @@ const CtaSection = () => {
   
   // Check if user has completed a trial or has a subscription
   const hasCompleted = hasCompletedTrialOrPayment();
+  const hasUsedTrial = hasUsedTrialBefore();
   
   // Check if user already has a trial or subscription
   const hasSubscription = subscription && (
@@ -20,14 +22,14 @@ const CtaSection = () => {
     subscription.status === 'active' ||
     subscription.markus ||
     subscription.kara ||
-    subscription.connor ||
+    subscription.jerry ||
     subscription.chloe ||
     subscription.luther ||
     subscription.allInOne
   );
 
   // Determine which buttons to show
-  const showTrialButton = !user || (user && !hasSubscription && !hasCompleted);
+  const showTrialButton = !user || (user && !hasSubscription && !hasCompleted && !hasUsedTrial);
   const showPricingButton = !user || (user && !hasSubscription);
   
   return (
@@ -37,7 +39,9 @@ const CtaSection = () => {
           Ready to Transform Your Business?
         </h2>
         <p className="text-lg mb-10 max-w-2xl mx-auto text-muted-foreground">
-          Start with a 7-day free trial or explore our pricing plans to find the right fit for your needs.
+          {hasUsedTrial 
+            ? "Choose from our subscription plans to find the right fit for your needs." 
+            : "Start with a 7-day free trial or explore our pricing plans to find the right fit for your needs."}
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

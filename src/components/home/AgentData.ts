@@ -36,7 +36,7 @@ export const agentData: AgentInfo[] = [
     colorClass: "kara"
   },
   {
-    name: "Connor",
+    name: "Jerry",
     title: "Marketing Automation",
     description: "Create personalized email campaigns, manage social media presence, and generate content for your business.",
     features: [
@@ -45,7 +45,7 @@ export const agentData: AgentInfo[] = [
       "Customer nurturing sequences"
     ],
     icon: Mail,
-    colorClass: "connor"
+    colorClass: "jerry"
   },
   {
     name: "Chloe",
@@ -70,5 +70,17 @@ export const agentData: AgentInfo[] = [
     ],
     icon: BarChart3,
     colorClass: "luther"
+  },
+  {
+    name: "Connor",
+    title: "All-In-One AI Assistant",
+    description: "The ultimate AI assistant that combines all capabilities - customer service, support, marketing, administration, and sales in one powerful package.",
+    features: [
+      "Complete business automation",
+      "Comprehensive AI assistance",
+      "Multiple domain expertise"
+    ],
+    icon: MessageSquare,
+    colorClass: "connor"
   }
 ];

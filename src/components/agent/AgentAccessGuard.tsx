@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -5,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess, shouldForceAccess, hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { Button } from "@/components/ui/button";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
-import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime } from "@/utils/trialTimerUtils";
+import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Clock } from "lucide-react";
 
@@ -21,6 +22,12 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   const { startTrial, isProcessing } = useStartFreeTrial();
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  
+  // Check if user has used a trial before
+  useEffect(() => {
+    setHasUsedTrial(hasUsedTrialBefore());
+  }, []);
   
   // Check if user has any kind of access
   const hasAccess = React.useMemo(() => {
@@ -52,10 +59,10 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
       const hasSpecificAccess = 
         (agentId === 'markus' && subscription.markus) ||
         (agentId === 'kara' && subscription.kara) ||
-        (agentId === 'connor' && subscription.connor) ||
+        (agentId === 'jerry' && subscription.jerry) ||
         (agentId === 'chloe' && subscription.chloe) ||
         (agentId === 'luther' && subscription.luther) ||
-        (subscription.allInOne);
+        (agentId === 'connor' && (subscription.all_in_one || subscription.allInOne));
         
       if (hasSpecificAccess) {
         console.log(`AgentAccessGuard: User has specific access to ${agentId}`);
@@ -172,17 +179,22 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
         <div className="bg-card border rounded-lg p-8 shadow-lg max-w-md w-full text-center">
           <h2 className="text-2xl font-bold mb-4">Agent Access Required</h2>
           <p className="mb-6 text-muted-foreground">
-            You need to start a free trial or purchase a subscription to access this AI agent.
+            {hasUsedTrial 
+              ? "You need to purchase a subscription to access this AI agent."
+              : "You need to start a free trial or purchase a subscription to access this AI agent."
+            }
           </p>
           
           <div className="space-y-4">
-            <Button 
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90"
-              onClick={startTrial}
-              disabled={isProcessing}
-            >
-              Start 7-Day Free Trial (1 Minute Usage)
-            </Button>
+            {!hasUsedTrial && (
+              <Button 
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90"
+                onClick={startTrial}
+                disabled={isProcessing}
+              >
+                Start 7-Day Free Trial (1 Minute Usage)
+              </Button>
+            )}
             
             <Button 
               variant="outline" 

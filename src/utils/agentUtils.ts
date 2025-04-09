@@ -40,11 +40,11 @@ export const getAgentInfo = (
         hasAccess = !!dbSubscription?.kara || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
       }
       break;
-    case "connor":
-      agentName = "Connor";
-      agentColor = "connor";
+    case "jerry":
+      agentName = "Jerry";
+      agentColor = "jerry";
       if (!hasAccess) {
-        hasAccess = !!dbSubscription?.connor || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
+        hasAccess = !!dbSubscription?.jerry || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
       }
       break;
     case "chloe":
@@ -59,6 +59,14 @@ export const getAgentInfo = (
       agentColor = "luther";
       if (!hasAccess) {
         hasAccess = !!dbSubscription?.luther || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
+      }
+      break;
+    case "connor":
+      agentName = "Connor";
+      agentColor = "connor";
+      // Connor is the all-in-one agent, so check for all_in_one subscription
+      if (!hasAccess) {
+        hasAccess = !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
       }
       break;
     default:

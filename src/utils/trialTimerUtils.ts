@@ -1,3 +1,4 @@
+
 /**
  * Utilities for managing the free trial usage timer
  */
@@ -5,6 +6,7 @@
 // Key constants for storing timer data
 const TRIAL_START_TIME_KEY = 'trial_start_time';
 const TRIAL_TIME_LIMIT_MS = 60 * 1000; // 1 minute in milliseconds
+const HAS_USED_TRIAL_EVER = 'has_used_trial_ever';
 
 /**
  * Start the trial timer immediately
@@ -14,6 +16,8 @@ export const startTrialTimer = (): void => {
   if (!localStorage.getItem(TRIAL_START_TIME_KEY)) {
     // Store the current timestamp as the start time
     localStorage.setItem(TRIAL_START_TIME_KEY, Date.now().toString());
+    // Mark that this user has used a free trial - PERMANENT
+    localStorage.setItem(HAS_USED_TRIAL_EVER, 'true');
     console.log('Trial timer started at:', new Date().toISOString());
   }
 };
@@ -73,7 +77,7 @@ export const getRemainingTrialTime = (): number => {
  * This ensures the user completely loses access to all AI agents
  */
 export const clearTrialAccess = (): void => {
-  // Remove all trial-related access flags
+  // Remove trial-related access flags EXCEPT the has_used_trial_ever flag
   localStorage.removeItem('trialCompleted');
   localStorage.removeItem('forceAgentAccess');
   
@@ -83,4 +87,11 @@ export const clearTrialAccess = (): void => {
   } else {
     console.log('Trial expired but user has payment - keeping payment flags');
   }
+};
+
+/**
+ * Check if the user has ever used a free trial before
+ */
+export const hasUsedTrialBefore = (): boolean => {
+  return localStorage.getItem(HAS_USED_TRIAL_EVER) === 'true';
 };

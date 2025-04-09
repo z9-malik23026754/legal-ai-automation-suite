@@ -12,9 +12,10 @@ export const useAgentAccess = (subscription: any) => {
     hasActiveSubscription: false,
     hasMarkusAccess: false,
     hasKaraAccess: false,
-    hasConnorAccess: false,
+    hasJerryAccess: false,
     hasChloeAccess: false,
     hasLutherAccess: false,
+    hasConnorAccess: false,
     hasAnySubscription: false
   });
 
@@ -26,21 +27,23 @@ export const useAgentAccess = (subscription: any) => {
     // Determine agent access based on subscription status
     const hasMarkusAccess = isInTrialMode || hasActiveSubscription || !!dbSubscription?.markus || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
     const hasKaraAccess = isInTrialMode || hasActiveSubscription || !!dbSubscription?.kara || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
-    const hasConnorAccess = isInTrialMode || hasActiveSubscription || !!dbSubscription?.connor || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
+    const hasJerryAccess = isInTrialMode || hasActiveSubscription || !!dbSubscription?.jerry || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
     const hasChloeAccess = isInTrialMode || hasActiveSubscription || !!dbSubscription?.chloe || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
     const hasLutherAccess = isInTrialMode || hasActiveSubscription || !!dbSubscription?.luther || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
+    const hasConnorAccess = isInTrialMode || hasActiveSubscription || !!dbSubscription?.all_in_one || !!dbSubscription?.allInOne || false;
     
     // Check if user has any subscriptions
-    const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasConnorAccess || hasChloeAccess || hasLutherAccess;
+    const hasAnySubscription = hasMarkusAccess || hasKaraAccess || hasJerryAccess || hasChloeAccess || hasLutherAccess || hasConnorAccess;
 
     setAccessState({
       isInTrialMode,
       hasActiveSubscription,
       hasMarkusAccess,
       hasKaraAccess,
-      hasConnorAccess,
+      hasJerryAccess,
       hasChloeAccess,
       hasLutherAccess,
+      hasConnorAccess,
       hasAnySubscription
     });
   }, [dbSubscription]);

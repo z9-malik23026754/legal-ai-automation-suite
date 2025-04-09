@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useDialog } from "@/hooks/useDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 export const useStartFreeTrial = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -12,6 +13,16 @@ export const useStartFreeTrial = () => {
   const { user, session, checkSubscription } = useAuth();
 
   const startTrial = async () => {
+    // Check if user has already used a trial before
+    if (hasUsedTrialBefore()) {
+      toast({
+        title: "Free trial not available",
+        description: "You have already used your free trial. Please choose a subscription plan to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // If user is not logged in, show the free trial signup form
     if (!user) {
       openDialog({

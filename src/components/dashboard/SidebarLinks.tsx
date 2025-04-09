@@ -14,17 +14,19 @@ import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 interface SidebarLinksProps {
   hasMarkusAccess: boolean;
   hasKaraAccess: boolean;
-  hasConnorAccess: boolean;
+  hasJerryAccess: boolean;
   hasChloeAccess?: boolean;
   hasLutherAccess?: boolean;
+  hasConnorAccess?: boolean;
 }
 
 const SidebarLinks: React.FC<SidebarLinksProps> = ({
   hasMarkusAccess,
   hasKaraAccess,
-  hasConnorAccess,
+  hasJerryAccess,
   hasChloeAccess = false,
-  hasLutherAccess = false
+  hasLutherAccess = false,
+  hasConnorAccess = false
 }) => {
   // Check if trial or payment completed
   const completedTrialOrPayment = hasCompletedTrialOrPayment();
@@ -32,24 +34,27 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
   // Calculate final access state
   const finalMarkusAccess = hasMarkusAccess || completedTrialOrPayment;
   const finalKaraAccess = hasKaraAccess || completedTrialOrPayment;
-  const finalConnorAccess = hasConnorAccess || completedTrialOrPayment;
+  const finalJerryAccess = hasJerryAccess || completedTrialOrPayment;
   const finalChloeAccess = hasChloeAccess || completedTrialOrPayment;
   const finalLutherAccess = hasLutherAccess || completedTrialOrPayment;
+  const finalConnorAccess = hasConnorAccess || completedTrialOrPayment;
   
   // Log access status for each agent to help debug
   console.log("SidebarLinks - Agent access:", {
     hasMarkusAccess,
     hasKaraAccess,
-    hasConnorAccess,
+    hasJerryAccess,
     hasChloeAccess,
     hasLutherAccess,
+    hasConnorAccess,
     completedTrialOrPayment,
     finalAccess: {
       markus: finalMarkusAccess,
       kara: finalKaraAccess,
-      connor: finalConnorAccess,
+      jerry: finalJerryAccess,
       chloe: finalChloeAccess,
-      luther: finalLutherAccess
+      luther: finalLutherAccess,
+      connor: finalConnorAccess
     }
   });
   
@@ -115,12 +120,12 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Connor" disabled={!finalConnorAccess}>
-              <Link to={finalConnorAccess ? "/agents/connor" : "/pricing"}>
-                <div className="agent-label-connor inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
-                  <Mail className="h-3 w-3 text-connor" />
+            <SidebarMenuButton asChild tooltip="Jerry" disabled={!finalJerryAccess}>
+              <Link to={finalJerryAccess ? "/agents/jerry" : "/pricing"}>
+                <div className="agent-label-jerry inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
+                  <Mail className="h-3 w-3 text-jerry" />
                 </div>
-                <span>{!finalConnorAccess && "🔒 "}Connor</span>
+                <span>{!finalJerryAccess && "🔒 "}Jerry</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -141,6 +146,16 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({
                   <BarChart3 className="h-3 w-3 text-luther" />
                 </div>
                 <span>{!finalLutherAccess && "🔒 "}Luther</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Connor" disabled={!finalConnorAccess}>
+              <Link to={finalConnorAccess ? "/agents/connor" : "/pricing"}>
+                <div className="agent-label-connor inline-flex items-center justify-center w-6 h-6 rounded-full mr-2">
+                  <MessageSquare className="h-3 w-3 text-connor" />
+                </div>
+                <span>{!finalConnorAccess && "🔒 "}Connor (All-in-One)</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
