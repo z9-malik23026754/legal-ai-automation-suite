@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -96,17 +97,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log("Attempting to sign out...");
       
-      setUser(null);
-      setSession(null);
-      setSubscription(null);
-      
+      // Clear all local storage items that control access first
       localStorage.removeItem('forceAgentAccess');
       localStorage.removeItem('trialCompleted');
       localStorage.removeItem('paymentCompleted');
       localStorage.removeItem('accessGrantedAt');
       
+      // Clear any session storage items
       sessionStorage.clear();
       
+      // Reset component state
+      setUser(null);
+      setSession(null);
+      setSubscription(null);
+      
+      // Force a global sign-out to ensure complete logout
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {

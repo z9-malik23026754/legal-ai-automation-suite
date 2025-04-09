@@ -41,7 +41,7 @@ const CtaSection = () => {
         <p className="text-lg mb-10 max-w-2xl mx-auto text-muted-foreground">
           {hasUsedTrial 
             ? "Choose from our subscription plans to find the right fit for your needs." 
-            : "Start with a 7-day free trial or explore our pricing plans to find the right fit for your needs."}
+            : "Start with a 1-minute free trial or explore our pricing plans to find the right fit for your needs."}
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -59,7 +59,7 @@ const CtaSection = () => {
               disabled={isProcessing}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? 'Processing...' : 'Start 7-Day Free Trial'}
+              {isProcessing ? 'Processing...' : 'Start 1-Minute Free Trial'}
             </Button>
           )}
           

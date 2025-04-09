@@ -2,9 +2,8 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useDialog } from "@/hooks/useDialog";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
+import { hasUsedTrialBefore, startTrialTimer } from "@/utils/trialTimerUtils";
 
 export const useStartFreeTrial = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -43,11 +42,12 @@ export const useStartFreeTrial = () => {
       console.log("Starting free trial activation...");
       
       // Use direct access to create a trial without going through Stripe checkout
-      // This approach avoids the edge function invocation issues
       localStorage.setItem('trialCompleted', 'true');
       localStorage.setItem('paymentCompleted', 'false');
       localStorage.setItem('forceAgentAccess', 'true');
-      localStorage.setItem('accessGrantedAt', new Date().toISOString());
+      
+      // Start the trial timer
+      startTrialTimer();
       
       // Also mark that the user has used a trial before (permanent)
       localStorage.setItem('has_used_trial_ever', 'true');
