@@ -55,6 +55,7 @@ export const updateSubscriptionStatus = async (supabase: any, subscriptionId: st
       status: 'canceled',
       markus: false,
       kara: false,
+      jerry: false, // Add jerry property
       connor: false,
       chloe: false,
       luther: false,
@@ -67,6 +68,7 @@ export const updateSubscriptionStatus = async (supabase: any, subscriptionId: st
       status: 'active',
       markus: true,
       kara: true,
+      jerry: true, // Add jerry property
       connor: true,
       chloe: true,
       luther: true,
@@ -79,6 +81,7 @@ export const updateSubscriptionStatus = async (supabase: any, subscriptionId: st
       status: 'trial',
       markus: true,
       kara: true,
+      jerry: true, // Add jerry property
       connor: true,
       chloe: true,
       luther: true,

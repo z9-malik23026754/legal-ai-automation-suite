@@ -36,6 +36,7 @@ export const useSubscriptionService = (
         const subscriptionData = {
           markus: !!data.subscription.markus,
           kara: !!data.subscription.kara,
+          jerry: !!data.subscription.jerry, // Add jerry property
           connor: !!data.subscription.connor,
           chloe: !!data.subscription.chloe,
           luther: !!data.subscription.luther,

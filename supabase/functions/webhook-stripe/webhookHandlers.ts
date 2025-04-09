@@ -38,6 +38,7 @@ export const handleCheckoutSessionCompleted = async (
     stripe_customer_id: session.customer,
     markus: true, 
     kara: true, 
+    jerry: true, // Make sure jerry is included
     connor: true, 
     chloe: true, 
     luther: true, 
@@ -109,6 +110,7 @@ export const handleSubscriptionUpdate = async (
         // Always set all agents to true
         markus: true,
         kara: true,
+        jerry: true, // Make sure jerry is included
         connor: true,
         chloe: true,
         luther: true,
@@ -142,6 +144,7 @@ export const handleSubscriptionUpdate = async (
     // Always set all agents to true, even for non-trial subscriptions
     markus: true,
     kara: true,
+    jerry: true, // Make sure jerry is included
     connor: true,
     chloe: true,
     luther: true,

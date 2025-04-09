@@ -51,6 +51,7 @@ serve(async (req) => {
             status: "expired",
             markus: false,
             kara: false,
+            jerry: false, // Make sure jerry is included
             connor: false,
             chloe: false,
             luther: false,
