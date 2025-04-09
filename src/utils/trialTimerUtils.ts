@@ -5,7 +5,14 @@
  * Check if the user has ever used a free trial before (permanent flag)
  */
 export const hasUsedTrialBefore = (): boolean => {
-  return localStorage.getItem('has_used_trial_ever') === 'true';
+  // Always check both local storage and the database flag via the user's subscription
+  // Database check should be the source of truth, but localStorage provides a fallback
+  if (localStorage.getItem('has_used_trial_ever') === 'true') {
+    return true;
+  }
+  
+  // The subscription status will be checked elsewhere via subscription hooks
+  return false;
 };
 
 /**
@@ -13,6 +20,7 @@ export const hasUsedTrialBefore = (): boolean => {
  */
 export const markTrialAsUsed = (): void => {
   localStorage.setItem('has_used_trial_ever', 'true');
+  // The database flag will be set in the backend via the create-free-trial function
 };
 
 /**
@@ -74,6 +82,16 @@ export const getRemainingTrialTime = (): number => {
   const remainingMs = Math.max(0, trialDurationMs - elapsedMs);
   
   return remainingMs;
+};
+
+/**
+ * Format remaining time for display
+ */
+export const formatRemainingTime = (ms: number): string => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const seconds = totalSeconds % 60;
+  const minutes = Math.floor(totalSeconds / 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
 /**

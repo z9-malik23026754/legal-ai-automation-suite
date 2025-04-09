@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
 import { 
-  hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, 
+  hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, formatRemainingTime,
   hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry 
 } from "@/utils/trialTimerUtils";
 import { useNavigate } from "react-router-dom";
@@ -105,14 +105,6 @@ const Dashboard = () => {
     navigate('/pricing');
     return null; // Don't render anything else
   }
-  
-  // Format remaining time for display
-  const formatRemainingTime = (ms: number) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds / 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
   
   // Final access flags that consider trial expiration
   const finalHasAccess = isTrialExpired ? false : (completedTrialOrPayment || hasAnySubscription);
