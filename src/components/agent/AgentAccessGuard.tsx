@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,9 +5,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess, shouldForceAccess, hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { Button } from "@/components/ui/button";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
-import { hasTrialTimeExpired, clearTrialAccess } from "@/utils/trialTimerUtils";
+import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime } from "@/utils/trialTimerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Clock } from "lucide-react";
 
 interface AgentAccessGuardProps {
   agentId: string;
@@ -21,6 +20,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   const navigate = useNavigate();
   const { startTrial, isProcessing } = useStartFreeTrial();
   const [isTrialExpired, setIsTrialExpired] = useState(false);
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
   
   // Check if user has any kind of access
   const hasAccess = React.useMemo(() => {
@@ -67,6 +67,14 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     return false;
   }, [subscription, agentId]);
   
+  // Format remaining time for display
+  const formatRemainingTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
   // Check for trial time expiration
   useEffect(() => {
     // If user is in trial mode, check if trial time has expired
@@ -75,6 +83,9 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     
     if (isInTrialMode && !localStorage.getItem('paymentCompleted')) {
       const checkTrialTime = () => {
+        const timeLeft = getRemainingTrialTime();
+        setRemainingTime(timeLeft);
+        
         const expired = hasTrialTimeExpired();
         if (expired) {
           // Clear all trial access flags to ensure complete lockout
@@ -186,7 +197,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     );
   }
   
-  // If trial is active, display warning alert
+  // If trial is active, display warning alert with time remaining
   const isInTrialMode = subscription?.status === 'trial' || localStorage.getItem('trialCompleted') === 'true';
   const isPaymentCompleted = localStorage.getItem('paymentCompleted') === 'true';
   const shouldShowWarning = isInTrialMode && !isPaymentCompleted && !isTrialExpired;
@@ -194,10 +205,12 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   // If user has access, render children with optional warning
   return (
     <>
-      {shouldShowWarning && (
+      {shouldShowWarning && remainingTime !== null && (
         <Alert variant="default" className="mb-6 mt-2 mx-4 bg-amber-50 border-amber-200 text-amber-800">
           <AlertTriangle className="h-5 w-5 text-amber-600" />
-          <AlertTitle>Free Trial Active - Limited Time!</AlertTitle>
+          <AlertTitle className="flex items-center gap-2">
+            Free Trial Active - Time Remaining: {formatRemainingTime(remainingTime)}
+          </AlertTitle>
           <AlertDescription>
             ⚠️ Your free trial will expire soon! You have limited time to explore this AI agent.
           </AlertDescription>

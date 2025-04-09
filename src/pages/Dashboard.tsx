@@ -7,8 +7,10 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/components/ui/use-toast";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
-import { hasTrialTimeExpired, clearTrialAccess } from "@/utils/trialTimerUtils";
+import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime } from "@/utils/trialTimerUtils";
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Clock } from "lucide-react";
 
 const Dashboard = () => {
   const { user, subscription } = useAuth();
@@ -86,6 +88,17 @@ const Dashboard = () => {
     navigate('/pricing');
   }
   
+  // Format remaining time for display
+  const formatRemainingTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  // Get remaining trial time
+  const remainingTrialTime = isTrial && !isTrialExpired ? getRemainingTrialTime() : null;
+  
   // Final access flags that consider trial expiration
   const finalHasAccess = isTrialExpired ? false : (completedTrialOrPayment || hasAnySubscription);
   const finalHasMarkusAccess = isTrialExpired ? false : (hasMarkusAccess || completedTrialOrPayment);
@@ -93,6 +106,24 @@ const Dashboard = () => {
   const finalHasConnorAccess = isTrialExpired ? false : (hasConnorAccess || completedTrialOrPayment);
   const finalHasChloeAccess = isTrialExpired ? false : (hasChloeAccess || completedTrialOrPayment);
   const finalHasLutherAccess = isTrialExpired ? false : (hasLutherAccess || completedTrialOrPayment);
+  
+  // Render trial warning for users in trial mode
+  const renderTrialWarning = () => {
+    if (isTrial && !isTrialExpired && remainingTrialTime !== null) {
+      return (
+        <Alert variant="default" className="mb-6 mt-2 mx-4 bg-amber-50 border-amber-200 text-amber-800">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTitle className="flex items-center">
+            Free Trial Active - Time Remaining: {formatRemainingTime(remainingTrialTime)}
+          </AlertTitle>
+          <AlertDescription>
+            ⚠️ Your free trial will expire soon! You have limited time to explore the AI agents.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    return null;
+  };
   
   return (
     <AuthGuard user={user}>
@@ -106,6 +137,7 @@ const Dashboard = () => {
         hasChloeAccess={finalHasChloeAccess}
         hasLutherAccess={finalHasLutherAccess}
       >
+        {renderTrialWarning()}
         <DashboardView 
           userName={user?.email?.split('@')[0] || 'User'}
           subscription={subscription}
