@@ -29,47 +29,60 @@ const Navbar = () => {
   
   const handleSignOut = async () => {
     try {
-      // Clear all relevant localStorage items first
+      // Clear ALL localStorage items related to authentication and access
       localStorage.removeItem('forceAgentAccess');
       localStorage.removeItem('trialCompleted');
       localStorage.removeItem('paymentCompleted');
       localStorage.removeItem('accessGrantedAt');
+      localStorage.removeItem('has_used_trial_ever');
       
-      // Clear any session storage items
+      // Clear ALL sessionStorage items
       sessionStorage.clear();
       
-      // Force sign out with direct call to ensure session is cleared
-      await supabase.auth.signOut({ scope: 'global' });
-      
-      // Reset UI state
+      // Close the menu if it's open
       setMenuOpen(false);
       
+      // Call the authentication signOut method which handles token removal
+      if (signOut) {
+        await signOut();
+      } else {
+        // Fallback: direct signOut via Supabase client if context method unavailable
+        await supabase.auth.signOut({ scope: 'global' });
+      }
+      
+      // Show toast notification
       toast({
         title: "Signed out successfully",
         description: "You have been signed out of your account.",
       });
       
-      // Navigate after successful signout and force reload
+      // Force navigation to home page
       navigate("/");
-      window.location.reload();
+      
+      // For maximum reliability, also force a page reload
+      window.location.href = "/";
     } catch (error) {
       console.error("Error signing out:", error);
+      
       toast({
         title: "Error signing out",
         description: "There was a problem signing you out. Please try again.",
         variant: "destructive",
       });
       
-      // Attempt a fallback sign out directly
+      // Attempt a more aggressive fallback approach
       try {
+        // Try a direct signOut without options
         await supabase.auth.signOut();
-        navigate("/");
-        window.location.reload();
-      } catch (fallbackError) {
-        console.error("Fallback signout also failed:", fallbackError);
-        // As a last resort, clear auth data and reload
+        
+        // Clear all storage as a last resort
         localStorage.clear();
+        sessionStorage.clear();
+        
+        // Force redirect and reload
         window.location.href = "/";
+      } catch (fallbackError) {
+        console.error("Critical sign-out failure:", fallbackError);
       }
     }
   };

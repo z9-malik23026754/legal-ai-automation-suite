@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardView from "@/components/dashboard/DashboardView";
 import AuthGuard from "@/components/dashboard/AuthGuard";
@@ -7,7 +7,10 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useToast } from "@/components/ui/use-toast";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
-import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, hasUsedTrialBefore } from "@/utils/trialTimerUtils";
+import { 
+  hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, 
+  hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry 
+} from "@/utils/trialTimerUtils";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Clock } from "lucide-react";
@@ -16,6 +19,7 @@ const Dashboard = () => {
   const { user, subscription } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
   
   // Calculate access flags based on subscription
   const {
@@ -33,14 +37,19 @@ const Dashboard = () => {
   // Check if completed trial or payment flag is set
   const completedTrialOrPayment = hasCompletedTrialOrPayment();
   
-  // Check for trial expiration on the dashboard
+  // Check for trial expiration on the dashboard more frequently
   useEffect(() => {
     // Only check for trial expiration if user is in trial mode
     if (isInTrialMode || (completedTrialOrPayment && !localStorage.getItem('paymentCompleted'))) {
       const checkTrialStatus = () => {
+        // Update remaining time
+        const timeLeft = getRemainingTrialTime();
+        setRemainingTime(timeLeft);
+        
         // Check if trial has expired
         if (hasTrialTimeExpired()) {
-          // Clear all trial access flags
+          // Lock AI agents and clear all trial access flags
+          lockAIAgents();
           clearTrialAccess();
           
           // Show toast notification
@@ -58,12 +67,18 @@ const Dashboard = () => {
       // Run trial check immediately
       checkTrialStatus();
       
-      // Set up periodic checks more frequently (every 1 second)
-      const intervalId = setInterval(checkTrialStatus, 1000);
+      // Set up periodic checks more frequently (every 500ms) for a smoother countdown
+      const intervalId = setInterval(checkTrialStatus, 500);
       
       return () => clearInterval(intervalId);
     }
   }, [isInTrialMode, completedTrialOrPayment, toast, navigate]);
+  
+  // Additional check on every render to catch any edge cases
+  useEffect(() => {
+    // Check if trial has expired and redirect if needed
+    redirectToPricingOnExpiry();
+  });
   
   // Show success toast only once per session when user has access
   useEffect(() => {
@@ -84,9 +99,11 @@ const Dashboard = () => {
   
   // Remove trial access if expired
   if (isTrial && isTrialExpired) {
+    lockAIAgents();
     clearTrialAccess();
     // Force redirect to pricing page
     navigate('/pricing');
+    return null; // Don't render anything else
   }
   
   // Format remaining time for display
@@ -96,9 +113,6 @@ const Dashboard = () => {
     const minutes = Math.floor(totalSeconds / 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
-  
-  // Get remaining trial time
-  const remainingTrialTime = isTrial && !isTrialExpired ? getRemainingTrialTime() : null;
   
   // Final access flags that consider trial expiration
   const finalHasAccess = isTrialExpired ? false : (completedTrialOrPayment || hasAnySubscription);
@@ -111,12 +125,12 @@ const Dashboard = () => {
   
   // Render trial warning for users in trial mode
   const renderTrialWarning = () => {
-    if (isTrial && !isTrialExpired && remainingTrialTime !== null) {
+    if (isTrial && !isTrialExpired && remainingTime !== null) {
       return (
         <Alert variant="default" className="mb-6 mt-2 mx-4 bg-amber-50 border-amber-200 text-amber-800">
           <AlertTriangle className="h-5 w-5 text-amber-600" />
           <AlertTitle className="flex items-center">
-            Free Trial Active - Time Remaining: {formatRemainingTime(remainingTrialTime)}
+            Free Trial Active - Time Remaining: {formatRemainingTime(remainingTime)}
           </AlertTitle>
           <AlertDescription>
             ⚠️ Your free trial will expire soon! You have limited time to explore the AI agents.

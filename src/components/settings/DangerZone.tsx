@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +40,7 @@ const DangerZone = () => {
     try {
       console.log("Attempting to delete account...");
       
-      // Call the delete-account edge function
+      // Call the delete-account edge function with proper authorization
       const { data, error } = await supabase.functions.invoke('delete-account', {
         method: 'POST',
         headers: {
@@ -62,24 +62,59 @@ const DangerZone = () => {
       // Close the dialog if it's open
       setIsDialogOpen(false);
       
-      // Clear agent access
-      removeForceAgentAccess();
+      // Clear ALL localStorage items related to authentication and access
+      localStorage.removeItem('forceAgentAccess');
+      localStorage.removeItem('trialCompleted');
+      localStorage.removeItem('paymentCompleted');
+      localStorage.removeItem('accessGrantedAt');
+      localStorage.removeItem('has_used_trial_ever');
+      
+      // Clear ALL sessionStorage items
+      sessionStorage.clear();
       
       toast({
         title: "Account deleted",
         description: "Your account has been successfully deleted.",
       });
       
-      // Sign out after successful deletion and redirect to home page
-      await signOut();
+      // Sign out after successful deletion
+      if (signOut) {
+        await signOut();
+      } else {
+        // Fallback: direct signOut via Supabase client
+        await supabase.auth.signOut({ scope: 'global' });
+      }
+      
+      // Redirect to home page and force a reload for clean state
       navigate("/");
+      window.location.href = "/";
     } catch (error) {
       console.error("Error deleting account:", error);
+      
       toast({
         title: "Error deleting account",
         description: error.message || "There was an error deleting your account. Please try again.",
         variant: "destructive",
       });
+      
+      // Try a direct approach to Supabase as fallback
+      try {
+        if (session?.user?.id) {
+          const { error: directError } = await supabase.auth.admin.deleteUser(
+            session.user.id
+          );
+          
+          if (!directError) {
+            // Clear everything and redirect on success
+            localStorage.clear();
+            sessionStorage.clear();
+            await supabase.auth.signOut();
+            window.location.href = "/";
+          }
+        }
+      } catch (fallbackError) {
+        console.error("Fallback deletion failed:", fallbackError);
+      }
     } finally {
       setIsDeleting(false);
     }

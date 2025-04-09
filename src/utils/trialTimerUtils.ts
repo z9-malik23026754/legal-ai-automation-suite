@@ -9,12 +9,22 @@ export const hasUsedTrialBefore = (): boolean => {
 };
 
 /**
+ * Mark that the user has used their trial
+ */
+export const markTrialAsUsed = (): void => {
+  localStorage.setItem('has_used_trial_ever', 'true');
+};
+
+/**
  * Start the trial timer by setting the access timestamp
  */
 export const startTrialTimer = (): void => {
   const now = new Date().toISOString();
   localStorage.setItem('accessGrantedAt', now);
   console.log("Trial timer started at:", now);
+  
+  // Also mark that the user has used a trial (permanent)
+  markTrialAsUsed();
 };
 
 /**
@@ -36,7 +46,7 @@ export const getTrialStartTime = (): Date | null => {
  * Check if the trial time has expired (1 minute duration)
  */
 export const hasTrialTimeExpired = (): boolean => {
-  // Always return true if user has previously used a trial
+  // Always return true if user has previously used a trial but has no active timer
   if (hasUsedTrialBefore() && !localStorage.getItem('accessGrantedAt')) {
     return true;
   }
@@ -74,4 +84,42 @@ export const clearTrialAccess = (): void => {
   localStorage.removeItem('trialCompleted');
   localStorage.removeItem('paymentCompleted');
   // Note: we don't remove 'has_used_trial_ever' as that should be permanent
+};
+
+/**
+ * Lock all AI agents when trial expires
+ */
+export const lockAIAgents = (): void => {
+  // Clear all access flags
+  clearTrialAccess();
+  
+  // Add an explicit lock flag
+  localStorage.setItem('aiAgentsLocked', 'true');
+  
+  console.log("AI agents locked due to trial expiration");
+};
+
+/**
+ * Check if AI agents are locked
+ */
+export const areAIAgentsLocked = (): boolean => {
+  return localStorage.getItem('aiAgentsLocked') === 'true' || hasTrialTimeExpired();
+};
+
+/**
+ * Redirect to pricing page when trial expires
+ */
+export const redirectToPricingOnExpiry = (): void => {
+  if (hasTrialTimeExpired()) {
+    // Lock agents first
+    lockAIAgents();
+    
+    // Set a flag to avoid multiple redirects
+    if (!sessionStorage.getItem('redirected_from_expired_trial')) {
+      sessionStorage.setItem('redirected_from_expired_trial', 'true');
+      
+      // Navigate to pricing page
+      window.location.href = '/pricing';
+    }
+  }
 };

@@ -102,6 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem('trialCompleted');
       localStorage.removeItem('paymentCompleted');
       localStorage.removeItem('accessGrantedAt');
+      localStorage.removeItem('aiAgentsLocked');
       
       // Clear any session storage items
       sessionStorage.clear();
@@ -134,6 +135,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "There was an error signing out. Please try again.",
         variant: "destructive",
       });
+      
+      // As a last resort, try a page reload
+      window.location.reload();
       
       throw error;
     }

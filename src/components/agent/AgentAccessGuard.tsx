@@ -6,7 +6,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { forceAgentAccess, shouldForceAccess, hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { Button } from "@/components/ui/button";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
-import { hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, hasUsedTrialBefore } from "@/utils/trialTimerUtils";
+import { 
+  hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, 
+  hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry 
+} from "@/utils/trialTimerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Clock } from "lucide-react";
 
@@ -31,7 +34,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   
   // Check if user has any kind of access
   const hasAccess = React.useMemo(() => {
-    // Check for trial expiration first
+    // First check for trial expiration
     const isInTrialMode = subscription?.status === 'trial' || 
                           localStorage.getItem('trialCompleted') === 'true';
     
@@ -82,7 +85,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
   
-  // Check for trial time expiration
+  // Check for trial time expiration with more frequent updates
   useEffect(() => {
     // If user is in trial mode, check if trial time has expired
     const isInTrialMode = subscription?.status === 'trial' || 
@@ -95,7 +98,8 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
         
         const expired = hasTrialTimeExpired();
         if (expired) {
-          // Clear all trial access flags to ensure complete lockout
+          // Lock AI agents and clear all trial access flags
+          lockAIAgents();
           clearTrialAccess();
           setIsTrialExpired(true);
           
@@ -106,7 +110,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
             variant: "destructive",
           });
           
-          // Immediately redirect to pricing page
+          // Redirect to pricing page
           navigate('/pricing');
         }
       };
@@ -114,8 +118,8 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
       // Initial check
       checkTrialTime();
       
-      // Set up periodic checks more frequently (every 1 second)
-      const intervalId = setInterval(checkTrialTime, 1000);
+      // Set up more frequent checks (every 500ms) for smoother countdown
+      const intervalId = setInterval(checkTrialTime, 500);
       
       return () => {
         clearInterval(intervalId);
@@ -142,6 +146,14 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
       }
     }
   }, [toast, agentId, hasAccess, isTrialExpired]);
+  
+  // Automatic check for trial expiration on every render
+  useEffect(() => {
+    // Check if trial has expired and redirect if needed
+    if (hasTrialTimeExpired() && !localStorage.getItem('paymentCompleted')) {
+      redirectToPricingOnExpiry();
+    }
+  });
   
   // If no user is logged in, redirect to login
   if (!user) {
