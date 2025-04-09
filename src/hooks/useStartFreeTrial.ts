@@ -10,7 +10,7 @@ export const useStartFreeTrial = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { openDialog } = useDialog();
-  const { user, session, checkSubscription } = useAuth();
+  const { user, checkSubscription } = useAuth();
 
   const startTrial = async () => {
     // Check if user has already used a trial before
@@ -33,47 +33,14 @@ export const useStartFreeTrial = () => {
       return;
     }
 
-    // If user is already logged in, proceed directly to Stripe checkout
-    await initiateStripeCheckout();
+    // If user is already logged in, proceed directly to activating the trial
+    await initiateTrialActivation();
   };
 
-  const initiateStripeCheckout = async () => {
+  const initiateTrialActivation = async () => {
     setIsProcessing(true);
     try {
-      console.log("Starting free trial process...");
-      
-      // Check if we have a valid session first
-      let currentSession = session;
-      let accessToken = currentSession?.access_token;
-      
-      // If no valid session is found, try to get a fresh session
-      if (!accessToken) {
-        console.log("No valid session found, refreshing session...");
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Session refresh error:", sessionError);
-          throw new Error("Authentication error. Please try signing in again.");
-        }
-        
-        currentSession = sessionData.session;
-        accessToken = currentSession?.access_token;
-        
-        if (!accessToken) {
-          console.error("Still no valid session after refresh");
-          throw new Error("Unable to authenticate. Please try signing out and signing in again.");
-        }
-      }
-      
-      console.log("Using session for user:", user?.id);
-      
-      // Make sure we have user data
-      if (!user || !user.id) {
-        throw new Error("User information not available. Please try refreshing the page and signing in again.");
-      }
-      
-      // Make the API call with authorization header and proper content type
-      console.log("Sending request to create-free-trial function...");
+      console.log("Starting free trial activation...");
       
       // Use direct access to create a trial without going through Stripe checkout
       // This approach avoids the edge function invocation issues
@@ -114,7 +81,7 @@ export const useStartFreeTrial = () => {
 
   return {
     startTrial,
-    initiateStripeCheckout,
+    initiateStripeCheckout: initiateTrialActivation, // Keep same method name for compatibility
     isProcessing
   };
 };

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -6,10 +5,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { AuthContextType, Subscription } from "@/types/auth";
 import { useSubscriptionService } from "@/hooks/useSubscriptionService";
 
-// Create the context
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Define the AuthProvider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -19,14 +16,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { checkSubscription } = useSubscriptionService(session, user, setSubscription);
 
   React.useEffect(() => {
-    // Set up auth state listener
     const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
       console.log("Auth state changed:", _event, newSession?.user?.id);
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setIsLoading(false);
       
-      // When auth state changes, check subscription status
       if (newSession?.user) {
         checkSubscription();
       } else {
@@ -34,7 +29,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       console.log("Initial session:", initialSession?.user?.id);
       setSession(initialSession);
@@ -53,7 +47,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [checkSubscription]);
 
-  // Sign in method
   const signIn = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ 
@@ -78,7 +71,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign up method
   const signUp = async (email: string, password: string, options?: any) => {
     try {
       const result = await supabase.auth.signUp({ 
@@ -100,17 +92,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign out method - enhanced with global scope and error handling
   const signOut = async () => {
     try {
       console.log("Attempting to sign out...");
       
-      // Clear local state first
       setUser(null);
       setSession(null);
       setSubscription(null);
       
-      // Use global scope to ensure all sessions across devices are invalidated
+      localStorage.removeItem('forceAgentAccess');
+      localStorage.removeItem('trialCompleted');
+      localStorage.removeItem('paymentCompleted');
+      localStorage.removeItem('accessGrantedAt');
+      
+      sessionStorage.clear();
+      
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
@@ -120,13 +116,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log("Sign out successful");
       
-      // Clear any persisted data
-      localStorage.removeItem('forceAgentAccess');
-      localStorage.removeItem('trialCompleted');
-      localStorage.removeItem('paymentCompleted');
-      sessionStorage.clear();
-      
-      // Show toast for successful sign out
       toast({
         title: "Signed out successfully",
         description: "You have been signed out of your account.",
@@ -159,7 +148,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Create a custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

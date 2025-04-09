@@ -53,7 +53,7 @@ const HeroButtons = () => {
               disabled={isProcessing}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? 'Processing...' : 'Start 7-Day Free Trial'}
+              {isProcessing ? 'Processing...' : 'Start 1-Minute Free Trial'}
             </Button>
           )}
         </>
@@ -79,7 +79,7 @@ const HeroButtons = () => {
               disabled={isProcessing}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? 'Processing...' : 'Start 7-Day Free Trial'}
+              {isProcessing ? 'Processing...' : 'Start 1-Minute Free Trial'}
             </Button>
           )}
         </>

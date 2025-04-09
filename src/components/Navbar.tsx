@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,16 +29,16 @@ const Navbar = () => {
   
   const handleSignOut = async () => {
     try {
-      // Clear agent access before signing out
-      removeForceAgentAccess();
+      // Clear all relevant localStorage items first
+      localStorage.removeItem('forceAgentAccess');
+      localStorage.removeItem('trialCompleted');
+      localStorage.removeItem('paymentCompleted');
+      localStorage.removeItem('accessGrantedAt');
       
       // Clear any session storage items
       sessionStorage.clear();
       
-      // First attempt signOut using the regular method
-      await signOut();
-      
-      // Additionally force a sign out using a direct call to ensure session is cleared
+      // Force sign out with direct call to ensure session is cleared
       await supabase.auth.signOut({ scope: 'global' });
       
       // Reset UI state
@@ -48,12 +49,9 @@ const Navbar = () => {
         description: "You have been signed out of your account.",
       });
       
-      // Navigate after successful signout
-      setTimeout(() => {
-        navigate("/");
-        // Force a page reload to ensure all app state is reset
-        window.location.reload();
-      }, 500);
+      // Navigate after successful signout and force reload
+      navigate("/");
+      window.location.reload();
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
@@ -62,13 +60,16 @@ const Navbar = () => {
         variant: "destructive",
       });
       
-      // Attempt a fallback sign out with direct API call
+      // Attempt a fallback sign out directly
       try {
-        await supabase.auth.signOut({ scope: 'global' });
+        await supabase.auth.signOut();
         navigate("/");
         window.location.reload();
       } catch (fallbackError) {
         console.error("Fallback signout also failed:", fallbackError);
+        // As a last resort, clear auth data and reload
+        localStorage.clear();
+        window.location.href = "/";
       }
     }
   };
