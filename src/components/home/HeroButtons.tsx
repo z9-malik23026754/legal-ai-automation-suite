@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider"; // Fix import directly from provider
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";

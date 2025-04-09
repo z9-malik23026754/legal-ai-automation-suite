@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useDialog } from "@/hooks/useDialog";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider"; // Fix import directly from provider
 import { hasUsedTrialBefore, startTrialTimer } from "@/utils/trialTimerUtils";
 
 export const useStartFreeTrial = () => {
