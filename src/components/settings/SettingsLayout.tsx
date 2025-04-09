@@ -14,8 +14,10 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
 
   const hasMarkusAccess = subscription?.markus || subscription?.allInOne || false;
   const hasKaraAccess = subscription?.kara || subscription?.allInOne || false;
-  const hasConnorAccess = subscription?.connor || subscription?.allInOne || false;
+  const hasJerryAccess = subscription?.jerry || subscription?.allInOne || false;
+  const hasConnorAccess = subscription?.allInOne || false;
   const hasChloeAccess = subscription?.chloe || subscription?.allInOne || false;
+  const hasLutherAccess = subscription?.luther || subscription?.allInOne || false;
 
   return (
     <SidebarProvider>
@@ -25,8 +27,10 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
             <SidebarLinks 
               hasMarkusAccess={hasMarkusAccess}
               hasKaraAccess={hasKaraAccess}
+              hasJerryAccess={hasJerryAccess}
               hasConnorAccess={hasConnorAccess}
               hasChloeAccess={hasChloeAccess}
+              hasLutherAccess={hasLutherAccess}
             />
           </SidebarContent>
         </Sidebar>

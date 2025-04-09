@@ -62,7 +62,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
         (agentId === 'jerry' && subscription.jerry) ||
         (agentId === 'chloe' && subscription.chloe) ||
         (agentId === 'luther' && subscription.luther) ||
-        (agentId === 'connor' && (subscription.all_in_one || subscription.allInOne));
+        (agentId === 'connor' && subscription.allInOne);
         
       if (hasSpecificAccess) {
         console.log(`AgentAccessGuard: User has specific access to ${agentId}`);

@@ -12,6 +12,7 @@ export interface DatabaseSubscription {
   // Agent-specific fields
   markus?: boolean;
   kara?: boolean;
+  jerry?: boolean;
   connor?: boolean;
   chloe?: boolean;
   luther?: boolean;
@@ -26,6 +27,7 @@ export interface SubscriptionState {
   hasActiveSubscription: boolean;
   hasMarkusAccess: boolean;
   hasKaraAccess: boolean;
+  hasJerryAccess: boolean;
   hasConnorAccess: boolean;
   hasChloeAccess: boolean;
   hasLutherAccess: boolean;
@@ -59,6 +61,7 @@ export function toDbSubscription(subscription: any): DatabaseSubscription | null
     updated_at: null,
     markus: !!subscription.markus,
     kara: !!subscription.kara,
+    jerry: !!subscription.jerry,
     connor: !!subscription.connor,
     chloe: !!subscription.chloe,
     luther: !!subscription.luther,

@@ -5,6 +5,7 @@ import { Session } from "@supabase/supabase-js";
 export type Subscription = {
   markus: boolean;
   kara: boolean;
+  jerry: boolean;
   connor: boolean;
   chloe: boolean;
   luther: boolean;

@@ -35,9 +35,9 @@ export const getPricingPlans = (): PricingPlan[] => [
     color: "kara"
   },
   {
-    id: "connor",
-    name: "Connor",
-    icon: React.createElement(Mail, { className: "h-6 w-6 text-connor" }),
+    id: "jerry",
+    name: "Jerry",
+    icon: React.createElement(Mail, { className: "h-6 w-6 text-jerry" }),
     description: "Email marketing and content automation for your business",
     monthlyPrice: 89,
     annualPrice: 890,
@@ -47,7 +47,7 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Content generation",
       "Customer nurturing sequences",
     ],
-    color: "connor"
+    color: "jerry"
   },
   {
     id: "chloe",
@@ -81,13 +81,13 @@ export const getPricingPlans = (): PricingPlan[] => [
   },
   {
     id: "all-in-one",
-    name: "All-in-One Suite",
+    name: "Connor (All-in-One)",
     icon: React.createElement(CheckCircle, { className: "h-6 w-6 text-primary" }),
     description: "Complete access to all AI agents with premium features",
     monthlyPrice: 199,
     annualPrice: 1990,
     features: [
-      "Access to all agents",
+      "Access to all agents' capabilities",
       "Premium support",
       "Advanced analytics",
       "Custom integrations",

@@ -11,6 +11,7 @@ interface DashboardLayoutProps {
   hasActiveSubscription: boolean;
   hasMarkusAccess: boolean;
   hasKaraAccess: boolean;
+  hasJerryAccess: boolean;
   hasConnorAccess: boolean;
   hasChloeAccess: boolean;
   hasLutherAccess: boolean;
@@ -23,6 +24,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   hasActiveSubscription,
   hasMarkusAccess,
   hasKaraAccess,
+  hasJerryAccess,
   hasConnorAccess,
   hasChloeAccess,
   hasLutherAccess,
@@ -44,6 +46,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <SidebarLinks 
               hasMarkusAccess={hasMarkusAccess}
               hasKaraAccess={hasKaraAccess}
+              hasJerryAccess={hasJerryAccess}
               hasConnorAccess={hasConnorAccess}
               hasChloeAccess={hasChloeAccess}
               hasLutherAccess={hasLutherAccess}

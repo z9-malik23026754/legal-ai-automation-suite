@@ -13,7 +13,6 @@ import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { getRemainingTrialTime, hasTrialTimeExpired } from "@/utils/trialTimerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
-// Sample data
 const recentNotifications = [
   { title: "New client inquiry", time: "2 hours ago", agent: "Markus" },
   { title: "Support ticket opened", time: "Yesterday", agent: "Kara" },
@@ -36,6 +35,7 @@ interface DashboardViewProps {
   hasActiveSubscription: boolean;
   hasMarkusAccess: boolean;
   hasKaraAccess: boolean;
+  hasJerryAccess: boolean;
   hasConnorAccess: boolean;
   hasChloeAccess: boolean;
   hasLutherAccess: boolean;
@@ -50,6 +50,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   hasActiveSubscription,
   hasMarkusAccess,
   hasKaraAccess,
+  hasJerryAccess,
   hasConnorAccess,
   hasChloeAccess,
   hasLutherAccess,
@@ -60,7 +61,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   const [remainingTimeMs, setRemainingTimeMs] = React.useState<number | null>(null);
   const isTrialExpired = React.useMemo(() => hasTrialTimeExpired(), []);
   
-  // Format remaining time as MM:SS
   const formatRemainingTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const seconds = totalSeconds % 60;
@@ -68,17 +68,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
   
-  // Update remaining time for trial users
   React.useEffect(() => {
     if (isInTrialMode && !isTrialExpired) {
       const updateRemainingTime = () => {
         setRemainingTimeMs(getRemainingTrialTime());
       };
       
-      // Initial update
       updateRemainingTime();
       
-      // Update every second
       const intervalId = setInterval(updateRemainingTime, 1000);
       
       return () => {
@@ -87,12 +84,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     }
   }, [isInTrialMode, isTrialExpired]);
   
-  // Debug logs to verify subscription status is correctly passed
   console.log("DashboardView - User subscription status:", {
     isInTrialMode,
     hasActiveSubscription,
     hasMarkusAccess,
     hasKaraAccess,
+    hasJerryAccess,
     hasConnorAccess,
     hasChloeAccess,
     hasLutherAccess,
@@ -106,7 +103,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         hasAnySubscription={hasAnySubscription} 
       />
 
-      {/* Show trial warning message for active trial users */}
       {isInTrialMode && !isTrialExpired && (
         <Alert variant="default" className="mb-6 bg-amber-50 border-amber-200 text-amber-800">
           <AlertTriangle className="h-5 w-5 text-amber-600" />
@@ -122,7 +118,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         </Alert>
       )}
 
-      {/* Show trial notification if in trial mode */}
       {isInTrialMode && (
         <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
           <h3 className="font-medium text-green-600 mb-1">Free Trial Active</h3>
@@ -131,7 +126,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             Trial ends on {new Date(subscription?.trialEnd || "").toLocaleDateString()}.
           </p>
           
-          {/* Usage limit information */}
           {remainingTimeMs !== null && !isTrialExpired && (
             <div className="mt-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded flex items-center text-sm">
               <Clock className="h-4 w-4 text-amber-600 mr-2" />
@@ -218,11 +212,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             />
             
             <AgentCard 
-              agentId="connor"
-              title="Connor"
+              agentId="jerry"
+              title="Jerry"
               description="Email marketing and content automation"
               icon="Mail"
-              hasAccess={hasConnorAccess}
+              hasAccess={hasJerryAccess}
             />
             
             <AgentCard 
@@ -240,6 +234,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               icon="BarChart3"
               hasAccess={hasLutherAccess}
             />
+            
+            <AgentCard 
+              agentId="connor"
+              title="Connor"
+              description="All-in-one AI assistant for comprehensive support"
+              icon="MessageSquare"
+              hasAccess={hasConnorAccess}
+            />
           </div>
         </div>
 
@@ -255,6 +257,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           <QuickAccessCard 
             hasMarkusAccess={hasMarkusAccess}
             hasKaraAccess={hasKaraAccess}
+            hasJerryAccess={hasJerryAccess}
             hasConnorAccess={hasConnorAccess}
             hasChloeAccess={hasChloeAccess}
             hasLutherAccess={hasLutherAccess}
