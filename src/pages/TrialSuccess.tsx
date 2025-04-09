@@ -43,7 +43,7 @@ const TrialSuccess = () => {
     if (!sessionStorage.getItem('access_toast_shown')) {
       toast({
         title: "Trial Activated",
-        description: "Your 7-day free trial has been activated. You now have access to all AI agents for 1 minute.",
+        description: "Your 1-minute free trial has been activated. You now have access to all AI agents.",
       });
       sessionStorage.setItem('access_toast_shown', 'true');
     }
@@ -145,7 +145,7 @@ const TrialSuccess = () => {
             
             <h1 className="text-3xl font-bold mb-2">Free Trial Activated!</h1>
             <p className="text-muted-foreground mb-6">
-              Your 7-day free trial has been successfully activated. You now have full access to all AI agents.
+              Your 1-minute free trial has been successfully activated. You now have full access to all AI agents.
             </p>
             
             {/* Trial warning message */}

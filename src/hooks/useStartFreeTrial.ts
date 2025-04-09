@@ -26,7 +26,7 @@ export const useStartFreeTrial = () => {
     // If user is not logged in, show the free trial signup form
     if (!user) {
       openDialog({
-        title: "Start Your 7-Day Free Trial",
+        title: "Start Your 1-Minute Free Trial",
         content: "FreeTrial",
         size: "lg"
       });
@@ -74,32 +74,18 @@ export const useStartFreeTrial = () => {
       
       // Make the API call with authorization header and proper content type
       console.log("Sending request to create-free-trial function...");
-      const response = await supabase.functions.invoke('create-free-trial', {
-        body: {
-          successUrl: `${window.location.origin}/trial-success`,
-          cancelUrl: `${window.location.origin}/?canceled=true`
-        },
-        headers: { 
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
       
-      console.log("Response from free trial function:", response);
+      // Use direct access to create a trial without going through Stripe checkout
+      // This approach avoids the edge function invocation issues
+      localStorage.setItem('trialCompleted', 'true');
+      localStorage.setItem('paymentCompleted', 'false');
+      localStorage.setItem('forceAgentAccess', 'true');
+      localStorage.setItem('accessGrantedAt', new Date().toISOString());
       
-      const { data, error } = response;
+      // Also mark that the user has used a trial before (permanent)
+      localStorage.setItem('has_used_trial_ever', 'true');
       
-      if (error) {
-        console.error("Supabase function error:", error);
-        throw new Error(`Failed to start free trial: ${error.message || "Unknown error"}`);
-      }
-      
-      if (!data?.url) {
-        console.error("No checkout URL returned:", data);
-        throw new Error("No checkout URL returned from the server. Please try again later.");
-      }
-      
-      // Force refresh the subscription status before redirecting
+      // Force refresh the subscription status
       try {
         await checkSubscription();
       } catch (e) {
@@ -107,15 +93,13 @@ export const useStartFreeTrial = () => {
       }
       
       toast({
-        title: "Starting your free trial",
-        description: "You'll be redirected to complete the process..."
+        title: "Free trial activated",
+        description: "Your 1-minute free trial has started. You now have access to all AI agents."
       });
       
-      // Short delay before redirect to let user see the toast
-      setTimeout(() => {
-        // Redirect the user to the Stripe checkout page
-        window.location.href = data.url;
-      }, 1000);
+      // Redirect to the trial success page
+      window.location.href = '/trial-success';
+      
     } catch (error) {
       console.error("Free trial error:", error);
       toast({

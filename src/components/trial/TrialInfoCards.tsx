@@ -17,16 +17,16 @@ export const TrialInfoCards = ({
   return (
     <>
       <div className="bg-muted p-4 rounded-lg mb-6">
-        <p className="font-medium">Your trial will end in 7 days</p>
+        <p className="font-medium">Your trial will end in 1 minute</p>
         <p className="text-sm text-muted-foreground">
-          We'll send you a reminder before your trial expires. You can upgrade to a paid plan at any time.
+          This is a limited time trial. You can upgrade to a paid plan at any time to continue using the AI agents.
         </p>
       </div>
       
       <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-6">
         <h3 className="font-medium text-blue-600 mb-1">All Agents Unlocked</h3>
         <p className="text-sm text-muted-foreground">
-          You now have full access to Markus, Kara, Connor, Chloe, and Luther for your free trial period.
+          You now have full access to Markus, Kara, Jerry, Connor, Chloe, and Luther for your free trial period.
         </p>
       </div>
       

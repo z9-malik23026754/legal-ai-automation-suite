@@ -192,7 +192,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
                 onClick={startTrial}
                 disabled={isProcessing}
               >
-                Start 7-Day Free Trial (1 Minute Usage)
+                Start 1-Minute Free Trial
               </Button>
             )}
             

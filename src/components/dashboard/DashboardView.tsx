@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -122,8 +123,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
           <h3 className="font-medium text-green-600 mb-1">Free Trial Active</h3>
           <p className="text-sm text-muted-foreground">
-            You have full access to all AI agents during your 7-day free trial period. 
-            Trial ends on {new Date(subscription?.trialEnd || "").toLocaleDateString()}.
+            You have full access to all AI agents during your free trial period.
           </p>
           
           {remainingTimeMs !== null && !isTrialExpired && (
@@ -154,7 +154,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass mb-8">
             <h2 className="text-2xl font-semibold mb-4">Unlock All AI Agents</h2>
             <p className="mb-6">
-              Get instant access to all AI agents with a 7-day free trial (with 1 minute of usage) or choose a subscription plan.
+              Get instant access to all AI agents with a 1-minute free trial or choose a subscription plan.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
@@ -164,7 +164,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                 className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
               >
                 <Clock className="mr-2 h-4 w-4" />
-                {isProcessing ? "Processing..." : "Start 7-Day Free Trial (1 Min Usage)"}
+                {isProcessing ? "Processing..." : "Start 1-Minute Free Trial"}
               </Button>
               
               <Button 

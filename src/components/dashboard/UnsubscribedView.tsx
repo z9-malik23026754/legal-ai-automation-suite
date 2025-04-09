@@ -40,7 +40,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
               disabled={isProcessing}
             >
               <Clock className="mr-2 h-4 w-4" />
-              Start 7-Day Free Trial
+              Start 1-Minute Free Trial
             </Button>
           )}
         </div>
@@ -51,7 +51,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
           <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
             <h2 className="text-2xl font-semibold mb-4">Start Your Free Trial Today</h2>
             <p className="mb-6">
-              Get instant access to all AI agents for 7 days with no obligations. Simply start your free trial to unlock
+              Get instant access to all AI agents for 1 minute with no obligations. Simply start your free trial to unlock
               all premium features immediately.
             </p>
             <Button 
@@ -61,7 +61,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? "Processing..." : "Start 7-Day Free Trial"}
+              {isProcessing ? "Processing..." : "Start 1-Minute Free Trial"}
             </Button>
           </div>
         </div>
