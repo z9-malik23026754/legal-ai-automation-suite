@@ -16,7 +16,7 @@ const ResetPasswordPage = () => {
                 <Lock className="h-7 w-7 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
+            <CardTitle className="text-2xl font-bold">Reset Your Password</CardTitle>
             <CardDescription className="text-muted-foreground">
               Enter your new password below
             </CardDescription>

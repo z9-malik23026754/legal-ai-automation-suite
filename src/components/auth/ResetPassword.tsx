@@ -1,42 +1,36 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
-const ResetPassword: React.FC = () => {
+const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isValidToken, setIsValidToken] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have a valid token in the URL
-    const checkToken = async () => {
+    // Check if we have a session with a user
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      // If we have a session with a recovery flow, the token is valid
-      if (session?.user?.aud === 'authenticated' && session?.user?.app_metadata?.provider === 'email') {
-        setIsValidToken(true);
-      } else {
+      if (!session) {
         toast({
           title: "Invalid or expired link",
           description: "This password reset link is invalid or has expired. Please request a new one.",
           variant: "destructive",
         });
-        
-        // Redirect to sign in after a short delay
-        setTimeout(() => {
-          navigate('/signin');
-        }, 3000);
+        navigate("/forgot-password");
       }
     };
     
-    checkToken();
+    checkSession();
   }, [navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,13 +38,13 @@ const ResetPassword: React.FC = () => {
     
     if (!password || !confirmPassword) {
       toast({
-        title: "Password required",
-        description: "Please enter and confirm your new password.",
+        title: "Missing information",
+        description: "Please enter both password fields.",
         variant: "destructive",
       });
       return;
     }
-    
+
     if (password !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -59,11 +53,11 @@ const ResetPassword: React.FC = () => {
       });
       return;
     }
-    
-    if (password.length < 8) {
+
+    if (password.length < 6) {
       toast({
         title: "Password too short",
-        description: "Your password must be at least 8 characters long.",
+        description: "Password must be at least 6 characters long.",
         variant: "destructive",
       });
       return;
@@ -79,20 +73,21 @@ const ResetPassword: React.FC = () => {
         throw error;
       }
 
+      setIsSuccess(true);
       toast({
-        title: "Password updated",
-        description: "Your password has been successfully updated. You can now sign in with your new password.",
+        title: "Password updated successfully",
+        description: "Your password has been reset. You can now sign in with your new password.",
       });
       
       // Redirect to sign in after a short delay
       setTimeout(() => {
-        navigate('/signin');
+        navigate("/signin");
       }, 3000);
     } catch (error: any) {
-      console.error("Error updating password:", error);
+      console.error("Error resetting password:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update your password. Please try again.",
+        description: error.message || "Failed to reset password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -100,71 +95,93 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  if (!isValidToken) {
+  if (isSuccess) {
     return (
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Reset Password</h2>
-          <p className="text-muted-foreground mt-2">
-            Verifying your reset link...
-          </p>
+      <div className="text-center space-y-4">
+        <div className="flex justify-center mb-6">
+          <div className="bg-green-100 p-3 rounded-full">
+            <Lock className="h-8 w-8 text-green-600" />
+          </div>
         </div>
+        <h3 className="text-xl font-semibold">Password Reset Successful</h3>
+        <p className="text-muted-foreground">
+          Your password has been reset. Redirecting you to sign in...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">Reset Password</h2>
-        <p className="text-muted-foreground mt-2">
-          Enter your new password below.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            New Password
-          </label>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor="password" className="text-sm font-medium">
+          New Password
+        </label>
+        <div className="relative">
           <Input
             id="password"
-            type="password"
-            placeholder="••••••••"
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your new password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="pr-10"
             disabled={isLoading}
             required
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
         </div>
-        
-        <div className="space-y-2">
-          <label htmlFor="confirmPassword" className="text-sm font-medium">
-            Confirm New Password
-          </label>
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="confirmPassword" className="text-sm font-medium">
+          Confirm New Password
+        </label>
+        <div className="relative">
           <Input
             id="confirmPassword"
-            type="password"
-            placeholder="••••••••"
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Confirm your new password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            className="pr-10"
             disabled={isLoading}
             required
           />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
+          >
+            {showConfirmPassword ? (
+              <EyeOff className="h-5 w-5" />
+            ) : (
+              <Eye className="h-5 w-5" />
+            )}
+          </button>
         </div>
+      </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Updating...
-            </>
-          ) : (
-            "Update Password"
-          )}
-        </Button>
-      </form>
-    </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Resetting Password...
+          </>
+        ) : (
+          "Reset Password"
+        )}
+      </Button>
+    </form>
   );
 };
 
