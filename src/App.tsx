@@ -15,7 +15,7 @@ import TrialSuccess from './pages/TrialSuccess';
 import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster"
 import Settings from './pages/Settings';
-import ForgotPassword from './pages/ForgotPassword';
+import ForgotPasswordPage from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/signin" element={<SignIn />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
