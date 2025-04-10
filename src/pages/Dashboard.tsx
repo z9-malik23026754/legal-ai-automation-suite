@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardView from "@/components/dashboard/DashboardView";
@@ -9,7 +8,7 @@ import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { useAgentAccess } from "@/hooks/useAgentAccess";
 import { 
   hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, formatRemainingTime,
-  hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry 
+  hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry, areAIAgentsLocked
 } from "@/utils/trialTimerUtils";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -37,17 +36,19 @@ const Dashboard = () => {
   // Check if completed trial or payment flag is set
   const completedTrialOrPayment = hasCompletedTrialOrPayment();
   
-  // Check for trial expiration on the dashboard more frequently
+  // Check for trial expiration and locked state on the dashboard
   useEffect(() => {
-    // Only check for trial expiration if user is in trial mode
-    if (isInTrialMode || (completedTrialOrPayment && !localStorage.getItem('paymentCompleted'))) {
+    // Check if agents are locked or if user is in trial mode
+    if (areAIAgentsLocked() || (isInTrialMode || (completedTrialOrPayment && !localStorage.getItem('paymentCompleted')))) {
       const checkTrialStatus = () => {
-        // Update remaining time
-        const timeLeft = getRemainingTrialTime();
-        setRemainingTime(timeLeft);
+        // Update remaining time if not locked
+        if (!areAIAgentsLocked()) {
+          const timeLeft = getRemainingTrialTime();
+          setRemainingTime(timeLeft);
+        }
         
-        // Check if trial has expired
-        if (hasTrialTimeExpired()) {
+        // Check if trial has expired or agents are locked
+        if (hasTrialTimeExpired() || areAIAgentsLocked()) {
           // Lock AI agents and clear all trial access flags
           lockAIAgents();
           clearTrialAccess();
@@ -76,8 +77,10 @@ const Dashboard = () => {
   
   // Additional check on every render to catch any edge cases
   useEffect(() => {
-    // Check if trial has expired and redirect if needed
-    redirectToPricingOnExpiry();
+    // Check if trial has expired or agents are locked and redirect if needed
+    if (hasTrialTimeExpired() || areAIAgentsLocked()) {
+      redirectToPricingOnExpiry();
+    }
   });
   
   // Show success toast only once per session when user has access

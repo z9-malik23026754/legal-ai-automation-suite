@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { 
   hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, 
-  hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry 
+  hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry, areAIAgentsLocked 
 } from "@/utils/trialTimerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Clock } from "lucide-react";
@@ -27,14 +26,21 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
   
-  // Check if user has used a trial before
+  // Check if user has used a trial before and if agents are locked
   useEffect(() => {
     setHasUsedTrial(hasUsedTrialBefore());
+    setIsTrialExpired(areAIAgentsLocked());
   }, []);
   
   // Check if user has any kind of access
   const hasAccess = React.useMemo(() => {
-    // First check for trial expiration
+    // First check if agents are locked
+    if (areAIAgentsLocked()) {
+      console.log(`AgentAccessGuard: Agents are locked for ${agentId}`);
+      return false;
+    }
+    
+    // Check for trial expiration
     const isInTrialMode = subscription?.status === 'trial' || 
                           localStorage.getItem('trialCompleted') === 'true';
     
@@ -87,11 +93,11 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   
   // Check for trial time expiration with more frequent updates
   useEffect(() => {
-    // If user is in trial mode, check if trial time has expired
+    // If user is in trial mode or agents are locked, check status
     const isInTrialMode = subscription?.status === 'trial' || 
                           localStorage.getItem('trialCompleted') === 'true';
     
-    if (isInTrialMode && !localStorage.getItem('paymentCompleted')) {
+    if ((isInTrialMode && !localStorage.getItem('paymentCompleted')) || areAIAgentsLocked()) {
       const checkTrialTime = () => {
         const timeLeft = getRemainingTrialTime();
         setRemainingTime(timeLeft);

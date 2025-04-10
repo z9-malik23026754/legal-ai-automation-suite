@@ -1,4 +1,3 @@
-
 // Add or modify functions in trialTimerUtils.ts
 
 /**
@@ -59,6 +58,11 @@ export const hasTrialTimeExpired = (): boolean => {
     return true;
   }
 
+  // Check if agents are explicitly locked
+  if (localStorage.getItem('aiAgentsLocked') === 'true') {
+    return true;
+  }
+
   const startTime = getTrialStartTime();
   if (!startTime) return false; // If no start time, consider not expired
 
@@ -66,7 +70,13 @@ export const hasTrialTimeExpired = (): boolean => {
   const trialDurationMs = 60 * 1000; // 1 minute in milliseconds
   const elapsedMs = now.getTime() - startTime.getTime();
   
-  return elapsedMs >= trialDurationMs;
+  // If trial has expired, ensure the locked state is persisted
+  if (elapsedMs >= trialDurationMs) {
+    lockAIAgents();
+    return true;
+  }
+  
+  return false;
 };
 
 /**
@@ -111,8 +121,14 @@ export const lockAIAgents = (): void => {
   // Clear all access flags
   clearTrialAccess();
   
-  // Add an explicit lock flag
+  // Add an explicit lock flag that persists across sessions
   localStorage.setItem('aiAgentsLocked', 'true');
+  localStorage.setItem('trialExpiredAt', new Date().toISOString());
+  
+  // Remove any remaining access flags
+  localStorage.removeItem('forceAgentAccess');
+  localStorage.removeItem('trialCompleted');
+  localStorage.removeItem('paymentCompleted');
   
   console.log("AI agents locked due to trial expiration");
 };
@@ -121,7 +137,18 @@ export const lockAIAgents = (): void => {
  * Check if AI agents are locked
  */
 export const areAIAgentsLocked = (): boolean => {
-  return localStorage.getItem('aiAgentsLocked') === 'true' || hasTrialTimeExpired();
+  // Check explicit lock flag
+  if (localStorage.getItem('aiAgentsLocked') === 'true') {
+    return true;
+  }
+  
+  // Check trial expiration
+  if (hasTrialTimeExpired()) {
+    lockAIAgents(); // Ensure locked state is persisted
+    return true;
+  }
+  
+  return false;
 };
 
 /**
