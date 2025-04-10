@@ -1,10 +1,12 @@
+import { supabase } from "@/integrations/supabase/client";
+
 // Add or modify functions in trialTimerUtils.ts
 
 /**
  * Check if the user has ever used a free trial before (permanent flag)
  */
-export const hasUsedTrialBefore = (): boolean => {
-  // Check localStorage flag
+export const hasUsedTrialBefore = async (): Promise<boolean> => {
+  // First check localStorage as a quick check
   if (localStorage.getItem('has_used_trial_ever') === 'true') {
     return true;
   }
@@ -37,14 +39,28 @@ export const hasUsedTrialBefore = (): boolean => {
     }
   }
   
-  // The subscription status will be checked elsewhere via subscription hooks
+  // Check user metadata in Supabase
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      // Check if user has used trial in metadata
+      if (user.user_metadata?.has_used_trial === true) {
+        // Update localStorage to match
+        localStorage.setItem('has_used_trial_ever', 'true');
+        return true;
+      }
+    }
+  } catch (e) {
+    console.error("Error checking user metadata:", e);
+  }
+  
   return false;
 };
 
 /**
  * Mark that the user has used their trial
  */
-export const markTrialAsUsed = (): void => {
+export const markTrialAsUsed = async (): Promise<void> => {
   // Set the permanent flag in localStorage
   localStorage.setItem('has_used_trial_ever', 'true');
   
@@ -67,7 +83,23 @@ export const markTrialAsUsed = (): void => {
     console.error("Error updating subscription data in markTrialAsUsed:", e);
   }
   
-  // The database flag will be set in the backend via the create-free-trial function
+  // Update user metadata in Supabase
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { error } = await supabase.auth.updateUser({
+        data: { has_used_trial: true, trial_used_at: new Date().toISOString() }
+      });
+      
+      if (error) {
+        console.error("Error updating user metadata:", error);
+      } else {
+        console.log("Updated user metadata with trial status");
+      }
+    }
+  } catch (e) {
+    console.error("Error updating user metadata:", e);
+  }
 };
 
 /**
