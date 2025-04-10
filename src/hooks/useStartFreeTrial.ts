@@ -49,6 +49,9 @@ export const useStartFreeTrial = () => {
       // Mark that the user has used a trial before (permanent)
       markTrialAsUsed();
       
+      // Store trial status in subscription data
+      updateSubscriptionDataWithTrialStatus();
+      
       // Redirect to Stripe Checkout
       const stripe = await getStripe();
       if (!stripe) {
@@ -75,6 +78,9 @@ export const useStartFreeTrial = () => {
         // Also mark that the user has used a trial before (permanent)
         markTrialAsUsed();
         
+        // Store trial status in subscription data
+        updateSubscriptionDataWithTrialStatus();
+        
         // Force refresh the subscription status
         try {
           await checkSubscription();
@@ -99,6 +105,27 @@ export const useStartFreeTrial = () => {
       }
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  // Helper function to update subscription data with trial status
+  const updateSubscriptionDataWithTrialStatus = () => {
+    try {
+      // Get existing subscription data or create a new object
+      const existingData = localStorage.getItem('subscription_data');
+      let subscriptionData = existingData ? JSON.parse(existingData) : {};
+      
+      // Update with trial status
+      subscriptionData.has_used_trial = true;
+      subscriptionData.trial_used = true;
+      subscriptionData.trial_started_at = new Date().toISOString();
+      
+      // Save back to localStorage
+      localStorage.setItem('subscription_data', JSON.stringify(subscriptionData));
+      
+      console.log("Updated subscription data with trial status:", subscriptionData);
+    } catch (e) {
+      console.error("Error updating subscription data:", e);
     }
   };
 

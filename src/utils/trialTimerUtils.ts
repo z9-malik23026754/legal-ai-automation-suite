@@ -24,6 +24,19 @@ export const hasUsedTrialBefore = (): boolean => {
     return true;
   }
   
+  // Check if user has a subscription with trial metadata
+  const subscriptionData = localStorage.getItem('subscription_data');
+  if (subscriptionData) {
+    try {
+      const subscription = JSON.parse(subscriptionData);
+      if (subscription.has_used_trial === true || subscription.trial_used === true) {
+        return true;
+      }
+    } catch (e) {
+      console.error("Error parsing subscription data:", e);
+    }
+  }
+  
   // The subscription status will be checked elsewhere via subscription hooks
   return false;
 };
@@ -32,7 +45,28 @@ export const hasUsedTrialBefore = (): boolean => {
  * Mark that the user has used their trial
  */
 export const markTrialAsUsed = (): void => {
+  // Set the permanent flag in localStorage
   localStorage.setItem('has_used_trial_ever', 'true');
+  
+  // Also store in subscription data for persistence across sessions
+  try {
+    // Get existing subscription data or create a new object
+    const existingData = localStorage.getItem('subscription_data');
+    let subscriptionData = existingData ? JSON.parse(existingData) : {};
+    
+    // Update with trial status
+    subscriptionData.has_used_trial = true;
+    subscriptionData.trial_used = true;
+    subscriptionData.trial_started_at = new Date().toISOString();
+    
+    // Save back to localStorage
+    localStorage.setItem('subscription_data', JSON.stringify(subscriptionData));
+    
+    console.log("Marked trial as used and updated subscription data:", subscriptionData);
+  } catch (e) {
+    console.error("Error updating subscription data in markTrialAsUsed:", e);
+  }
+  
   // The database flag will be set in the backend via the create-free-trial function
 };
 

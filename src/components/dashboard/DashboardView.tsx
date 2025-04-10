@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "@/components/dashboard/StatsCard";
 import AgentCard from "@/components/dashboard/AgentCard";
@@ -60,7 +60,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   const { startTrial, isProcessing } = useStartFreeTrial();
   const [remainingTimeMs, setRemainingTimeMs] = React.useState<number | null>(null);
   const isTrialExpired = React.useMemo(() => hasTrialTimeExpired(), []);
-  const hasUsedTrial = React.useMemo(() => hasUsedTrialBefore(), []);
+  const [hasUsedTrial, setHasUsedTrial] = React.useState<boolean>(false);
   
   const formatRemainingTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -69,7 +69,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (isInTrialMode && !isTrialExpired) {
       const updateRemainingTime = () => {
         setRemainingTimeMs(getRemainingTrialTime());
@@ -84,6 +84,28 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       };
     }
   }, [isInTrialMode, isTrialExpired]);
+  
+  useEffect(() => {
+    const checkTrialStatus = () => {
+      const trialUsed = hasUsedTrialBefore();
+      setHasUsedTrial(trialUsed);
+      
+      if (trialUsed && !localStorage.getItem('subscription_data')) {
+        try {
+          const subscriptionData = {
+            has_used_trial: true,
+            trial_used: true,
+            trial_started_at: new Date().toISOString()
+          };
+          localStorage.setItem('subscription_data', JSON.stringify(subscriptionData));
+        } catch (e) {
+          console.error("Error updating subscription data:", e);
+        }
+      }
+    };
+    
+    checkTrialStatus();
+  }, [subscription]);
   
   console.log("DashboardView - User subscription status:", {
     isInTrialMode,
