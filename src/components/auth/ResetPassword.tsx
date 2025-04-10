@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,10 +18,14 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have a session with a user
+    // Check if we have a hash parameter in the URL which indicates a recovery flow
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      
+      // Get hash fragment from URL if it exists
+      const hash = window.location.hash;
+      
+      if (!session && !hash) {
         toast({
           title: "Invalid or expired link",
           description: "This password reset link is invalid or has expired. Please request a new one.",
@@ -185,4 +190,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword; 
+export default ResetPassword;

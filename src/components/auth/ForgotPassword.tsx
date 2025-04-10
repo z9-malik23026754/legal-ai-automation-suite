@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +29,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToSignIn }) => {
 
     setIsLoading(true);
     try {
+      const currentOrigin = window.location.origin;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${currentOrigin}/reset-password`,
       });
 
       if (error) {
