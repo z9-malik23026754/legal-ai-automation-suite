@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
@@ -16,6 +15,8 @@ import TrialSuccess from './pages/TrialSuccess';
 import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster"
 import Settings from './pages/Settings';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/signin" element={<SignIn />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/agents/:agentId" element={<AgentPage />} />
