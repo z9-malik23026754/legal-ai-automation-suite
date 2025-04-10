@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useDialog } from "@/hooks/useDialog";
 import { useAuth } from "@/providers/AuthProvider";
-import { hasUsedTrialBefore, startTrialTimer } from "@/utils/trialTimerUtils";
+import { hasUsedTrialBefore, startTrialTimer, markTrialAsUsed } from "@/utils/trialTimerUtils";
 import { createFreeTrialSession, getStripe } from "@/integrations/stripe/client";
 
 export const useStartFreeTrial = () => {
@@ -47,7 +47,7 @@ export const useStartFreeTrial = () => {
       const sessionId = await createFreeTrialSession(user!.id, user!.email);
       
       // Mark that the user has used a trial before (permanent)
-      localStorage.setItem('has_used_trial_ever', 'true');
+      markTrialAsUsed();
       
       // Redirect to Stripe Checkout
       const stripe = await getStripe();
@@ -73,7 +73,7 @@ export const useStartFreeTrial = () => {
         startTrialTimer();
         
         // Also mark that the user has used a trial before (permanent)
-        localStorage.setItem('has_used_trial_ever', 'true');
+        markTrialAsUsed();
         
         // Force refresh the subscription status
         try {

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -11,7 +10,7 @@ import { SubscriptionWithTrial } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Clock, AlertTriangle } from "lucide-react";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
-import { getRemainingTrialTime, hasTrialTimeExpired } from "@/utils/trialTimerUtils";
+import { getRemainingTrialTime, hasTrialTimeExpired, hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const recentNotifications = [
@@ -61,6 +60,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   const { startTrial, isProcessing } = useStartFreeTrial();
   const [remainingTimeMs, setRemainingTimeMs] = React.useState<number | null>(null);
   const isTrialExpired = React.useMemo(() => hasTrialTimeExpired(), []);
+  const hasUsedTrial = React.useMemo(() => hasUsedTrialBefore(), []);
   
   const formatRemainingTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -157,15 +157,25 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               Get instant access to all AI agents with a 1-minute free trial or choose a subscription plan.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                onClick={startTrial} 
-                size="lg"
-                disabled={isProcessing}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
-              >
-                <Clock className="mr-2 h-4 w-4" />
-                {isProcessing ? "Processing..." : "Start 1-Minute Free Trial"}
-              </Button>
+              {!hasUsedTrial ? (
+                <Button 
+                  onClick={startTrial} 
+                  size="lg"
+                  disabled={isProcessing}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  {isProcessing ? "Processing..." : "Start 1-Minute Free Trial"}
+                </Button>
+              ) : (
+                <Button 
+                  asChild
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:opacity-90 shadow-lg"
+                >
+                  <Link to="/pricing">Upgrade to Access AI Agents</Link>
+                </Button>
+              )}
               
               <Button 
                 asChild

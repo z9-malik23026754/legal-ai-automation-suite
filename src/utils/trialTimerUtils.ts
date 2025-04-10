@@ -4,9 +4,23 @@
  * Check if the user has ever used a free trial before (permanent flag)
  */
 export const hasUsedTrialBefore = (): boolean => {
-  // Always check both local storage and the database flag via the user's subscription
-  // Database check should be the source of truth, but localStorage provides a fallback
+  // Check localStorage flag
   if (localStorage.getItem('has_used_trial_ever') === 'true') {
+    return true;
+  }
+  
+  // Check if trial has been completed
+  if (localStorage.getItem('trialCompleted') === 'true') {
+    return true;
+  }
+  
+  // Check if trial has expired
+  if (localStorage.getItem('trialExpiredAt')) {
+    return true;
+  }
+  
+  // Check if agents are locked (which happens when trial expires)
+  if (localStorage.getItem('aiAgentsLocked') === 'true') {
     return true;
   }
   
