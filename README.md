@@ -1,4 +1,87 @@
-# Welcome to your Lovable project
+# Legal AI Automation Suite
+
+A comprehensive legal AI automation platform with multiple AI agents for different legal tasks.
+
+## Features
+
+- Multiple AI agents for different legal tasks
+- Free trial with email verification
+- Subscription management with Stripe
+- User authentication with Supabase
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+- Supabase account
+- Stripe account
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```
+# Supabase
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Stripe
+VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+```
+
+### Supabase Setup
+
+1. Create a new Supabase project
+2. Set up the following tables:
+   - `profiles` - User profiles
+   - `subscriptions` - User subscriptions
+   - `trials` - User trial information
+
+### Stripe Setup
+
+1. Create a Stripe account
+2. Set up the following products and prices:
+   - Individual agent subscriptions
+   - All-in-one subscription
+   - Free trial product
+
+### Development
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+### Building for Production
+
+Build the application for production:
+
+```bash
+npm run build
+```
+
+## Architecture
+
+- **Frontend**: React with TypeScript
+- **Authentication**: Supabase Auth
+- **Database**: Supabase PostgreSQL
+- **Payments**: Stripe
+- **Styling**: Tailwind CSS with shadcn/ui components
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Project info
 
@@ -74,5 +157,5 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
 
 This is how i change updated git code
 git add .
-git commit -m "Your descriptive commit message"
+git commit -m "Lovable Change"
 git push

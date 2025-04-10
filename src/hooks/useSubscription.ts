@@ -1,8 +1,7 @@
-
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { createCheckoutSession, getStripe } from "@/integrations/stripe/client";
 
 export type SubscriptionWithTrial = {
   markus: boolean;
@@ -31,37 +30,23 @@ export const useSubscription = () => {
     try {
       console.log("Starting checkout process for plan:", planId);
       
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          planId,
-          successUrl: `${window.location.origin}/payment-success?plan=${planId}`,
-          cancelUrl: `${window.location.origin}/pricing?canceled=true`
-        },
-        headers: session?.access_token 
-          ? { Authorization: `Bearer ${session.access_token}` } 
-          : undefined
-      });
-
-      if (error) {
-        console.error("Supabase function error:", error);
-        throw error;
+      // Create a checkout session using our Stripe client
+      const sessionId = await createCheckoutSession(planId, user.id, user.email);
+      
+      // Force refresh the subscription status before redirecting
+      try {
+        await checkSubscription();
+      } catch (e) {
+        console.error("Failed to refresh subscription status:", e);
       }
       
-      console.log("Checkout response:", data);
-      
-      if (data?.url) {
-        // Force refresh the subscription status before redirecting
-        try {
-          await checkSubscription();
-        } catch (e) {
-          console.error("Failed to refresh subscription status:", e);
-        }
-        
-        window.open(data.url, "_blank");
-      } else {
-        console.error("No checkout URL returned:", data);
-        throw new Error("No checkout URL returned");
+      // Redirect to Stripe Checkout
+      const stripe = await getStripe();
+      if (!stripe) {
+        throw new Error("Failed to initialize Stripe");
       }
+      
+      await stripe.redirectToCheckout({ sessionId });
     } catch (error: any) {
       console.error("Error during checkout:", error);
       toast({

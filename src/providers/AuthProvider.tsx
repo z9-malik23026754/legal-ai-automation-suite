@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
 import { useToast } from "@/components/ui/use-toast";
 import { AuthContextType, Subscription } from "@/types/auth";
 import { useSubscriptionService } from "@/hooks/useSubscriptionService";
@@ -77,12 +76,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const result = await supabase.auth.signUp({ 
         email, 
         password,
-        options
+        options: {
+          ...options,
+          emailRedirectTo: `${window.location.origin}/signin`,
+          data: {
+            ...options?.data,
+            email_verified: false
+          }
+        }
       });
       
       if (result.error) {
         console.error("Sign up error:", result.error);
         throw result.error;
+      }
+      
+      if (result.data?.user && !result.data.user.email_confirmed_at) {
+        toast({
+          title: "Email verification required",
+          description: "Please check your email to verify your account before starting your free trial.",
+          variant: "default",
+        });
+        return { data: result.data, requiresVerification: true };
       }
       
       console.log("Sign up successful, user:", result.data.user);

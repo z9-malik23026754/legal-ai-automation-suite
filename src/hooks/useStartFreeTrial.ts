@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useDialog } from "@/hooks/useDialog";
-import { useAuth } from "@/providers/AuthProvider"; // Already imports directly from provider
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/providers/AuthProvider";
 import { hasUsedTrialBefore, startTrialTimer } from "@/utils/trialTimerUtils";
+import { createFreeTrialSession, getStripe } from "@/integrations/stripe/client";
 
 export const useStartFreeTrial = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -44,38 +43,24 @@ export const useStartFreeTrial = () => {
     try {
       console.log("Starting Stripe checkout for free trial...");
       
-      // Call the Supabase function to create a checkout session
-      const { data, error } = await supabase.functions.invoke('create-free-trial', {
-        body: {
-          successUrl: `${window.location.origin}/trial-success`,
-          cancelUrl: `${window.location.origin}/pricing?canceled=true`
-        },
-        headers: session?.access_token 
-          ? { Authorization: `Bearer ${session.access_token}` } 
-          : undefined
-      });
-
-      if (error) {
-        console.error("Error calling create-free-trial function:", error);
-        throw new Error(error.message || "Failed to start trial");
-      }
+      // Create a free trial checkout session
+      const sessionId = await createFreeTrialSession(user!.id, user!.email);
       
-      if (!data?.url) {
-        console.error("No checkout URL returned:", data);
-        throw new Error("No checkout URL returned");
-      }
-
       // Mark that the user has used a trial before (permanent)
       localStorage.setItem('has_used_trial_ever', 'true');
       
-      // Redirect to Stripe checkout
-      window.location.href = data.url;
+      // Redirect to Stripe Checkout
+      const stripe = await getStripe();
+      if (!stripe) {
+        throw new Error("Failed to initialize Stripe");
+      }
+      
+      await stripe.redirectToCheckout({ sessionId });
       
     } catch (error) {
       console.error("Free trial checkout error:", error);
       
-      // If we get a Supabase function error, it might be that the edge function is not deployed yet
-      // So fall back to direct activation for development purposes
+      // If we get a Stripe error, fall back to direct activation for development purposes
       console.log("Falling back to direct trial activation...");
       
       try {
