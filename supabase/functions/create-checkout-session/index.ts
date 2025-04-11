@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Stripe from "https://esm.sh/stripe@14.21.0";
@@ -9,7 +8,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+interface CheckoutRequest {
+  priceId: string;
+  successUrl?: string;
+  cancelUrl?: string;
+}
+
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -50,10 +55,10 @@ serve(async (req) => {
     }
     
     // Parse request body
-    const { priceId, successUrl, cancelUrl } = await req.json();
+    const { priceId, successUrl, cancelUrl } = await req.json() as CheckoutRequest;
     
     // Get or create Stripe customer
-    let customerId;
+    let customerId: string;
     
     // Check if this user already has a Stripe customer ID
     const { data: existingSubscription, error: subError } = await supabase
@@ -144,15 +149,15 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating checkout session:", error);
     
     return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message 
+      success: false,
+      message: error.message || 'An error occurred while creating the checkout session'
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: error.status || 500,
     });
   }
 });

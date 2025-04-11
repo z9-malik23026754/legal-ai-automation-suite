@@ -19,22 +19,27 @@ export const createCheckoutSession = async (planId: string, userId: string, emai
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`,
       },
       body: JSON.stringify({
-        planId,
-        userId,
-        email,
+        priceId: planId,
         successUrl: `${window.location.origin}/payment-success`,
         cancelUrl: `${window.location.origin}/pricing?canceled=true`,
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create checkout session');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to create checkout session');
     }
 
-    const { sessionId } = await response.json();
-    return sessionId;
+    const { url } = await response.json();
+    if (!url) {
+      throw new Error('No checkout URL received');
+    }
+
+    // Redirect to the Stripe Checkout page
+    window.location.href = url;
   } catch (error) {
     console.error('Error creating checkout session:', error);
     throw error;
