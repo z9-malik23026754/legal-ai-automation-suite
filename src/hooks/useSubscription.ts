@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -31,7 +32,7 @@ export const useSubscription = () => {
       console.log("Starting checkout process for plan:", planId);
       
       // Create a checkout session using our Stripe client
-      const sessionId = await createCheckoutSession(planId, user.id, user.email);
+      const sessionId = await createCheckoutSession(planId, user.id, user.email || '');
       
       // Force refresh the subscription status before redirecting
       try {

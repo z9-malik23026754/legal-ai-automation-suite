@@ -48,29 +48,7 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
         return true;
       }
       
-      // Check for trial subscription in user_trials table
-      const { data: trialData, error } = await supabase
-        .from('user_trials')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-        
-      if (error) {
-        // Table might not exist yet, continue checking other methods
-        console.log("Error checking user_trials table (may not exist yet):", error);
-      } else if (trialData) {
-        // If found in database, update localStorage and return true
-        localStorage.setItem('has_used_trial_ever', 'true');
-        
-        // Also update user metadata for future quick checks
-        await supabase.auth.updateUser({
-          data: { has_used_trial: true }
-        });
-        
-        return true;
-      }
-      
-      // Fallback to checking subscriptions table
+      // Using fallback to check subscriptions table since user_trials table doesn't exist
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
@@ -133,31 +111,19 @@ export const markTrialAsUsed = async (): Promise<void> => {
         console.log("Updated user metadata with trial status");
       }
       
-      // Try recording in user_trials table first
+      // Fallback to subscriptions table
       try {
-        const { error: userTrialError } = await supabase
-          .from('user_trials')
+        const { error: insertError } = await supabase
+          .from('subscriptions')
           .upsert({ 
             user_id: user.id,
-            trial_started_at: new Date().toISOString() 
-          });
+            plan_type: 'free_trial',
+            status: 'trial',
+            created_at: new Date().toISOString() 
+          }, { onConflict: 'user_id,plan_type' });
           
-        if (userTrialError) {
-          console.log("Error recording in user_trials table (may not exist yet):", userTrialError);
-          
-          // Fallback to subscriptions table if user_trials doesn't exist
-          const { error: insertError } = await supabase
-            .from('subscriptions')
-            .upsert({ 
-              user_id: user.id,
-              plan_type: 'free_trial',
-              status: 'trial',
-              created_at: new Date().toISOString() 
-            }, { onConflict: 'user_id,plan_type' });
-            
-          if (insertError) {
-            console.error("Error recording trial in database:", insertError);
-          }
+        if (insertError) {
+          console.error("Error recording trial in database:", insertError);
         }
       } catch (e) {
         console.error("Error inserting trial record:", e);

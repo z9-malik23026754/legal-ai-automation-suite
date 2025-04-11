@@ -17,7 +17,9 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Website integration",
       "Unlimited conversations",
     ],
-    color: "markus"
+    color: "markus",
+    priceId: "price_markus_monthly",
+    price: 79
   },
   {
     id: "kara",
@@ -32,7 +34,9 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Call answering & routing",
       "Customer inquiry handling",
     ],
-    color: "kara"
+    color: "kara",
+    priceId: "price_kara_monthly",
+    price: 99
   },
   {
     id: "jerry",
@@ -47,7 +51,9 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Content generation",
       "Customer nurturing sequences",
     ],
-    color: "jerry"
+    color: "jerry",
+    priceId: "price_jerry_monthly",
+    price: 89
   },
   {
     id: "chloe",
@@ -62,7 +68,9 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Business analytics",
       "Workflow automation",
     ],
-    color: "chloe"
+    color: "chloe",
+    priceId: "price_chloe_monthly",
+    price: 89
   },
   {
     id: "luther",
@@ -77,7 +85,9 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Deal forecasting",
       "Customer relationship tools",
     ],
-    color: "luther"
+    color: "luther",
+    priceId: "price_luther_monthly",
+    price: 99
   },
   {
     id: "all-in-one",
@@ -94,6 +104,8 @@ export const getPricingPlans = (): PricingPlan[] => [
       "Unlimited usage"
     ],
     color: "primary",
-    popular: true
+    popular: true,
+    priceId: "price_all_in_one_monthly",
+    price: 199
   }
 ];
