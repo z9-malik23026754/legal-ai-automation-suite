@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -32,7 +31,8 @@ export const useSubscription = () => {
       console.log("Starting checkout process for plan:", planId);
       
       // Create a checkout session using our Stripe client
-      const sessionId = await createCheckoutSession(planId, user.id, user.email || '');
+      // Instead of expecting a session ID, we'll directly use the URL from the response
+      await createCheckoutSession(planId, user.id, user.email || '');
       
       // Force refresh the subscription status before redirecting
       try {
@@ -41,13 +41,8 @@ export const useSubscription = () => {
         console.error("Failed to refresh subscription status:", e);
       }
       
-      // Redirect to Stripe Checkout
-      const stripe = await getStripe();
-      if (!stripe) {
-        throw new Error("Failed to initialize Stripe");
-      }
-      
-      await stripe.redirectToCheckout({ sessionId });
+      // The redirect is now handled within the createCheckoutSession function
+      // so we don't need to do the redirectToCheckout part here
     } catch (error: any) {
       console.error("Error during checkout:", error);
       toast({

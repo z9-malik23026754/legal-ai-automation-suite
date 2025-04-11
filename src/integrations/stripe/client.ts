@@ -1,3 +1,4 @@
+
 import { loadStripe } from '@stripe/stripe-js';
 
 // Initialize Stripe with the publishable key
