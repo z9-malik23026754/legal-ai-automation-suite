@@ -73,6 +73,10 @@ export const useStartFreeTrial = () => {
       // Start the trial timer
       startTrialTimer();
 
+      // Set trial completed flag
+      localStorage.setItem('trialCompleted', 'true');
+      localStorage.setItem('forceAgentAccess', 'true');
+
       // Show success message
       toast({
         title: "Free trial activated!",

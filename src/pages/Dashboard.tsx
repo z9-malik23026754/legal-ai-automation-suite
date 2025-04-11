@@ -99,6 +99,20 @@ const Dashboard = () => {
     }
   }, [toast, hasAnySubscription, completedTrialOrPayment]);
   
+  // Handle trial success URL parameter
+  useEffect(() => {
+    // Check if this is a trial success redirect
+    if (searchParams.get("trial") === "success") {
+      console.log("Trial success detected in URL, activating trial...");
+      handleTrialSuccess();
+    }
+
+    // Check if trial has expired
+    if (hasTrialTimeExpired()) {
+      redirectToPricingOnExpiry();
+    }
+  }, [searchParams, handleTrialSuccess]);
+  
   // Calculate final access state considering trial expiration
   const isTrial = isInTrialMode || (completedTrialOrPayment && !localStorage.getItem('paymentCompleted'));
   const isTrialExpired = isTrial && hasTrialTimeExpired();
@@ -138,18 +152,6 @@ const Dashboard = () => {
     }
     return null;
   };
-  
-  useEffect(() => {
-    // Check if this is a trial success redirect
-    if (searchParams.get("trial") === "success") {
-      handleTrialSuccess();
-    }
-
-    // Check if trial has expired
-    if (hasTrialTimeExpired()) {
-      redirectToPricingOnExpiry();
-    }
-  }, [searchParams, handleTrialSuccess]);
   
   // If no user is logged in, show loading or redirect
   if (!user) {
