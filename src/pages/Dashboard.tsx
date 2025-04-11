@@ -10,15 +10,18 @@ import {
   hasTrialTimeExpired, clearTrialAccess, getRemainingTrialTime, formatRemainingTime,
   hasUsedTrialBefore, lockAIAgents, redirectToPricingOnExpiry, areAIAgentsLocked
 } from "@/utils/trialTimerUtils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Clock } from "lucide-react";
+import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 
 const Dashboard = () => {
   const { user, subscription } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+  const { handleTrialSuccess } = useStartFreeTrial();
   
   // Calculate access flags based on subscription
   const {
@@ -135,6 +138,23 @@ const Dashboard = () => {
     }
     return null;
   };
+  
+  useEffect(() => {
+    // Check if this is a trial success redirect
+    if (searchParams.get("trial") === "success") {
+      handleTrialSuccess();
+    }
+
+    // Check if trial has expired
+    if (hasTrialTimeExpired()) {
+      redirectToPricingOnExpiry();
+    }
+  }, [searchParams, handleTrialSuccess]);
+  
+  // If no user is logged in, show loading or redirect
+  if (!user) {
+    return null; // or loading spinner
+  }
   
   return (
     <AuthGuard user={user}>
