@@ -1,16 +1,16 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock } from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider"; // Fix import directly from provider
+import { useAuth } from "@/providers/AuthProvider";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 const HeroButtons = () => {
   const { user, subscription } = useAuth();
-  const { startTrial, processing: isProcessing } = useStartFreeTrial();
+  const { startTrial, processing } = useStartFreeTrial();
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
   
   // Check if user has completed a trial or has a subscription
@@ -60,10 +60,10 @@ const HeroButtons = () => {
                   console.error("Error starting trial:", e);
                 }
               }}
-              disabled={isProcessing}
+              disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? 'Processing...' : 'Start 1-Minute Free Trial'}
+              {processing ? 'Processing...' : 'Start 1-Minute Free Trial'}
             </Button>
           )}
         </>
@@ -86,10 +86,10 @@ const HeroButtons = () => {
                   console.error("Error starting trial:", e);
                 }
               }}
-              disabled={isProcessing}
+              disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? 'Processing...' : 'Start 1-Minute Free Trial'}
+              {processing ? 'Processing...' : 'Start 1-Minute Free Trial'}
             </Button>
           )}
         </>

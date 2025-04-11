@@ -51,11 +51,12 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
         return true;
       }
       
-      // If user exists, also check in the user_trials table in database
+      // If user exists, also check for trial subscription in subscriptions table
       const { data: trialData, error } = await supabase
-        .from('user_trials')
+        .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
+        .eq('plan_type', 'free_trial')
         .maybeSingle();
         
       if (trialData) {
@@ -118,14 +119,16 @@ export const markTrialAsUsed = async (): Promise<void> => {
         console.log("Updated user metadata with trial status");
       }
       
-      // Also record in user_trials table for better persistence
+      // Also record in subscriptions table instead of user_trials
       try {
         const { error: insertError } = await supabase
-          .from('user_trials')
+          .from('subscriptions')
           .upsert({ 
-            user_id: user.id, 
-            trial_started_at: new Date().toISOString() 
-          }, { onConflict: 'user_id' });
+            user_id: user.id,
+            plan_type: 'free_trial',
+            status: 'trial',
+            created_at: new Date().toISOString() 
+          }, { onConflict: 'user_id,plan_type' });
           
         if (insertError) {
           console.error("Error recording trial in database:", insertError);
@@ -171,7 +174,7 @@ export const getTrialStartTime = (): Date | null => {
  */
 export const hasTrialTimeExpired = (): boolean => {
   // Always return true if user has previously used a trial but has no active timer
-  if (hasUsedTrialBefore() && !localStorage.getItem('accessGrantedAt')) {
+  if (localStorage.getItem('has_used_trial_ever') === 'true' && !localStorage.getItem('accessGrantedAt')) {
     return true;
   }
 

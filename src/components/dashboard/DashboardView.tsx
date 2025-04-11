@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -57,7 +58,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   hasAnySubscription,
   isRefreshing
 }) => {
-  const { startTrial, isProcessing } = useStartFreeTrial();
+  const { startTrial, processing } = useStartFreeTrial();
   const [remainingTimeMs, setRemainingTimeMs] = React.useState<number | null>(null);
   const isTrialExpired = React.useMemo(() => hasTrialTimeExpired(), []);
   const [hasUsedTrial, setHasUsedTrial] = React.useState<boolean>(false);
@@ -86,8 +87,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   }, [isInTrialMode, isTrialExpired]);
   
   useEffect(() => {
-    const checkTrialStatus = () => {
-      const trialUsed = hasUsedTrialBefore();
+    const checkTrialStatus = async () => {
+      const trialUsed = await hasUsedTrialBefore();
       setHasUsedTrial(trialUsed);
       
       if (trialUsed && !localStorage.getItem('subscription_data')) {

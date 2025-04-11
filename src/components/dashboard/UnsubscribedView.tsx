@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
@@ -13,9 +12,19 @@ interface UnsubscribedViewProps {
 }
 
 const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
-  const { startTrial, isProcessing } = useStartFreeTrial();
-  const hasCompleted = hasCompletedTrialOrPayment();
-  const hasUsedTrial = hasUsedTrialBefore();
+  const { startTrial, processing } = useStartFreeTrial();
+  const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
+  
+  useEffect(() => {
+    const checkTrialStatus = async () => {
+      const trialUsed = await hasUsedTrialBefore();
+      setHasUsedTrial(trialUsed);
+      setHasCompleted(hasCompletedTrialOrPayment());
+    };
+    
+    checkTrialStatus();
+  }, []);
 
   return (
     <div className="container px-4 py-6 mx-auto max-w-7xl">
@@ -37,7 +46,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
               onClick={startTrial}
-              disabled={isProcessing}
+              disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />
               Start 1-Minute Free Trial
@@ -57,11 +66,11 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
             <Button 
               onClick={startTrial} 
               size="lg"
-              disabled={isProcessing}
+              disabled={processing}
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? "Processing..." : "Start 1-Minute Free Trial"}
+              {processing ? "Processing..." : "Start 1-Minute Free Trial"}
             </Button>
           </div>
         </div>
@@ -108,7 +117,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
               {!hasCompleted && !hasUsedTrial ? (
                 <Button 
                   onClick={startTrial} 
-                  disabled={isProcessing}
+                  disabled={processing}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90"
                 >
                   <Clock className="mr-2 h-4 w-4" />

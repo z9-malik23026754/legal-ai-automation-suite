@@ -36,14 +36,17 @@ export const useStartFreeTrial = () => {
       }
 
       // Additional server-side check for previously used trials
+      // Since we can't directly query user_trials table in the database types, 
+      // we'll use a more generic approach
       try {
-        const { data: trialData, error } = await supabase
-          .from('user_trials')
+        const { data, error } = await supabase
+          .from('subscriptions')
           .select('*')
           .eq('user_id', user.id)
+          .eq('plan_type', 'free_trial')
           .maybeSingle();
           
-        if (trialData) {
+        if (data) {
           console.log("Trial previously used (database check) - redirecting to pricing");
           // Mark as used in localStorage for future checks
           localStorage.setItem('has_used_trial_ever', 'true');

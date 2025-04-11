@@ -21,15 +21,20 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
   const { user, subscription } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { startTrial, isProcessing } = useStartFreeTrial();
+  const { startTrial, processing } = useStartFreeTrial();
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
   
   // Check if user has used a trial before and if agents are locked
   useEffect(() => {
-    setHasUsedTrial(hasUsedTrialBefore());
-    setIsTrialExpired(areAIAgentsLocked());
+    const checkTrialStatus = async () => {
+      const trialUsed = await hasUsedTrialBefore();
+      setHasUsedTrial(trialUsed);
+      setIsTrialExpired(areAIAgentsLocked());
+    };
+    
+    checkTrialStatus();
   }, []);
   
   // Check if user has any kind of access
@@ -208,7 +213,7 @@ const AgentAccessGuard: React.FC<AgentAccessGuardProps> = ({ agentId, children }
               <Button 
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90"
                 onClick={startTrial}
-                disabled={isProcessing}
+                disabled={processing}
               >
                 Start 1-Minute Free Trial
               </Button>

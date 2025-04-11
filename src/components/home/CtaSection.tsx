@@ -1,20 +1,29 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider"; // Fix import directly from provider
+import { useAuth } from "@/providers/AuthProvider";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
 import { hasCompletedTrialOrPayment } from "@/utils/forceAgentAccess";
 import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 const CtaSection = () => {
   const { user, subscription } = useAuth();
-  const { startTrial, isProcessing } = useStartFreeTrial();
+  const { startTrial, processing } = useStartFreeTrial();
+  const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  
+  useEffect(() => {
+    const checkTrialStatus = async () => {
+      const trialUsed = await hasUsedTrialBefore();
+      setHasUsedTrial(trialUsed);
+    };
+    
+    checkTrialStatus();
+  }, []);
   
   // Check if user has completed a trial or has a subscription
   const hasCompleted = hasCompletedTrialOrPayment();
-  const hasUsedTrial = hasUsedTrialBefore();
   
   // Check if user already has a trial or subscription
   const hasSubscription = subscription && (
@@ -56,10 +65,10 @@ const CtaSection = () => {
                   console.error("Error starting trial:", e);
                 }
               }}
-              disabled={isProcessing}
+              disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {isProcessing ? 'Processing...' : 'Start 1-Minute Free Trial'}
+              {processing ? 'Processing...' : 'Start 1-Minute Free Trial'}
             </Button>
           )}
           
