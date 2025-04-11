@@ -12,12 +12,13 @@ const HeroButtons = () => {
   const { user, subscription } = useAuth();
   const { startTrial, handleTrialSuccess, processing } = useStartFreeTrial();
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [searchParams] = useSearchParams();
   
   // Check if user has completed a trial or has a subscription
   const hasCompleted = hasCompletedTrialOrPayment();
   
-  // Check if user already has a trial or subscription
+  // Check if user already has a subscription
   const hasSubscription = subscription && (
     subscription.status === 'trial' || 
     subscription.status === 'active' ||
@@ -32,6 +33,7 @@ const HeroButtons = () => {
   // Check trial usage on component mount and whenever user changes
   useEffect(() => {
     const checkTrialStatus = async () => {
+      setIsChecking(true);
       try {
         const trialUsed = await hasUsedTrialBefore();
         setHasUsedTrial(trialUsed);
@@ -42,12 +44,15 @@ const HeroButtons = () => {
         }
       } catch (error) {
         console.error("Error checking trial status:", error);
+        // Default to assuming trial is used on error to prevent multiple trials
+        setHasUsedTrial(true);
       }
+      setIsChecking(false);
     };
     
     checkTrialStatus();
   }, [user]); // Added user dependency to recheck when user changes
-
+  
   // Handle trial success callback
   useEffect(() => {
     const trialSuccess = searchParams.get('trial');
@@ -58,18 +63,23 @@ const HeroButtons = () => {
 
   const handleStartTrial = async () => {
     // Double-check if the user has already used their trial
-    const trialUsed = await hasUsedTrialBefore();
-    if (trialUsed) {
-      return;
-    }
-    
     try {
+      const trialUsed = await hasUsedTrialBefore();
+      if (trialUsed) {
+        setHasUsedTrial(true);
+        return;
+      }
+      
       await startTrial();
     } catch (e) {
       console.error("Error starting trial:", e);
       // Don't show an error toast here as it's handled in the hook
     }
   };
+
+  // Don't show the trial button if it's being checked, the user has a subscription, 
+  // has completed a trial, or has already used their trial
+  const showTrialButton = !isChecking && !hasSubscription && !hasCompleted && !hasUsedTrial;
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
@@ -81,13 +91,13 @@ const HeroButtons = () => {
             </Button>
           </Link>
           
-          {!hasSubscription && !hasCompleted && !hasUsedTrial && (
+          {showTrialButton && (
             <Button 
               size="lg" 
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
               onClick={handleStartTrial}
-              disabled={processing || hasUsedTrial}
+              disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />
               {processing ? 'Processing...' : 'Start 1-Minute Free Trial'}
@@ -101,13 +111,13 @@ const HeroButtons = () => {
               Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
-          {!hasUsedTrial && (
+          {!hasUsedTrial && !isChecking && (
             <Button 
               size="lg" 
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
               onClick={handleStartTrial}
-              disabled={processing || hasUsedTrial}
+              disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />
               {processing ? 'Processing...' : 'Start 1-Minute Free Trial'}

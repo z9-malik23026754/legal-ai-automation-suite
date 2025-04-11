@@ -4,46 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
  * Check if the user has ever used a free trial before (permanent flag)
  */
 export const hasUsedTrialBefore = async (): Promise<boolean> => {
-  // First check localStorage as a quick check
-  if (localStorage.getItem('has_used_trial_ever') === 'true') {
-    return true;
-  }
-  
-  // Check if trial has been completed
-  if (localStorage.getItem('trialCompleted') === 'true') {
-    return true;
-  }
-  
-  // Check if trial has expired
-  if (localStorage.getItem('trialExpiredAt')) {
-    return true;
-  }
-  
-  // Check if agents are locked (which happens when trial expires)
-  if (localStorage.getItem('aiAgentsLocked') === 'true') {
-    return true;
-  }
-  
-  // Check if user has a subscription with trial metadata
-  const subscriptionData = localStorage.getItem('subscription_data');
-  if (subscriptionData) {
-    try {
-      const subscription = JSON.parse(subscriptionData);
-      if (subscription.has_used_trial === true || subscription.trial_used === true) {
-        return true;
-      }
-    } catch (e) {
-      console.error("Error parsing subscription data:", e);
-    }
-  }
-  
-  // Check user metadata in Supabase - this is the most reliable and persistent check
   try {
+    // First check user metadata in Supabase - this is the most reliable and persistent check
     const { data: { user } } = await supabase.auth.getUser();
+    
     if (user) {
-      // Check if user has used trial in metadata
+      // Check if user has used trial in metadata - this persists across login sessions
       if (user.user_metadata?.has_used_trial === true) {
-        // Update localStorage to match
+        console.log("Trial used according to user metadata");
+        // Update localStorage to match for consistency
         localStorage.setItem('has_used_trial_ever', 'true');
         return true;
       }
@@ -59,26 +28,101 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
       if (subError) {
         console.error("Error checking subscriptions:", subError);
       } else if (subData) {
+        console.log("Trial record found in subscriptions table");
+        // If found in database, update user metadata for future checks
+        await supabase.auth.updateUser({
+          data: { has_used_trial: true }
+        });
         localStorage.setItem('has_used_trial_ever', 'true');
         return true;
       }
     }
+    
+    // Fall back to localStorage checks if above checks don't find anything
+    if (localStorage.getItem('has_used_trial_ever') === 'true') {
+      console.log("Trial used according to localStorage");
+      
+      // If found in localStorage but not in user metadata, sync to user metadata
+      if (user && user.user_metadata?.has_used_trial !== true) {
+        await supabase.auth.updateUser({
+          data: { has_used_trial: true }
+        });
+      }
+      
+      return true;
+    }
+    
+    // Check if trial has been completed
+    if (localStorage.getItem('trialCompleted') === 'true') {
+      // Sync to user metadata
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { has_used_trial: true }
+        });
+      }
+      localStorage.setItem('has_used_trial_ever', 'true');
+      return true;
+    }
+    
+    // Check if trial has expired
+    if (localStorage.getItem('trialExpiredAt')) {
+      // Sync to user metadata
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { has_used_trial: true }
+        });
+      }
+      localStorage.setItem('has_used_trial_ever', 'true');
+      return true;
+    }
+    
+    // Check other potential trial flags
+    if (
+      localStorage.getItem('aiAgentsLocked') === 'true' ||
+      (localStorage.getItem('subscription_data') && 
+        JSON.parse(localStorage.getItem('subscription_data'))?.has_used_trial === true)
+    ) {
+      // Sync to user metadata
+      if (user) {
+        await supabase.auth.updateUser({
+          data: { has_used_trial: true }
+        });
+      }
+      localStorage.setItem('has_used_trial_ever', 'true');
+      return true;
+    }
+    
+    return false;
   } catch (e) {
-    console.error("Error checking user metadata:", e);
+    console.error("Error in hasUsedTrialBefore:", e);
+    
+    // Fall back to localStorage in case of errors
+    return localStorage.getItem('has_used_trial_ever') === 'true';
   }
-  
-  return false;
 };
 
 /**
  * Mark that the user has used their trial
  */
 export const markTrialAsUsed = async (): Promise<void> => {
-  // Set the permanent flag in localStorage
-  localStorage.setItem('has_used_trial_ever', 'true');
-  
-  // Also store in subscription data for persistence across sessions
   try {
+    // Set the permanent flag in user metadata - this is the most reliable persistent method
+    const { error } = await supabase.auth.updateUser({
+      data: { 
+        has_used_trial: true, 
+        trial_used_at: new Date().toISOString() 
+      }
+    });
+    
+    if (error) {
+      console.error("Error updating user metadata:", error);
+    } else {
+      console.log("Updated user metadata with trial status");
+    }
+    
+    // Set localStorage flags for redundancy
+    localStorage.setItem('has_used_trial_ever', 'true');
+    
     // Get existing subscription data or create a new object
     const existingData = localStorage.getItem('subscription_data');
     let subscriptionData = existingData ? JSON.parse(existingData) : {};
@@ -91,30 +135,9 @@ export const markTrialAsUsed = async (): Promise<void> => {
     // Save back to localStorage
     localStorage.setItem('subscription_data', JSON.stringify(subscriptionData));
     
-    console.log("Marked trial as used and updated subscription data:", subscriptionData);
-  } catch (e) {
-    console.error("Error updating subscription data in markTrialAsUsed:", e);
-  }
-  
-  // Update user metadata in Supabase - this is the most reliable persistent method
-  try {
+    // Also record in subscriptions table for extra persistence
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      // Update user metadata - this survives logout/login
-      const { error } = await supabase.auth.updateUser({
-        data: { 
-          has_used_trial: true, 
-          trial_used_at: new Date().toISOString() 
-        }
-      });
-      
-      if (error) {
-        console.error("Error updating user metadata:", error);
-      } else {
-        console.log("Updated user metadata with trial status");
-      }
-      
-      // Also record in subscriptions table for extra persistence
       try {
         const { error: insertError } = await supabase
           .from('subscriptions')
@@ -123,7 +146,7 @@ export const markTrialAsUsed = async (): Promise<void> => {
             plan_type: 'free_trial',
             status: 'trial',
             created_at: new Date().toISOString() 
-          }, { onConflict: 'user_id' });
+          }, { onConflict: 'user_id,plan_type' });
           
         if (insertError) {
           console.error("Error recording trial in database:", insertError);
@@ -133,7 +156,9 @@ export const markTrialAsUsed = async (): Promise<void> => {
       }
     }
   } catch (e) {
-    console.error("Error updating user metadata:", e);
+    console.error("Error in markTrialAsUsed:", e);
+    // Set localStorage as fallback
+    localStorage.setItem('has_used_trial_ever', 'true');
   }
 };
 

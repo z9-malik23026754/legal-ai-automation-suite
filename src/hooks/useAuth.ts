@@ -13,6 +13,27 @@ export const useAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check trial status whenever component mounts or user changes
+  const checkTrialStatus = async () => {
+    if (!user) return false;
+    
+    try {
+      // Check if user has used trial using metadata function
+      const trialUsed = await hasUsedTrialBefore();
+      setHasTrialBeenUsed(trialUsed);
+      
+      // If trial has been used, ensure the localStorage flag is set for consistency
+      if (trialUsed) {
+        localStorage.setItem('has_used_trial_ever', 'true');
+      }
+      
+      return trialUsed;
+    } catch (error) {
+      console.error("Error checking trial status:", error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -44,26 +65,6 @@ export const useAuth = () => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // Check if user has used trial before
-  const checkTrialStatus = async () => {
-    if (!user) return false;
-    
-    try {
-      const trialUsed = await hasUsedTrialBefore();
-      setHasTrialBeenUsed(trialUsed);
-      
-      // If trial has been used, set the localStorage flag to ensure consistency
-      if (trialUsed) {
-        localStorage.setItem('has_used_trial_ever', 'true');
-      }
-      
-      return trialUsed;
-    } catch (error) {
-      console.error("Error checking trial status:", error);
-      return false;
-    }
-  };
 
   // Sign out
   const signOut = async () => {

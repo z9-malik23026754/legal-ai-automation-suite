@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,17 +15,29 @@ interface UnsubscribedViewProps {
 const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
   const { startTrial, processing } = useStartFreeTrial();
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
   
   useEffect(() => {
     const checkTrialStatus = async () => {
-      const trialUsed = await hasUsedTrialBefore();
-      setHasUsedTrial(trialUsed);
-      setHasCompleted(hasCompletedTrialOrPayment());
+      setIsChecking(true);
+      try {
+        const trialUsed = await hasUsedTrialBefore();
+        setHasUsedTrial(trialUsed);
+        setHasCompleted(hasCompletedTrialOrPayment());
+      } catch (error) {
+        console.error("Error checking trial status:", error);
+        // Default to assuming trial is used on error to prevent multiple trials
+        setHasUsedTrial(true);
+      }
+      setIsChecking(false);
     };
     
     checkTrialStatus();
   }, []);
+
+  // Don't show trial button if checking status, trial used, or trial completed
+  const showTrialButton = !isChecking && !hasCompleted && !hasUsedTrial;
 
   return (
     <div className="container px-4 py-6 mx-auto max-w-7xl">
@@ -41,7 +54,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
             <Link to="/pricing">View Plans</Link>
           </Button>
           
-          {!hasCompleted && !hasUsedTrial && (
+          {showTrialButton && (
             <Button 
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
@@ -55,7 +68,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
         </div>
       </div>
       
-      {!hasCompleted && !hasUsedTrial && (
+      {showTrialButton && (
         <div className="mb-10">
           <div className="glass-card p-6 border-white/10 rounded-lg shadow-glass">
             <h2 className="text-2xl font-semibold mb-4">Start Your Free Trial Today</h2>
@@ -114,7 +127,7 @@ const UnsubscribedView: React.FC<UnsubscribedViewProps> = ({ userName }) => {
                     ? "Subscribe to individual agents or choose a plan for access."
                     : "Start your free trial to access all AI agents or subscribe to individual agents."}
               </p>
-              {!hasCompleted && !hasUsedTrial ? (
+              {showTrialButton ? (
                 <Button 
                   onClick={startTrial} 
                   disabled={processing}
