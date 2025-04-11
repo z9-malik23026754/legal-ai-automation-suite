@@ -1,7 +1,4 @@
-
 import { supabase } from "@/integrations/supabase/client";
-
-// Add or modify functions in trialTimerUtils.ts
 
 /**
  * Check if the user has ever used a free trial before (permanent flag)
@@ -51,7 +48,7 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
         return true;
       }
       
-      // If user exists, also check for trial subscription in subscriptions table
+      // Check for trial subscription in subscriptions table
       const { data: trialData, error } = await supabase
         .from('subscriptions')
         .select('*')
@@ -119,7 +116,7 @@ export const markTrialAsUsed = async (): Promise<void> => {
         console.log("Updated user metadata with trial status");
       }
       
-      // Also record in subscriptions table instead of user_trials
+      // Record in subscriptions table
       try {
         const { error: insertError } = await supabase
           .from('subscriptions')

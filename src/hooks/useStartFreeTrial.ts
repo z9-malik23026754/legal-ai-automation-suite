@@ -16,7 +16,7 @@ export const useStartFreeTrial = () => {
     try {
       setProcessing(true);
 
-      // CRITICAL: Always check if user has used trial before, both locally and in database
+      // Check if user has used trial before
       const trialUsed = await hasUsedTrialBefore();
       if (trialUsed) {
         console.log("Trial already used - redirecting to pricing page");
@@ -35,9 +35,7 @@ export const useStartFreeTrial = () => {
         return;
       }
 
-      // Additional server-side check for previously used trials
-      // Since we can't directly query user_trials table in the database types, 
-      // we'll use a more generic approach
+      // Additional check for previously used trials in subscriptions table
       try {
         const { data, error } = await supabase
           .from('subscriptions')
@@ -63,20 +61,33 @@ export const useStartFreeTrial = () => {
         console.error("Error checking trial status in database:", e);
       }
 
-      // Create Stripe checkout session for free trial
-      const { data: session, error } = await supabase.functions.invoke("create-checkout-session", {
-        body: { priceId: "price_free_trial" },
-      });
+      // Create checkout session for free trial
+      try {
+        const { data: session, error } = await supabase.functions.invoke("create-checkout-session", {
+          body: { priceId: "price_free_trial" },
+        });
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
+
+        if (!session || !session.url) {
+          throw new Error("No session URL returned from checkout creation");
+        }
+
+        // Mark trial as used BEFORE redirecting
+        await markTrialAsUsed();
+        
+        // Redirect to checkout
+        window.location.href = session.url;
+      } catch (error) {
+        console.error("Error creating checkout session:", error);
+        toast({
+          title: "Error starting trial",
+          description: "There was a problem starting your free trial. Please try again.",
+          variant: "destructive",
+        });
       }
-
-      // Mark trial as used BEFORE redirecting to ensure it's recorded
-      await markTrialAsUsed();
-      
-      // Redirect to Stripe checkout
-      window.location.href = session.url;
     } catch (error) {
       console.error("Error starting trial:", error);
       toast({
