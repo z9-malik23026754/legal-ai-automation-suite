@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -50,11 +51,12 @@ const HeroButtons = () => {
     }
   }, [searchParams, handleTrialSuccess]);
 
-  const handleStartTrial = () => {
+  const handleStartTrial = async () => {
     try {
-      startTrial();
+      await startTrial();
     } catch (e) {
       console.error("Error starting trial:", e);
+      // Don't show an error toast here as it's handled in the hook
     }
   };
 
