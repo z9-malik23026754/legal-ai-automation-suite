@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -10,8 +9,9 @@ import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 const HeroButtons = () => {
   const { user, subscription } = useAuth();
-  const { startTrial, processing } = useStartFreeTrial();
+  const { startTrial, handleTrialSuccess, processing } = useStartFreeTrial();
   const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  const [searchParams] = useSearchParams();
   
   // Check if user has completed a trial or has a subscription
   const hasCompleted = hasCompletedTrialOrPayment();
@@ -36,19 +36,25 @@ const HeroButtons = () => {
         setHasUsedTrial(trialUsed);
       } catch (error) {
         console.error("Error checking trial status:", error);
-        // Don't show toast for this error
       }
     };
     
     checkTrialStatus();
   }, []);
 
+  // Handle trial success callback
+  useEffect(() => {
+    const trialSuccess = searchParams.get('trial');
+    if (trialSuccess === 'success') {
+      handleTrialSuccess();
+    }
+  }, [searchParams, handleTrialSuccess]);
+
   const handleStartTrial = () => {
     try {
       startTrial();
     } catch (e) {
       console.error("Error starting trial:", e);
-      // Error handling is inside startTrial function
     }
   };
 

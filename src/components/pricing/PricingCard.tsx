@@ -1,8 +1,11 @@
-
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Check } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface PricingPlan {
   id: string;
@@ -14,6 +17,8 @@ export interface PricingPlan {
   features: string[];
   color: string;
   popular?: boolean;
+  priceId: string;
+  price: number;
 }
 
 interface PricingCardProps {
@@ -31,6 +36,37 @@ const PricingCard: React.FC<PricingCardProps> = ({
   isProcessing,
   onSubscribe
 }) => {
+  const handleSubscribe = async () => {
+    try {
+      const { data: session, error } = await supabase.functions.invoke("create-checkout-session", {
+        body: { 
+          priceId: plan.priceId,
+          successUrl: `${window.location.origin}/dashboard?subscription=success`,
+          cancelUrl: `${window.location.origin}/pricing`,
+          mode: "subscription"
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!session || !session.url) {
+        throw new Error("No session URL returned from checkout creation");
+      }
+
+      // Redirect to Stripe checkout
+      window.location.href = session.url;
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem processing your subscription. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card 
       className={`relative transition-all duration-300 hover:translate-y-[-5px] ${
@@ -72,7 +108,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
         <ul className="space-y-3">
           {plan.features.map((feature, idx) => (
             <li key={idx} className="flex items-center">
-              <CheckCircle className={`h-4 w-4 text-${plan.color} mr-2 flex-shrink-0`} />
+              <Check className="mr-2 h-4 w-4 text-primary" />
               <span className="text-sm">{feature}</span>
             </li>
           ))}
@@ -83,7 +119,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
           className={`w-full ${
             plan.popular ? `bg-${plan.color} hover:bg-${plan.color}/90` : ""
           }`}
-          onClick={onSubscribe}
+          onClick={handleSubscribe}
           disabled={isSubscribed || isProcessing}
         >
           {isSubscribed ? "Subscribed" : isProcessing ? "Processing..." : "Subscribe"}

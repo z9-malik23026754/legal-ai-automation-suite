@@ -39,7 +39,9 @@ export const useStartFreeTrial = () => {
         body: { 
           priceId: "price_free_trial",
           successUrl: `${window.location.origin}/dashboard?trial=success`,
-          cancelUrl: `${window.location.origin}/pricing`
+          cancelUrl: `${window.location.origin}/pricing`,
+          mode: "subscription",
+          trialPeriodDays: 1
         },
       });
 
@@ -50,14 +52,11 @@ export const useStartFreeTrial = () => {
       if (!session || !session.url) {
         throw new Error("No session URL returned from checkout creation");
       }
-
-      // Mark trial as used BEFORE redirecting
-      await markTrialAsUsed();
       
       // Redirect to checkout
       window.location.href = session.url;
     } catch (error) {
-      console.error("Error creating checkout session:", error);
+      console.error("Error starting trial:", error);
       toast({
         title: "Error starting trial",
         description: "There was a problem starting your free trial. Please try again.",
@@ -70,7 +69,8 @@ export const useStartFreeTrial = () => {
 
   const handleTrialSuccess = async () => {
     try {
-      // Start the trial timer
+      // Mark trial as used and start the timer
+      await markTrialAsUsed();
       startTrialTimer();
 
       // Set trial completed flag
