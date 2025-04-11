@@ -184,11 +184,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                 <Button 
                   onClick={startTrial} 
                   size="lg"
-                  disabled={isProcessing}
+                  disabled={processing}
                   className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
                 >
                   <Clock className="mr-2 h-4 w-4" />
-                  {isProcessing ? "Processing..." : "Start 1-Minute Free Trial"}
+                  {processing ? "Processing..." : "Start 1-Minute Free Trial"}
                 </Button>
               ) : (
                 <Button 
