@@ -10,11 +10,11 @@ import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 const HeroButtons = () => {
   const { user, subscription } = useAuth();
-  const { startTrial, isProcessing } = useStartFreeTrial();
+  const { startTrial, processing: isProcessing } = useStartFreeTrial();
+  const [hasUsedTrial, setHasUsedTrial] = useState(false);
   
   // Check if user has completed a trial or has a subscription
   const hasCompleted = hasCompletedTrialOrPayment();
-  const hasUsedTrial = hasUsedTrialBefore();
   
   // Check if user already has a trial or subscription
   const hasSubscription = subscription && (
@@ -27,6 +27,16 @@ const HeroButtons = () => {
     subscription.luther ||
     subscription.allInOne
   );
+  
+  // Check trial usage on component mount
+  useEffect(() => {
+    const checkTrialStatus = async () => {
+      const trialUsed = await hasUsedTrialBefore();
+      setHasUsedTrial(trialUsed);
+    };
+    
+    checkTrialStatus();
+  }, []);
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">

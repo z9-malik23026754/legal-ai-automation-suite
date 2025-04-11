@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -15,9 +16,10 @@ export const useStartFreeTrial = () => {
     try {
       setProcessing(true);
 
-      // Check if user has used trial before
+      // CRITICAL: Always check if user has used trial before, both locally and in database
       const trialUsed = await hasUsedTrialBefore();
       if (trialUsed) {
+        console.log("Trial already used - redirecting to pricing page");
         toast({
           title: "Trial already used",
           description: "You have already used your free trial. Please upgrade to continue.",
@@ -33,6 +35,31 @@ export const useStartFreeTrial = () => {
         return;
       }
 
+      // Additional server-side check for previously used trials
+      try {
+        const { data: trialData, error } = await supabase
+          .from('user_trials')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+          
+        if (trialData) {
+          console.log("Trial previously used (database check) - redirecting to pricing");
+          // Mark as used in localStorage for future checks
+          localStorage.setItem('has_used_trial_ever', 'true');
+          
+          toast({
+            title: "Trial already used",
+            description: "You have already used your free trial. Please upgrade to continue.",
+            variant: "destructive",
+          });
+          navigate("/pricing");
+          return;
+        }
+      } catch (e) {
+        console.error("Error checking trial status in database:", e);
+      }
+
       // Create Stripe checkout session for free trial
       const { data: session, error } = await supabase.functions.invoke("create-checkout-session", {
         body: { priceId: "price_free_trial" },
@@ -42,6 +69,9 @@ export const useStartFreeTrial = () => {
         throw error;
       }
 
+      // Mark trial as used BEFORE redirecting to ensure it's recorded
+      await markTrialAsUsed();
+      
       // Redirect to Stripe checkout
       window.location.href = session.url;
     } catch (error) {
@@ -59,6 +89,19 @@ export const useStartFreeTrial = () => {
   const initiateStripeCheckout = async () => {
     try {
       setProcessing(true);
+
+      // Check one more time before initiating checkout
+      const trialUsed = await hasUsedTrialBefore();
+      if (trialUsed) {
+        console.log("Trial already used - blocking checkout initiation");
+        toast({
+          title: "Trial already used",
+          description: "You have already used your free trial. Please upgrade to continue.",
+          variant: "destructive",
+        });
+        navigate("/pricing");
+        return;
+      }
 
       // Create Stripe checkout session
       const { data: session, error } = await supabase.functions.invoke("create-checkout-session", {

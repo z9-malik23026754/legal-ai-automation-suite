@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,6 +9,7 @@ export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasTrialBeenUsed, setHasTrialBeenUsed] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -16,6 +18,12 @@ export const useAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Check trial status whenever user changes
+      if (session?.user) {
+        checkTrialStatus();
+      }
+      
       setLoading(false);
     });
 
@@ -25,6 +33,12 @@ export const useAuth = () => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Check trial status whenever user changes
+      if (session?.user) {
+        checkTrialStatus();
+      }
+      
       setLoading(false);
     });
 
@@ -37,6 +51,7 @@ export const useAuth = () => {
     
     try {
       const trialUsed = await hasUsedTrialBefore();
+      setHasTrialBeenUsed(trialUsed);
       return trialUsed;
     } catch (error) {
       console.error("Error checking trial status:", error);
@@ -67,6 +82,7 @@ export const useAuth = () => {
     user,
     session,
     loading,
+    hasTrialBeenUsed,
     signOut,
     checkTrialStatus,
   };

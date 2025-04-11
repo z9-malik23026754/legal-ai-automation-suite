@@ -228,6 +228,20 @@ serve(async (req) => {
       throw new Error("User email not available");
     }
     
+    // CRITICAL: Check if user has used trial before in user metadata
+    const { data: userData, error: userDataError } = await supabase.auth.admin.getUserById(userId);
+    if (userDataError) {
+      console.error("Error fetching user data:", userDataError);
+    } else if (userData?.user?.user_metadata?.has_used_trial === true) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: "You have already used your free trial based on user metadata" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+    
     // Check if user already has an active trial or subscription
     const existingSubscription = await checkExistingSubscription(userId, supabase);
     
@@ -243,9 +257,18 @@ serve(async (req) => {
       });
     }
     
-    // Check if user has used a trial before
+    // Check if user has used a trial before in the user_trials table
     const userHasUsedTrial = await hasUsedTrialBefore(userId, supabase);
     if (userHasUsedTrial) {
+      // Also update user metadata to mark trial as used for future quick checks
+      try {
+        await supabase.auth.admin.updateUserById(userId, {
+          user_metadata: { has_used_trial: true }
+        });
+      } catch (e) {
+        console.error("Error updating user metadata:", e);
+      }
+      
       return new Response(JSON.stringify({ 
         success: false,
         error: "You have already used your free trial" 
@@ -273,8 +296,17 @@ serve(async (req) => {
       stripe
     );
     
-    // Record trial usage
+    // Record trial usage IMMEDIATELY when session is created
     await recordTrialUsage(userId, supabase);
+    
+    // Update user metadata to mark trial as used
+    try {
+      await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: { has_used_trial: true, trial_used_at: new Date().toISOString() }
+      });
+    } catch (e) {
+      console.error("Error updating user metadata:", e);
+    }
     
     // Pre-create a subscription record to ensure the user gets instant access
     const { error: subCreationError } = await supabase

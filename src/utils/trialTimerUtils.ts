@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Add or modify functions in trialTimerUtils.ts
@@ -49,6 +50,25 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
         localStorage.setItem('has_used_trial_ever', 'true');
         return true;
       }
+      
+      // If user exists, also check in the user_trials table in database
+      const { data: trialData, error } = await supabase
+        .from('user_trials')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+        
+      if (trialData) {
+        // If found in database, update localStorage and return true
+        localStorage.setItem('has_used_trial_ever', 'true');
+        
+        // Also update user metadata for future quick checks
+        await supabase.auth.updateUser({
+          data: { has_used_trial: true }
+        });
+        
+        return true;
+      }
     }
   } catch (e) {
     console.error("Error checking user metadata:", e);
@@ -87,6 +107,7 @@ export const markTrialAsUsed = async (): Promise<void> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      // Update user metadata
       const { error } = await supabase.auth.updateUser({
         data: { has_used_trial: true, trial_used_at: new Date().toISOString() }
       });
@@ -95,6 +116,22 @@ export const markTrialAsUsed = async (): Promise<void> => {
         console.error("Error updating user metadata:", error);
       } else {
         console.log("Updated user metadata with trial status");
+      }
+      
+      // Also record in user_trials table for better persistence
+      try {
+        const { error: insertError } = await supabase
+          .from('user_trials')
+          .upsert({ 
+            user_id: user.id, 
+            trial_started_at: new Date().toISOString() 
+          }, { onConflict: 'user_id' });
+          
+        if (insertError) {
+          console.error("Error recording trial in database:", insertError);
+        }
+      } catch (e) {
+        console.error("Error inserting trial record:", e);
       }
     }
   } catch (e) {
