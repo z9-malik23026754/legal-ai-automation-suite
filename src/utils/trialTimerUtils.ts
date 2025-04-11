@@ -146,9 +146,6 @@ export const startTrialTimer = (): void => {
   const now = new Date().toISOString();
   localStorage.setItem('accessGrantedAt', now);
   console.log("Trial timer started at:", now);
-  
-  // Also mark that the user has used a trial (permanent)
-  markTrialAsUsed();
 };
 
 /**
@@ -156,6 +153,8 @@ export const startTrialTimer = (): void => {
  */
 export const resetTrialTimer = (): void => {
   localStorage.removeItem('accessGrantedAt');
+  localStorage.removeItem('trialExpiredAt');
+  localStorage.removeItem('aiAgentsLocked');
 };
 
 /**

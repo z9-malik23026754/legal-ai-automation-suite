@@ -69,19 +69,23 @@ export const useStartFreeTrial = () => {
 
   const handleTrialSuccess = async () => {
     try {
-      // Mark trial as used and start the timer
-      await markTrialAsUsed();
+      // First start the trial timer
       startTrialTimer();
 
-      // Set trial completed flag
+      // Set trial access flags
       localStorage.setItem('trialCompleted', 'true');
       localStorage.setItem('forceAgentAccess', 'true');
+      localStorage.removeItem('aiAgentsLocked');
+      localStorage.removeItem('trialExpiredAt');
 
       // Show success message
       toast({
         title: "Free trial activated!",
-        description: "Your free trial has started. Enjoy access to all AI agents.",
+        description: "Your free trial has started. Enjoy access to all AI agents for 1 minute.",
       });
+
+      // Mark trial as used AFTER setting up the timer
+      await markTrialAsUsed();
 
       // Redirect to dashboard
       navigate("/dashboard");
