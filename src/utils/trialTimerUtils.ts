@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -48,7 +49,7 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
         return true;
       }
       
-      // Using fallback to check subscriptions table since user_trials table doesn't exist
+      // Using fallback to check subscriptions table instead of user_trials table
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
@@ -111,7 +112,7 @@ export const markTrialAsUsed = async (): Promise<void> => {
         console.log("Updated user metadata with trial status");
       }
       
-      // Fallback to subscriptions table
+      // Fallback to subscriptions table instead of using user_trials table
       try {
         const { error: insertError } = await supabase
           .from('subscriptions')
@@ -120,7 +121,7 @@ export const markTrialAsUsed = async (): Promise<void> => {
             plan_type: 'free_trial',
             status: 'trial',
             created_at: new Date().toISOString() 
-          }, { onConflict: 'user_id,plan_type' });
+          }, { onConflict: 'user_id' });
           
         if (insertError) {
           console.error("Error recording trial in database:", insertError);
