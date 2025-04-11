@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -38,7 +37,7 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
     }
   }
   
-  // Check user metadata in Supabase
+  // Check user metadata in Supabase - this is the most reliable and persistent check
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -49,7 +48,7 @@ export const hasUsedTrialBefore = async (): Promise<boolean> => {
         return true;
       }
       
-      // Using fallback to check subscriptions table instead of user_trials table
+      // Check subscriptions table for any trial records for this user
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
@@ -97,13 +96,16 @@ export const markTrialAsUsed = async (): Promise<void> => {
     console.error("Error updating subscription data in markTrialAsUsed:", e);
   }
   
-  // Update user metadata in Supabase
+  // Update user metadata in Supabase - this is the most reliable persistent method
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      // Update user metadata
+      // Update user metadata - this survives logout/login
       const { error } = await supabase.auth.updateUser({
-        data: { has_used_trial: true, trial_used_at: new Date().toISOString() }
+        data: { 
+          has_used_trial: true, 
+          trial_used_at: new Date().toISOString() 
+        }
       });
       
       if (error) {
@@ -112,7 +114,7 @@ export const markTrialAsUsed = async (): Promise<void> => {
         console.log("Updated user metadata with trial status");
       }
       
-      // Fallback to subscriptions table instead of using user_trials table
+      // Also record in subscriptions table for extra persistence
       try {
         const { error: insertError } = await supabase
           .from('subscriptions')

@@ -1,10 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useStartFreeTrial } from "@/hooks/useStartFreeTrial";
+import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 
 interface FreeTrialFormProps {
   onClose: () => void;
@@ -14,6 +15,19 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { startTrial, processing } = useStartFreeTrial();
+  const [hasUsedTrial, setHasUsedTrial] = useState(false);
+  
+  // Check if the user has already used their free trial
+  useEffect(() => {
+    if (user) {
+      const checkTrialStatus = async () => {
+        const trialUsed = await hasUsedTrialBefore();
+        setHasUsedTrial(trialUsed);
+      };
+      
+      checkTrialStatus();
+    }
+  }, [user]);
 
   const handleStartTrial = async () => {
     if (!user) {
@@ -29,6 +43,17 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
       toast({
         title: "Email verification required",
         description: "Please verify your email before starting your free trial.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Double-check if the user has already used their trial
+    const trialUsed = await hasUsedTrialBefore();
+    if (trialUsed) {
+      toast({
+        title: "Trial already used",
+        description: "You have already used your free trial. Please choose a subscription plan to continue.",
         variant: "destructive",
       });
       return;
@@ -51,7 +76,7 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
     <div className="flex flex-col items-center gap-4">
       <Button
         onClick={handleStartTrial}
-        disabled={processing || !user?.email_confirmed_at}
+        disabled={processing || !user?.email_confirmed_at || hasUsedTrial}
         className="w-full max-w-sm"
       >
         {processing ? (
@@ -66,6 +91,11 @@ const FreeTrialForm: React.FC<FreeTrialFormProps> = ({ onClose }) => {
       {!user?.email_confirmed_at && (
         <p className="text-sm text-muted-foreground">
           Please verify your email to start your free trial
+        </p>
+      )}
+      {hasUsedTrial && (
+        <p className="text-sm text-amber-600">
+          You have already used your free trial
         </p>
       )}
     </div>

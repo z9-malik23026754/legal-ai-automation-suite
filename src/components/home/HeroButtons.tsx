@@ -29,19 +29,24 @@ const HeroButtons = () => {
     subscription.allInOne
   );
   
-  // Check trial usage on component mount
+  // Check trial usage on component mount and whenever user changes
   useEffect(() => {
     const checkTrialStatus = async () => {
       try {
         const trialUsed = await hasUsedTrialBefore();
         setHasUsedTrial(trialUsed);
+        
+        // If trial has been used, ensure the localStorage flag is set
+        if (trialUsed) {
+          localStorage.setItem('has_used_trial_ever', 'true');
+        }
       } catch (error) {
         console.error("Error checking trial status:", error);
       }
     };
     
     checkTrialStatus();
-  }, []);
+  }, [user]); // Added user dependency to recheck when user changes
 
   // Handle trial success callback
   useEffect(() => {
@@ -52,6 +57,12 @@ const HeroButtons = () => {
   }, [searchParams, handleTrialSuccess]);
 
   const handleStartTrial = async () => {
+    // Double-check if the user has already used their trial
+    const trialUsed = await hasUsedTrialBefore();
+    if (trialUsed) {
+      return;
+    }
+    
     try {
       await startTrial();
     } catch (e) {
@@ -76,7 +87,7 @@ const HeroButtons = () => {
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
               onClick={handleStartTrial}
-              disabled={processing}
+              disabled={processing || hasUsedTrial}
             >
               <Clock className="mr-2 h-4 w-4" />
               {processing ? 'Processing...' : 'Start 1-Minute Free Trial'}
@@ -96,7 +107,7 @@ const HeroButtons = () => {
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
               onClick={handleStartTrial}
-              disabled={processing}
+              disabled={processing || hasUsedTrial}
             >
               <Clock className="mr-2 h-4 w-4" />
               {processing ? 'Processing...' : 'Start 1-Minute Free Trial'}

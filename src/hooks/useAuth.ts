@@ -8,7 +8,7 @@ import { hasUsedTrialBefore } from "@/utils/trialTimerUtils";
 export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setIsLoading] = useState(true);
   const [hasTrialBeenUsed, setHasTrialBeenUsed] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -24,7 +24,7 @@ export const useAuth = () => {
         checkTrialStatus();
       }
       
-      setLoading(false);
+      setIsLoading(false);
     });
 
     // Listen for auth changes
@@ -39,7 +39,7 @@ export const useAuth = () => {
         checkTrialStatus();
       }
       
-      setLoading(false);
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -52,6 +52,12 @@ export const useAuth = () => {
     try {
       const trialUsed = await hasUsedTrialBefore();
       setHasTrialBeenUsed(trialUsed);
+      
+      // If trial has been used, set the localStorage flag to ensure consistency
+      if (trialUsed) {
+        localStorage.setItem('has_used_trial_ever', 'true');
+      }
+      
       return trialUsed;
     } catch (error) {
       console.error("Error checking trial status:", error);
@@ -86,4 +92,4 @@ export const useAuth = () => {
     signOut,
     checkTrialStatus,
   };
-}; 
+};
