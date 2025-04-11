@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Code, Clock } from "lucide-react";
@@ -6,7 +7,6 @@ import MessageBubble from "@/components/chat/MessageBubble";
 import LoadingIndicator from "@/components/chat/LoadingIndicator";
 import ChatHeader from "@/components/chat/ChatHeader";
 import ChatFooter from "@/components/chat/ChatFooter";
-import ConnorChat from "@/components/chat/ConnorChat";
 import { Message } from "@/types/chat";
 import { getSimulatedResponse } from "@/utils/chatResponseUtils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,11 +26,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   webhookUrl,
   onWebhookChange
 }) => {
-  // If this is the Connor agent, render the dedicated ConnorChat component
-  if (agentName === 'Connor') {
-    return <ConnorChat />;
-  }
-
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
