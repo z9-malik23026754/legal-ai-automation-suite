@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -50,7 +49,7 @@ const Navbar = () => {
         await supabase.auth.signOut({ scope: 'global' });
       }
       
-      // Show toast notification
+      // Only show success toast for successful signout
       toast({
         title: "Signed out successfully",
         description: "You have been signed out of your account.",
@@ -58,12 +57,10 @@ const Navbar = () => {
       
       // Force navigation to home page
       navigate("/");
-      
-      // For maximum reliability, also force a page reload
-      window.location.href = "/";
     } catch (error) {
       console.error("Error signing out:", error);
       
+      // Only show error toast if there was actually an error
       toast({
         title: "Error signing out",
         description: "There was a problem signing you out. Please try again.",

@@ -31,12 +31,26 @@ const HeroButtons = () => {
   // Check trial usage on component mount
   useEffect(() => {
     const checkTrialStatus = async () => {
-      const trialUsed = await hasUsedTrialBefore();
-      setHasUsedTrial(trialUsed);
+      try {
+        const trialUsed = await hasUsedTrialBefore();
+        setHasUsedTrial(trialUsed);
+      } catch (error) {
+        console.error("Error checking trial status:", error);
+        // Don't show toast for this error
+      }
     };
     
     checkTrialStatus();
   }, []);
+
+  const handleStartTrial = () => {
+    try {
+      startTrial();
+    } catch (e) {
+      console.error("Error starting trial:", e);
+      // Error handling is inside startTrial function
+    }
+  };
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
@@ -53,13 +67,7 @@ const HeroButtons = () => {
               size="lg" 
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
-              onClick={() => {
-                try {
-                  startTrial();
-                } catch (e) {
-                  console.error("Error starting trial:", e);
-                }
-              }}
+              onClick={handleStartTrial}
               disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />
@@ -79,13 +87,7 @@ const HeroButtons = () => {
               size="lg" 
               variant="default" 
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90 shadow-lg"
-              onClick={() => {
-                try {
-                  startTrial();
-                } catch (e) {
-                  console.error("Error starting trial:", e);
-                }
-              }}
+              onClick={handleStartTrial}
               disabled={processing}
             >
               <Clock className="mr-2 h-4 w-4" />

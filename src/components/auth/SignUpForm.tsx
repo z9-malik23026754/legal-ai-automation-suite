@@ -83,7 +83,7 @@ const SignUpForm = () => {
         throw result.error;
       }
       
-      // Success message
+      // Only show success message on successful account creation
       toast({
         title: "Account created successfully",
         description: "You can now sign in with your credentials",
@@ -101,10 +101,10 @@ const SignUpForm = () => {
           description: "Please sign in with your existing account",
           variant: "destructive",
         });
-      } else {
+      } else if (error.message) {
         toast({
           title: "Error creating account",
-          description: error.message || "Please try again later",
+          description: error.message,
           variant: "destructive",
         });
       }

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
@@ -92,6 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       if (result.data?.user && !result.data.user.email_confirmed_at) {
+        // Only show verification toast when we actually need email verification
         toast({
           title: "Email verification required",
           description: "Please check your email to verify your account before starting your free trial.",
@@ -137,23 +139,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log("Sign out successful");
       
-      toast({
-        title: "Signed out successfully",
-        description: "You have been signed out of your account.",
-      });
+      // Success toast is now handled in the Navbar component
       
     } catch (error: any) {
       console.error("Error signing out:", error.message);
-      
-      toast({
-        title: "Error signing out",
-        description: "There was an error signing out. Please try again.",
-        variant: "destructive",
-      });
-      
-      // As a last resort, try a page reload
-      window.location.reload();
-      
+      // Error toast is now handled in the Navbar component
       throw error;
     }
   };

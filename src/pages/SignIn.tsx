@@ -48,23 +48,24 @@ const SignIn = () => {
       // We don't need to navigate as the useEffect will handle that
     } catch (error) {
       console.error("Login error:", error);
-      let message = "Failed to sign in. Please try again.";
       
-      // Handle specific error types
+      // Only show error toast for actual authentication errors
       if (error instanceof AuthError) {
+        let message = "Failed to sign in. Please try again.";
+        
         if (error.message.includes("Invalid login credentials")) {
           message = "The email or password you entered is incorrect";
         } else if (error.message.includes("rate limit")) {
           message = "Too many login attempts. Please try again later";
         }
+        
+        setErrorMessage(message);
+        toast({
+          title: "Sign in failed",
+          description: message,
+          variant: "destructive",
+        });
       }
-      
-      setErrorMessage(message);
-      toast({
-        title: "Sign in failed",
-        description: message,
-        variant: "destructive",
-      });
     } finally {
       setIsSubmitting(false);
     }

@@ -59,6 +59,7 @@ export const useStartFreeTrial = () => {
         }
       } catch (e) {
         console.error("Error checking trial status in database:", e);
+        // Don't show error toast for this check
       }
 
       // Create checkout session for free trial
@@ -124,6 +125,10 @@ export const useStartFreeTrial = () => {
 
       if (error) {
         throw error;
+      }
+
+      if (!session || !session.url) {
+        throw new Error("No session URL returned from checkout creation");
       }
 
       // Mark trial as used
